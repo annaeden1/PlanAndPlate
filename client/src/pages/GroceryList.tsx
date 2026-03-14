@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -23,26 +23,34 @@ export const GroceryList = () => {
   const [items, setItems] = useState<Item[]>(MOCK_ITEMS);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleToggleCheck = (id: string) => {
+  const handleToggleCheck = useCallback((id: string) => {
     setItems((prev) =>
       prev.map((item) =>
         item.id === id ? { ...item, isChecked: !item.isChecked } : item
       )
     );
-  };
+  }, []);
 
-  const handleDeleteItem = (id: string) => {
+  const handleDeleteItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((item) => item.id !== id));
-  };
+  }, []);
 
-  const filteredItems = items.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredItems = useMemo(() => {
+    return items.filter((item) =>
+      item.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [items, searchQuery]);
 
-  const totalItems = items.length;
-  const checkedItems = items.filter((item) => item.isChecked).length;
-  const itemsToBuy = totalItems - checkedItems;
-  const percentage = totalItems === 0 ? 0 : (checkedItems / totalItems) * 100;
+  const { totalItems, checkedItems, itemsToBuy, percentage } = useMemo(() => {
+    const total = items.length;
+    const checked = items.filter((item) => item.isChecked).length;
+    return {
+      totalItems: total,
+      checkedItems: checked,
+      itemsToBuy: total - checked,
+      percentage: total === 0 ? 0 : (checked / total) * 100
+    };
+  }, [items]);
 
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem' }}>
