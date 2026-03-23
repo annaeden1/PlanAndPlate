@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CssBaseline, ThemeProvider, createTheme, Typography, Box } from "@mui/material";
 import { MainLayout } from "./components/layout/MainLayout";
+import { GroceryList } from "./pages/GroceryList";
 
 const theme = createTheme({
   palette: {
@@ -34,7 +35,7 @@ function App() {
           <Routes>
             <Route path="/"        element={<Page title="🏠 Home" />} />
             <Route path="/planner" element={<Page title="📅 Planner" />} />
-            <Route path="/cart"    element={<Page title="🛒 Cart" />} />
+            <Route path="/cart"    element={<GroceryList />} />
             <Route path="/scanner" element={<Page title="📷 Scanner" />} />
             <Route path="/profile" element={<Page title="👤 Profile" />} />
           </Routes>
