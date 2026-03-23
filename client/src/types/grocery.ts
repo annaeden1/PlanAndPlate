@@ -1,4 +1,4 @@
-export interface Item {
+export interface IGroceryItem {
   id: string;
   name: string;
   neededAmount: number;

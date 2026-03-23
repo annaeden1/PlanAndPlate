@@ -11,16 +11,16 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import { ProgressCard } from '../components/common/ProgressCard';
 import { GroceryItemCard } from '../components/grocery/GroceryItemCard';
-import type { Item } from '../types/grocery';
+import type { IGroceryItem } from '../types/grocery';
 
-const MOCK_ITEMS: Item[] = [
+const MOCK_ITEMS: IGroceryItem[] = [
   { id: '1', name: 'Avocados', neededAmount: 3, unit: 'pcs', isChecked: false },
   { id: '2', name: 'Cherry Tomatoes', neededAmount: 1, unit: 'pack', isChecked: false },
   { id: '3', name: 'Fresh Spinach', neededAmount: 1, unit: 'bunch', isChecked: true },
 ];
 
 export const GroceryList = () => {
-  const [items, setItems] = useState<Item[]>(MOCK_ITEMS);
+  const [items, setItems] = useState<IGroceryItem[]>(MOCK_ITEMS);
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleToggleCheck = useCallback((id: string) => {
