@@ -1,0 +1,43 @@
+{
+  "name": "barcode",
+  "version": "1.0.0",
+  "description": "Barcode service for the Plan and Plate web application",
+  "license": "ISC",
+  "author": "Yarin, Anna, Li-am, Noya",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "tsc && jest --runInBand --detectOpenHandles --forceExit",
+    "start": "tsc && node --env-file=.env ./dist/src/server.js",
+    "lint": "eslint . --ext .ts",
+    "dev": "nodemon ./src/server.ts"
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.3",
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^4.17.25",
+    "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/supertest": "^6.0.3",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "eslint": "^9.39.3",
+    "globals": "^16.5.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  }
+}
