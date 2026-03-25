@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import { MainLayout } from "./components/layout/MainLayout";
 import { MealPlanner } from "./pages/mealPlanner";
+import { RecipeDetail } from "./pages/recipeDetail";
 
 const theme = createTheme({
   palette: {
@@ -43,6 +44,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Page title="🏠 Home" />} />
             <Route path="/planner" element={<MealPlanner />} />
+            <Route path="/recipe" element={<RecipeDetail />} />
             <Route path="/cart" element={<Page title="🛒 Cart" />} />
             <Route path="/scanner" element={<Page title="📷 Scanner" />} />
             <Route path="/profile" element={<Page title="👤 Profile" />} />

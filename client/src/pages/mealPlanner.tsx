@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
 // import { PageHeader } from "../components/PageHeader";
 import { WeeklyTimeline } from "../components/menu/weeklyTimeLine";
@@ -69,12 +70,12 @@ const WEEKLY_MEALS: Record<string, MealPlanItem[]> = {
 };
 
 interface MealPlannerProps {
-  onNavigate?: (screen: string, data?: any) => void;
 }
 
-export function MealPlanner({ onNavigate }: MealPlannerProps) {
+export function MealPlanner({ }: MealPlannerProps) {
   const [selectedDay, setSelectedDay] = useState("Mon");
   const [currentWeek, setCurrentWeek] = useState(0);
+  const navigate = useNavigate();
 
   const selectedMeals = WEEKLY_MEALS[selectedDay] || [];
 
@@ -113,7 +114,7 @@ export function MealPlanner({ onNavigate }: MealPlannerProps) {
                 <PlannedMealCard
                   key={meal.id}
                   meal={meal}
-                  onViewRecipe={(m) => onNavigate && onNavigate("recipe", m)}
+                  onViewRecipe={(meal) => navigate('/recipe', { state: { recipe: meal } })}
                 />
               ))}
             </Box>
