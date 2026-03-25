@@ -72,6 +72,7 @@ export function WeeklyTimeline({
             maxWidth: "80rem",
             mx: "auto",
             display: "flex",
+            justifyContent: "center",
             gap: "0.5rem",
             overflowX: "auto",
             pb: "0.5rem",
