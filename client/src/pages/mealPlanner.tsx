@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
-// import { PageHeader } from "../components/PageHeader";
 import { WeeklyTimeline } from "../components/menu/weeklyTimeLine";
 import { PlannedMealCard } from "../components/menu/mealPlannerCard";
 import { MealPlannerEmptyState } from "../components/menu/mealPlannerEmptyState";
 import type { MealPlanItem } from "../types/mealPlanner";
+import { Typography } from "@mui/material";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -81,10 +81,16 @@ export function MealPlanner({ }: MealPlannerProps) {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>
-      {/* <PageHeader
-        title="Weekly Planner"
-        subtitle="Your personalized weekly menu"
-      /> */}
+      <Box sx={{ maxWidth: 3000, mx: 'auto', p: '1.5rem' }}>
+      {/* Header Section */}
+      <Box sx={{ mb: '2rem' }}>
+        <Typography variant="h4" fontWeight="bold">
+          Weekly Planner
+        </Typography>
+        <Typography variant="subtitle1" color="text.secondary">
+          Your personalized weekly menu
+        </Typography>
+      </Box>
 
       <WeeklyTimeline
         currentWeek={currentWeek}
@@ -121,6 +127,7 @@ export function MealPlanner({ }: MealPlannerProps) {
           )}
         </Box>
       </Box>
+    </Box>
     </Box>
   );
 }
