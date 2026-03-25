@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CssBaseline, ThemeProvider, createTheme, Typography, Box } from "@mui/material";
 import { MainLayout } from "./components/layout/MainLayout";
+import { HomePage } from "./pages/Home/HomePage";
 
 const theme = createTheme({
   palette: {
@@ -32,7 +33,7 @@ function App() {
       <BrowserRouter>
         <MainLayout>
           <Routes>
-            <Route path="/"        element={<Page title="🏠 Home" />} />
+            <Route path="/"        element={<HomePage />} />
             <Route path="/planner" element={<Page title="📅 Planner" />} />
             <Route path="/cart"    element={<Page title="🛒 Cart" />} />
             <Route path="/scanner" element={<Page title="📷 Scanner" />} />
