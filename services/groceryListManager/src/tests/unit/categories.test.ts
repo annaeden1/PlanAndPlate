@@ -1,4 +1,4 @@
-import { normalizeAisle } from '../../config/categories';
+import { normalizeAisle } from '../../types/categories';
 
 describe('Categories Config - normalizeAisle', () => {
   it('maps known primary aisles correctly', () => {

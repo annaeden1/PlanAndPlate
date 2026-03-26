@@ -14,18 +14,15 @@ describe('GroceryList API - Integration Tests', () => {
   let app: Express;
 
   beforeAll(async () => {
-    // initApp connects to DB via MONGODB_URI in .env.test
     process.env.SPOONACULAR_API_KEY = 'test-key';
     app = await initApp();
   });
 
   afterEach(async () => {
-    // Clear the grocery list for the test user after each test
     await GroceryList.deleteMany({ userId: TEST_USER_ID });
   });
 
   afterAll(async () => {
-    // Close mongoose connection
     await mongoose.connection.close();
   });
 
@@ -37,7 +34,6 @@ describe('GroceryList API - Integration Tests', () => {
     });
 
     it('returns grouped list when products exist', async () => {
-      // Add a product first
       await request(app)
         .post(`/grocerylist/users/${TEST_USER_ID}/products`)
         .send({ name: 'milk', quantity: 2, unit: 'l', aisle: 'dairy' });
@@ -50,14 +46,21 @@ describe('GroceryList API - Integration Tests', () => {
       expect(res.body[0].items[0].name).toBe('milk');
     });
 
-    it('filters products by name when productName query is provided', async () => {
-      // Add two products
+  });
+
+  describe('GET /grocerylist/users/:userId/products/search', () => {
+    it('returns 400 when q query is missing', async () => {
+      const res = await request(app).get(`/grocerylist/users/${TEST_USER_ID}/products/search`);
+      expect(res.status).toBe(400);
+    });
+
+    it('filters products by name when q query is provided', async () => {
       await request(app).post(`/grocerylist/users/${TEST_USER_ID}/products`).send({ name: 'apple', quantity: 3, unit: 'piece' });
       await request(app).post(`/grocerylist/users/${TEST_USER_ID}/products`).send({ name: 'banana', quantity: 5, unit: 'piece' });
 
-      const res = await request(app).get(`/grocerylist/users/${TEST_USER_ID}/products?productName=app`);
+      const res = await request(app).get(`/grocerylist/users/${TEST_USER_ID}/products/search?q=app`);
       expect(res.status).toBe(200);
-      expect(res.body).toHaveLength(1); // Flat list returned for search
+      expect(res.body).toHaveLength(1);
       expect(res.body[0].name).toBe('apple');
     });
   });
@@ -66,7 +69,7 @@ describe('GroceryList API - Integration Tests', () => {
     it('returns 400 if required fields are missing', async () => {
       const res = await request(app)
         .post(`/grocerylist/users/${TEST_USER_ID}/products`)
-        .send({ name: 'milk' }); // missing quantity, unit
+        .send({ name: 'milk' });
       
       expect(res.status).toBe(400);
     });
@@ -113,7 +116,6 @@ describe('GroceryList API - Integration Tests', () => {
 
       const res = await request(app).delete(`/grocerylist/users/${TEST_USER_ID}/products/beef`);
       expect(res.status).toBe(200);
-      // Grouped list returned
       expect(res.body.length).toBeGreaterThan(0);
       
       const beefRes = await request(app).get(`/grocerylist/users/${TEST_USER_ID}/products/beef`);
@@ -135,7 +137,6 @@ describe('GroceryList API - Integration Tests', () => {
 
   describe('POST /grocerylist/users/:userId/recipes/:recipeId/ingredients', () => {
     it('imports ingredients from Spoonacular into the grocery list', async () => {
-      // Mock the Spoonacular API response
       mockedAxios.get.mockResolvedValue({
         data: {
           extendedIngredients: [
@@ -148,7 +149,7 @@ describe('GroceryList API - Integration Tests', () => {
       const res = await request(app).post(`/grocerylist/users/${TEST_USER_ID}/recipes/123/ingredients`).send({});
       if (res.status !== 201) console.error('Spoonacular test error:', res.body);
       expect(res.status).toBe(201);
-      expect(res.body).toHaveLength(2); // Two categories: Produce and Dairy (Cheese -> Dairy)
+      expect(res.body).toHaveLength(2);
       
       const produceGroup = res.body.find((g: any) => g.category === 'Produce');
       expect(produceGroup.items[0].name).toBe('basil');

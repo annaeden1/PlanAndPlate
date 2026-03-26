@@ -1,5 +1,5 @@
-import { mergeIngredients, groupByCategory, GroceryItemGroup } from '../../services/groceryList.service';
-import { IGroceryItem } from '../../models/groceryList.model';
+import { mergeIngredients, groupByCategory } from '../../services/groceryList.service';
+import { GroceryItem, GroceryItemGroup } from '../../types/groceryList.types';
 
 describe('GroceryList Service - Unit Tests', () => {
   
@@ -9,7 +9,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('sums quantities of items with the same name and unit', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'onion', quantity: 2, unit: 'piece', category: 'Produce' },
         { name: 'onion', quantity: 3, unit: 'piece', category: 'Produce' }
       ];
@@ -20,7 +20,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('keeps items separate if they have different units', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'onion', quantity: 2, unit: 'piece', category: 'Produce' },
         { name: 'onion', quantity: 500, unit: 'g', category: 'Produce' }
       ];
@@ -30,7 +30,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('normalizes name casing before merging', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'Tomato', quantity: 1, unit: 'piece', category: 'Produce' },
         { name: 'tomato ', quantity: 2, unit: 'piece', category: 'Produce' },
         { name: ' TOMATO', quantity: 3, unit: 'piece', category: 'Produce' }
@@ -43,7 +43,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('collapses unit aliases', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'flour', quantity: 100, unit: 'g', category: 'Baking' },
         { name: 'flour', quantity: 200, unit: 'grams', category: 'Baking' },
         { name: 'flour', quantity: 50, unit: 'gram', category: 'Baking' }
@@ -62,7 +62,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('groups items correctly according to their category', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'milk', quantity: 1, unit: 'l', category: 'Dairy' },
         { name: 'cheese', quantity: 200, unit: 'g', category: 'Dairy' },
         { name: 'apple', quantity: 3, unit: 'piece', category: 'Produce' }
@@ -83,7 +83,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('sorts the resulting groups alphabetically by category name', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'steak', quantity: 1, unit: 'piece', category: 'Meat' },
         { name: 'apple', quantity: 1, unit: 'piece', category: 'Produce' },
         { name: 'milk', quantity: 1, unit: 'l', category: 'Dairy' }
@@ -95,7 +95,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('count field matches the number of items in each group', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'chicken', quantity: 1, unit: 'kg', category: 'Poultry' },
         { name: 'turkey', quantity: 2, unit: 'kg', category: 'Poultry' },
         { name: 'duck', quantity: 1, unit: 'piece', category: 'Poultry' },
@@ -109,7 +109,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('handles a single item in its own group', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'salmon', quantity: 2, unit: 'fillet', category: 'Seafood' },
       ];
 
@@ -121,7 +121,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('preserves all item fields in the grouped output', () => {
-      const item: IGroceryItem = { name: 'pasta', quantity: 500, unit: 'g', category: 'Pasta and Rice' };
+      const item: GroceryItem = { name: 'pasta', quantity: 500, unit: 'g', category: 'Pasta and Rice' };
       const groups = groupByCategory([item]);
 
       expect(groups[0].items[0]).toEqual(item);
@@ -130,7 +130,7 @@ describe('GroceryList Service - Unit Tests', () => {
 
   describe('mergeIngredients — additional edge cases', () => {
     it('does not mutate the original array', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'salt', quantity: 1, unit: 'tsp', category: 'Spices and Seasonings' },
       ];
       const copy = [...items];
@@ -139,7 +139,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('handles a single item with no duplicates', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'garlic', quantity: 3, unit: 'clove', category: 'Produce' },
       ];
       const merged = mergeIngredients(items);
@@ -148,7 +148,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('treats items with completely different names as separate', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'butter', quantity: 100, unit: 'g', category: 'Dairy' },
         { name: 'cream', quantity: 200, unit: 'g', category: 'Dairy' },
         { name: 'cheese', quantity: 150, unit: 'g', category: 'Dairy' },
@@ -158,7 +158,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('merges tablespoon aliases (tbsp, tablespoon, tablespoons) into one entry', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'olive oil', quantity: 1, unit: 'tablespoon', category: 'Oil, Vinegar, Salad Dressing' },
         { name: 'olive oil', quantity: 2, unit: 'tablespoons', category: 'Oil, Vinegar, Salad Dressing' },
         { name: 'olive oil', quantity: 1, unit: 'tbsp', category: 'Oil, Vinegar, Salad Dressing' },
@@ -170,7 +170,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('keeps can and piece as separate units for the same ingredient', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'tomato', quantity: 2, unit: 'can', category: 'Canned and Jarred' },
         { name: 'tomato', quantity: 3, unit: 'piece', category: 'Produce' },
       ];
@@ -179,7 +179,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('uses the category from the first occurrence when merging', () => {
-      const items: IGroceryItem[] = [
+      const items: GroceryItem[] = [
         { name: 'egg', quantity: 2, unit: 'piece', category: 'Dairy' },
         { name: 'egg', quantity: 4, unit: 'piece', category: 'Other' },
       ];
