@@ -6,7 +6,7 @@ import { Category } from '../../types/categories';
 import { GroceryItemGroup } from '../../types/groceryList.types';
 
 jest.mock('../../services/groceryList.service');
-jest.mock('../../config/categories');
+jest.mock('../../types/categories');
 
 const mockedService = GroceryService as jest.Mocked<typeof GroceryService>;
 const mockedCategories = CategoriesConfig as jest.Mocked<typeof CategoriesConfig>;
