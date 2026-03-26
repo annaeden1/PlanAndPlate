@@ -1,7 +1,7 @@
 import { Box, Card, Typography, Chip } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-import type { Meal } from "../mockData";
+import type { Meal } from "../../pages/Home/mockData";
 
 interface MealCardProps {
   meal: Meal;

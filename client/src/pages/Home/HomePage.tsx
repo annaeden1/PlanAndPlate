@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import { Stack } from "@mui/material";
-import { GreetingHeader } from "./components/GreetingHeader";
-import { TodaysProgressCard } from "./components/TodaysProgressCard";
-import { GroceryListCard } from "./components/GroceryListCard";
-import { TodaysMeals } from "./components/TodaysMeals";
+import {
+  GreetingHeader,
+  TodaysProgressCard,
+  GroceryListCard,
+  TodaysMeals,
+} from "../../components/home";
 import { mockCalorieProgress, mockGroceryListStatus, mockMeals } from "./mockData";
 import type { Meal } from "./mockData";
 

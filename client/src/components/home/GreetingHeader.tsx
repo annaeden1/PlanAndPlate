@@ -14,6 +14,7 @@ export const GreetingHeader = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
+        pt: 4,
       }}
     >
       <Box>

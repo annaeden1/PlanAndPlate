@@ -1,5 +1,5 @@
-import { ProgressCard } from "../../../components/common/ProgressCard";
-import type { CalorieProgress } from "../mockData";
+import { ProgressCard } from "../common/ProgressCard";
+import type { CalorieProgress } from "../../pages/Home/mockData";
 
 interface TodaysProgressCardProps {
   calorieProgress: CalorieProgress;
