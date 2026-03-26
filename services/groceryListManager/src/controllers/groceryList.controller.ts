@@ -16,14 +16,14 @@ export const getAllProducts = async (req: Request, res: Response): Promise<void>
 export const searchProducts = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-    const { q } = req.query as { q?: string };
+    const { name } = req.query as { name?: string };
 
-    if (!q) {
-      res.status(400).json({ error: 'Query parameter "q" is required' });
+    if (!name) {
+      res.status(400).json({ error: 'Query parameter "name" is required' });
       return;
     }
 
-    const items = await GroceryService.searchProducts(userId, q);
+    const items = await GroceryService.searchProducts(userId, name);
     res.status(200).json(items);
   } catch (err) {
     res.status(500).json({ error: 'Failed to search products', details: String(err) });

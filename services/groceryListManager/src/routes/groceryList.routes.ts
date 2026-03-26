@@ -41,7 +41,7 @@ router.get('/users/:userId/products', GroceryController.getAllProducts);
  *         schema:
  *           type: string
  *       - in: query
- *         name: q
+ *         name: name
  *         required: true
  *         schema:
  *           type: string
