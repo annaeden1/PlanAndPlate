@@ -14,7 +14,25 @@ const router = Router();
  * @swagger
  * /grocerylist/users/{userId}/products:
  *   get:
- *     summary: Search products in the grocery list
+ *     summary: Get all products in the grocery list (grouped by category)
+ *     tags: [GroceryList]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: All products grouped by category
+ */
+router.get('/users/:userId/products', GroceryController.getAllProducts);
+
+/**
+ * @swagger
+ * /grocerylist/users/{userId}/products/search:
+ *   get:
+ *     summary: Search products by name
  *     tags: [GroceryList]
  *     parameters:
  *       - in: path
@@ -23,15 +41,16 @@ const router = Router();
  *         schema:
  *           type: string
  *       - in: query
- *         name: productName
+ *         name: q
+ *         required: true
  *         schema:
  *           type: string
- *         description: Optional partial name filter
+ *         description: Partial name filter
  *     responses:
  *       200:
  *         description: List of matching products
  */
-router.get('/users/:userId/products', GroceryController.searchProducts);
+router.get('/users/:userId/products/search', GroceryController.searchProducts);
 
 /**
  * @swagger

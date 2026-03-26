@@ -1,30 +1,35 @@
 import { Request, Response } from 'express';
 import * as GroceryService from '../services/groceryList.service';
-import { IGroceryItem } from '../models/groceryList.model';
-import { normalizeAisle } from '../config/categories';
+import { GroceryItem } from '../types/groceryList.types';
+import { normalizeAisle } from '../types/categories';
 
-// GET /grocerylist/users/:userId/products?productName=
-// Returns flat list (for search), or grouped list when no filter
-export const searchProducts = async (req: Request, res: Response): Promise<void> => {
+export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-    const { productName } = req.query as { productName?: string };
-
-    if (productName) {
-      // Search → return flat list
-      const items = await GroceryService.searchProducts(userId, productName);
-      res.status(200).json(items);
-    } else {
-      // No filter → return grouped by category (for the main cart UI)
-      const groups = await GroceryService.getGroceryList(userId);
-      res.status(200).json(groups);
-    }
+    const groups = await GroceryService.getGroceryList(userId);
+    res.status(200).json(groups);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch products', details: String(err) });
   }
 };
 
-// GET /grocerylist/users/:userId/products/:productName
+export const searchProducts = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const { q } = req.query as { q?: string };
+
+    if (!q) {
+      res.status(400).json({ error: 'Query parameter "q" is required' });
+      return;
+    }
+
+    const items = await GroceryService.searchProducts(userId, q);
+    res.status(200).json(items);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to search products', details: String(err) });
+  }
+};
+
 export const getProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, productName } = req.params;
@@ -39,7 +44,6 @@ export const getProduct = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// POST /grocerylist/users/:userId/products
 export const addProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
@@ -47,7 +51,7 @@ export const addProduct = async (req: Request, res: Response): Promise<void> => 
       name: string;
       quantity: number;
       unit: string;
-      aisle?: string;   // optional — if provided by client, use it; else default to 'Other'
+      aisle?: string;
     };
 
     if (!name || quantity == null || !unit) {
@@ -55,7 +59,7 @@ export const addProduct = async (req: Request, res: Response): Promise<void> => 
       return;
     }
 
-    const newItem: IGroceryItem = {
+    const newItem: GroceryItem = {
       name: name.toLowerCase().trim(),
       quantity: Number(quantity),
       unit: unit.toLowerCase().trim(),
@@ -69,7 +73,6 @@ export const addProduct = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// POST /grocerylist/users/:userId/recipes/:recipeId/ingredients
 export const importRecipeIngredients = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, recipeId } = req.params;
@@ -82,7 +85,6 @@ export const importRecipeIngredients = async (req: Request, res: Response): Prom
   }
 };
 
-// DELETE /grocerylist/users/:userId/products/:productName
 export const removeProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, productName } = req.params;
@@ -93,7 +95,6 @@ export const removeProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// DELETE /grocerylist/users/:userId/products
 export const clearGroceryList = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;

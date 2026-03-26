@@ -1,11 +1,3 @@
-/**
- * Spoonacular returns an `aisle` field per ingredient
- * (e.g. "Produce", "Dairy", "Meat", "Canned and Jarred", etc.)
- * Sometimes multiple aisles are returned separated by ";"
- *
- * This file normalizes Spoonacular's aisle strings into our fixed category taxonomy.
- */
-
 export const CATEGORIES = [
   'Produce',
   'Dairy',
@@ -29,8 +21,6 @@ export const CATEGORIES = [
 
 export type Category = (typeof CATEGORIES)[number];
 
-// Maps Spoonacular raw aisle strings → our canonical Category
-// Spoonacular aisle values are not strictly standardized, so we normalize them
 const AISLE_MAP: Record<string, Category> = {
   produce: 'Produce',
   'fresh vegetables and fruit': 'Produce',
@@ -92,14 +82,7 @@ const AISLE_MAP: Record<string, Category> = {
   'asian foods': 'Other',
 };
 
-/**
- * Normalizes a Spoonacular `aisle` string to our Category type.
- *
- * Spoonacular sometimes returns multiple aisles: "Produce;Dairy"
- * We take the first one.
- */
 export const normalizeAisle = (aisle: string): Category => {
-  // Take first aisle if multiple are separated by ";"
   const primary = aisle.split(';')[0].trim().toLowerCase();
   return AISLE_MAP[primary] ?? 'Other';
 };
