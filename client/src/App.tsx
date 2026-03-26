@@ -1,6 +1,14 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { CssBaseline, ThemeProvider, createTheme, Typography, Box } from "@mui/material";
+import {
+  CssBaseline,
+  ThemeProvider,
+  createTheme,
+  Typography,
+  Box,
+} from "@mui/material";
 import { MainLayout } from "./components/layout/MainLayout";
+import { MealPlanner } from "./pages/mealPlanner";
+import { RecipeDetail } from "./pages/recipeDetail";
 
 const theme = createTheme({
   palette: {
@@ -21,7 +29,9 @@ const theme = createTheme({
 
 const Page = ({ title }: { title: string }) => (
   <Box sx={{ pt: 4, textAlign: "center" }}>
-    <Typography variant="h4" fontWeight={700}>{title}</Typography>
+    <Typography variant="h4" fontWeight={700}>
+      {title}
+    </Typography>
   </Box>
 );
 
@@ -32,9 +42,10 @@ function App() {
       <BrowserRouter>
         <MainLayout>
           <Routes>
-            <Route path="/"        element={<Page title="🏠 Home" />} />
-            <Route path="/planner" element={<Page title="📅 Planner" />} />
-            <Route path="/cart"    element={<Page title="🛒 Cart" />} />
+            <Route path="/" element={<Page title="🏠 Home" />} />
+            <Route path="/planner" element={<MealPlanner />} />
+            <Route path="/recipe" element={<RecipeDetail />} />
+            <Route path="/cart" element={<Page title="🛒 Cart" />} />
             <Route path="/scanner" element={<Page title="📷 Scanner" />} />
             <Route path="/profile" element={<Page title="👤 Profile" />} />
           </Routes>
