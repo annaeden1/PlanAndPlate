@@ -1,0 +1,32 @@
+###
+POST http://localhost:8080/auth/signup
+Content-Type: application/json
+
+{
+    "email": "ee@gmail.com",
+    "password": "12344",
+    "name": "ee"
+}
+
+###
+POST http://localhost:8080/auth/signin
+Content-Type: application/json
+
+{
+    "email": "ee@gmail.com",
+    "password": "12344"
+}
+
+###
+POST http://localhost:8080/auth/refresh-token
+Content-Type: application/json
+
+{
+    "refreshToken": 
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWM1MzBlY2EyMDM1MGJlYjIzZmY0MDIiLCJpYXQiOjE3NzQ1MzA5ODQsImV4cCI6MTc3NDYxNzM4NH0.ANB1yTVr0Buw9qLNpJAI4a9x_k6Qbj7VMCGiYFA-Czg"
+}
+
+###
+POST http://localhost:8080/auth/logout
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWM1MzBlY2EyMDM1MGJlYjIzZmY0MDIiLCJpYXQiOjE3NzQ1MzEwOTAsImV4cCI6MTc3NDYxNzQ5MH0.UwgoNbOy0gokxEjB89k_VoPDc6_cWc9QGgvNsyD2Ol8
+Content-Type: application/json
