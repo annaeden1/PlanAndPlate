@@ -5,6 +5,7 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import GroupIcon from "@mui/icons-material/Group";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
+import { recipeDetails } from "../utils/mockData/recipeMockData";
 
 interface RecipeDetailProps {
 }
@@ -13,42 +14,6 @@ export function RecipeDetail({ }: RecipeDetailProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const recipe = location.state?.recipe;
-  const recipeDetails = {
-    prepTime: "15 min",
-    cookTime: "20 min",
-    servings: 2,
-    difficulty: "Easy",
-    ingredients: [
-      { item: "Fresh salmon fillets", amount: "2 fillets (6 oz each)" },
-      { item: "Olive oil", amount: "2 tbsp" },
-      { item: "Lemon", amount: "1, juiced" },
-      { item: "Garlic cloves", amount: "3, minced" },
-      { item: "Fresh dill", amount: "2 tbsp, chopped" },
-      { item: "Salt and pepper", amount: "To taste" },
-      { item: "Asparagus", amount: "1 bunch" },
-      { item: "Cherry tomatoes", amount: "1 cup" },
-    ],
-    instructions: [
-      "Preheat your grill or oven to 400°F (200°C).",
-      "Pat the salmon fillets dry with paper towels and season both sides with salt and pepper.",
-      "In a small bowl, mix olive oil, lemon juice, minced garlic, and chopped dill to create a marinade.",
-      "Brush the marinade generously over the salmon fillets and let them sit for 10 minutes.",
-      "While the salmon marinates, prepare the vegetables: trim asparagus and halve cherry tomatoes.",
-      "Toss vegetables with a little olive oil, salt, and pepper.",
-      "Place salmon on the grill or in an oven-safe dish. Add vegetables around the salmon.",
-      "Cook for 12-15 minutes until salmon flakes easily with a fork and vegetables are tender.",
-      "Serve immediately with extra lemon wedges and fresh dill garnish.",
-    ],
-    nutritionFacts: [
-      { label: "Calories", value: "650 kcal" },
-      { label: "Protein", value: "48g" },
-      { label: "Carbs", value: "12g" },
-      { label: "Fat", value: "42g" },
-      { label: "Fiber", value: "4g" },
-      { label: "Sugar", value: "6g" },
-    ],
-    tags: ["High Protein", "Omega-3", "Low Carb", "Gluten-Free"],
-  };
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>
