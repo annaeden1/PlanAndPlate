@@ -6,8 +6,8 @@ import {
   GroceryListCard,
   TodaysMeals,
 } from "../../components/home";
-import { mockCalorieProgress, mockGroceryListStatus, mockMeals } from "./mockData";
-import type { Meal } from "./mockData";
+import { mockCalorieProgress, mockGroceryListStatus, mockMeals } from "../../utils/mockData/homeMockData";
+import type { Meal } from "../../utils/types/home";
 
 export const HomePage = () => {
   const [meals, setMeals] = useState<Meal[]>(mockMeals);

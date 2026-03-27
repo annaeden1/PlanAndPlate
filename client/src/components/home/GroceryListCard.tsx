@@ -1,6 +1,6 @@
 import { Box, Typography, Button } from "@mui/material";
 import { ProgressCard } from "../common/ProgressCard";
-import type { GroceryListStatus } from "../../pages/Home/mockData";
+import type { GroceryListStatus } from "../../utils/types/home";
 
 interface GroceryListCardProps {
   groceryStatus: GroceryListStatus;

@@ -1,6 +1,6 @@
 import { Box, Typography, Stack } from "@mui/material";
 import { MealCard } from "./MealCard";
-import type { Meal } from "../../pages/Home/mockData";
+import type { Meal } from "../../utils/types/home";
 
 interface TodaysMealsProps {
   meals: Meal[];
