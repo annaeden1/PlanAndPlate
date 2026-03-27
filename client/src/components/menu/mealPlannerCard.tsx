@@ -6,7 +6,7 @@ import {
   Chip,
   Typography,
 } from "@mui/material";
-import type { MealPlanItem } from "../../types/mealPlanner";
+import type { MealPlanItem } from "../../utils/types/mealPlanner";
 
 interface PlannedMealCardProps {
   meal: MealPlanItem;
