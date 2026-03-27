@@ -4,7 +4,9 @@ export interface GroceryItem {
   name: string;
   quantity: number;
   unit: string;
+  inventoryQuantity: number;
   category: Category;
+  checked: boolean;
 }
 
 export interface GroceryItemGroup {
