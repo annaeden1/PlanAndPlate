@@ -14,7 +14,6 @@ export const scanBarcode = async (req: Request, res: Response) => {
       barcode.toString(),
     );
 
-    console.log(product);
     if (!product) {
       return res
         .status(404)
