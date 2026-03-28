@@ -77,7 +77,7 @@ export const getPreferences = async (req: Request, res: Response) => {
     }
 
     const userPreferences = user.preferences;
-    res.status(200).json({userPreferences});
+    res.status(200).json({ userPreferences });
   } catch (err) {
     return res
       .status(500)

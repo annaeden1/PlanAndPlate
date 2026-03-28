@@ -23,21 +23,21 @@ Content-Type: application/json
 
 {
     "refreshToken": 
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWM1MzBlY2EyMDM1MGJlYjIzZmY0MDIiLCJpYXQiOjE3NzQ1MzA5ODQsImV4cCI6MTc3NDYxNzM4NH0.ANB1yTVr0Buw9qLNpJAI4a9x_k6Qbj7VMCGiYFA-Czg"
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWM1MzBlY2EyMDM1MGJlYjIzZmY0MDIiLCJpYXQiOjE3NzQ2OTYzNTYsImV4cCI6MTc3NDc4Mjc1Nn0.g7yryQFHU2zu_OqD69BZIp2gfxny0a3nw4j0BHUvsJU"
 }
 
 ###
 POST http://localhost:8080/auth/logout
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWM1MzBlY2EyMDM1MGJlYjIzZmY0MDIiLCJpYXQiOjE3NzQ1MzEwOTAsImV4cCI6MTc3NDYxNzQ5MH0.UwgoNbOy0gokxEjB89k_VoPDc6_cWc9QGgvNsyD2Ol8
 Content-Type: application/json
 
 ###
 PATCH http://localhost:8080/userManagement/ee@gmail.com/password
 Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWM1MzBlY2EyMDM1MGJlYjIzZmY0MDIiLCJpYXQiOjE3NzQ2OTY1MDMsImV4cCI6MTc3NDcwMDEwM30.66-GbFdsF8ljjB4JVmVriOkCeq-OMxhofODfvI6pS8Q
 
 {
-    "newPassword": "newPass",
-    "oldPassword": "12344"
+    "newPassword": "newPass2",
+    "oldPassword": "newPass"
 }
 
 ###
