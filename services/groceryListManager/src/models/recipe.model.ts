@@ -8,7 +8,7 @@ interface RecipeIngredient {
   unit: string;
 }
 
-export interface IRecipe extends Document {
+export interface IRecipe extends Document<number> {
   _id: number;
   name: string;
   image: string;
