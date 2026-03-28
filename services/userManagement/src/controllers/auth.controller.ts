@@ -7,6 +7,7 @@ import {
   findUserByFilter,
   saveUser,
 } from '../dal/authentication.repository';
+import { hashPassword } from '../utils/password';
 
 const signup = async (req: Request, res: Response) => {
   const { name, email, password, image, preferences } = req.body;
@@ -18,9 +19,7 @@ const signup = async (req: Request, res: Response) => {
   }
 
   try {
-    const salt: string = await bcrypt.genSalt(10);
-    const encryptedPassword: string = await bcrypt.hash(password, salt);
-
+    const encryptedPassword: string = await hashPassword(password);
     const newUser = await createUser({
       name,
       email,
