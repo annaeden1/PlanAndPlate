@@ -4,17 +4,17 @@ import { findUserByFilter, saveUser } from '../dal/authentication.repository';
 import { hashPassword } from '../utils/password';
 
 export const updatePassword = async (req: Request, res: Response) => {
-  const email = req.params.email;
+  const userId = req.params.userId;
   const { oldPassword, newPassword } = req.body;
 
-  if (!email || !newPassword || !oldPassword) {
+  if (!userId || !newPassword || !oldPassword) {
     return res
       .status(400)
-      .json({ error: 'Email and password (old and new) are required' });
+      .json({ error: 'User Id and password (old and new) are required' });
   }
 
   try {
-    const user = await findUserByFilter({ email });
+    const user = await findUserByFilter({ _id: userId });
     if (!user) {
       res.status(404).json({ message: 'User not found.' });
       return;
@@ -26,7 +26,7 @@ export const updatePassword = async (req: Request, res: Response) => {
     );
 
     if (!matchPassword) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid password' });
     }
 
     user.passwordHash = await hashPassword(newPassword);
@@ -42,10 +42,10 @@ export const updatePassword = async (req: Request, res: Response) => {
 };
 
 export const getAccountData = async (req: Request, res: Response) => {
-  const email = req.params.email;
+  const userId = req.params.userId;
 
   try {
-    const user = await findUserByFilter({ email });
+    const user = await findUserByFilter({ _id: userId });
     if (!user) {
       res.status(404).json({ message: 'User not found.' });
       return;
@@ -66,10 +66,10 @@ export const getAccountData = async (req: Request, res: Response) => {
 };
 
 export const getPreferences = async (req: Request, res: Response) => {
-  const email = req.params.email;
+  const userId = req.params.userId;
 
   try {
-    const user = await findUserByFilter({ email });
+    const user = await findUserByFilter({ _id: userId });
     if (!user) {
       res.status(404).json({ message: 'User not found.' });
       return;
