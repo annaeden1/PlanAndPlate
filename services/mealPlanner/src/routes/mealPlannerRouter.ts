@@ -1,5 +1,6 @@
 import express from "express";
 import MealPlannerController from "../controllers/mealPlannerController";
+import authMiddleware from "../middlewares/auth.middleware";
 
 export const mealPlannerRouter = express.Router();
 
@@ -42,6 +43,7 @@ export const mealPlannerRouter = express.Router();
  **/
 mealPlannerRouter.post(
   "/users/{userId}/meal-plans/weekly",
+  authMiddleware,
   MealPlannerController.createWeeklyPlan,
 );
 
@@ -74,6 +76,7 @@ mealPlannerRouter.post(
  **/
 mealPlannerRouter.get(
   "/users/{userId}/meal-plans?week=",
+  authMiddleware,
   MealPlannerController.getWeeklyPlan,
 );
 
@@ -107,6 +110,7 @@ mealPlannerRouter.get(
  **/
 mealPlannerRouter.get(
   "/users/{userId}/meal-plans/day?date= ",
+  authMiddleware,
   MealPlannerController.getDailyPlan,
 );
 
@@ -134,5 +138,6 @@ mealPlannerRouter.get(
  **/
 mealPlannerRouter.get(
   "/recipes/{recipeId}",
+  authMiddleware,
   MealPlannerController.getRecipeDetails,
 );
