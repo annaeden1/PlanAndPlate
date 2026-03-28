@@ -8,8 +8,8 @@ import authMiddleware from '../middlewares/auth.middleware';
 
 export const userManagementRouter = Router();
 
-userManagementRouter.patch('/:email/password', authMiddleware, updatePassword);
+userManagementRouter.patch('/:userId/password', authMiddleware, updatePassword);
 
-userManagementRouter.get('/:email/account', authMiddleware, getAccountData);
+userManagementRouter.get('/:userId/account', authMiddleware, getAccountData);
 
-userManagementRouter.get('/:email/preferences', authMiddleware, getPreferences);
+userManagementRouter.get('/:userId/preferences', authMiddleware, getPreferences);
