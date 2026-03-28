@@ -6,6 +6,7 @@ import {
   getRecipeDetails,
 } from "../services/spoonacularService.service";
 import { Recipe } from "../models/recipeModel";
+import { normalizeUnit } from "../utils/types/units";
 
 class MealPlannerController {
   async createWeeklyPlan(req: Request, res: Response) {
@@ -116,7 +117,7 @@ class MealPlannerController {
             name: ing.name,
             image: ing.image,
             amount: ing.amount,
-            unit: ing.unit,
+            unit: normalizeUnit(ing.unit),
             aisle: ing.aisle,
           })),
         },
