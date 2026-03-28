@@ -1,5 +1,5 @@
-import axios from "axios";
 import { GroceryList } from "../models/groceryList.model";
+import { Recipe } from "../models/recipe.model";
 import { Category, normalizeAisle } from "../types/categories";
 import { normalizeUnit } from "../types/units";
 import { GroceryItem, GroceryItemGroup } from "../types/groceryList.types";
@@ -47,35 +47,22 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
   return Array.from(map.values());
 };
 
-interface SpoonacularIngredient {
-  name: string;
-  amount: number;
-  unit: string;
-  aisle: string;
-}
-
-interface SpoonacularRecipe {
-  extendedIngredients: SpoonacularIngredient[];
-}
-
-export const importFromSpoonacular = async (
+export const importFromRecipeDB = async (
   recipeId: string,
 ): Promise<GroceryItem[]> => {
-  const apiKey = process.env.SPOONACULAR_API_KEY;
-  if (!apiKey) throw new Error("SPOONACULAR_API_KEY is not set");
+  const recipe = await Recipe.findById(Number(recipeId));
+  if (!recipe) throw new Error(`Recipe "${recipeId}" not found`);
 
-  const url = `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${apiKey}`;
-  const response = await axios.get<SpoonacularRecipe>(url);
-
-  if (!Array.isArray(response.data?.extendedIngredients)) {
-    throw new Error('Invalid response from Spoonacular: missing extendedIngredients');
+  const ingredients = recipe.instructions?.ingredients;
+  if (!Array.isArray(ingredients) || ingredients.length === 0) {
+    throw new Error(`Recipe "${recipeId}" has no ingredients`);
   }
 
-  return response.data.extendedIngredients.map((ing) => ({
+  return ingredients.map((ing) => ({
     name: ing.name.toLowerCase().trim(),
     quantity: ing.amount,
     unit: normalizeUnit(ing.unit),
-    category: normalizeAisle(ing.aisle ?? ""),
+    category: normalizeAisle(""),
     inventoryQuantity: 0,
     checked: false,
   }));
@@ -136,7 +123,7 @@ export const importRecipeIngredients = async (
   recipeId: string,
   mealPlanId?: string,
 ): Promise<GroceryItemGroup[]> => {
-  const recipeItems = await importFromSpoonacular(recipeId);
+  const recipeItems = await importFromRecipeDB(recipeId);
   let list = await GroceryList.findOne({ userId });
 
   const existing: GroceryItem[] = list ? list.items : [];
