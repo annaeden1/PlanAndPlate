@@ -1,4 +1,4 @@
-import express from 'express';
+import { Router } from 'express';
 import {
   getAccountData,
   getPreferences,
@@ -6,7 +6,7 @@ import {
 } from '../controllers/userManagement.controller';
 import authMiddleware from '../middlewares/auth.middleware';
 
-export const userManagementRouter = express.Router();
+export const userManagementRouter = Router();
 
 userManagementRouter.patch('/:email/password', authMiddleware, updatePassword);
 

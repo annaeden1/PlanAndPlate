@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { findUserByFilter, saveUser } from '../dal/authentication.repository';
+import { hashPassword } from '../utils/password';
 
 export const updatePassword = async (req: Request, res: Response) => {
   const email = req.params.email;
@@ -28,9 +29,7 @@ export const updatePassword = async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const salt: string = await bcrypt.genSalt(10);
-    const encryptedPassword: string = await bcrypt.hash(newPassword, salt);
-    user.passwordHash = encryptedPassword;
+    user.passwordHash = await hashPassword(newPassword);
 
     await saveUser(user);
 
