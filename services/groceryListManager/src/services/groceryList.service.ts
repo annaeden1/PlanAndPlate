@@ -8,9 +8,9 @@ export const groupByCategory = (items: GroceryItem[]): GroceryItemGroup[] => {
   const map = new Map<Category, GroceryItem[]>();
 
   for (const item of items) {
-    const cat = item.category as Category;
+    const cat = item.category;
     if (!map.has(cat)) map.set(cat, []);
-    map.get(cat)!.push(item);
+    (map.get(cat) as GroceryItem[]).push(item);
   }
 
   return Array.from(map.entries())
@@ -38,6 +38,8 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
         quantity: item.quantity,
         unit: normalizedUnit,
         category: item.category,
+        inventoryQuantity: item.inventoryQuantity ?? 0,
+        checked: item.checked ?? false,
       });
     }
   }
@@ -65,11 +67,17 @@ export const importFromSpoonacular = async (
   const url = `https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${apiKey}`;
   const response = await axios.get<SpoonacularRecipe>(url);
 
+  if (!Array.isArray(response.data?.extendedIngredients)) {
+    throw new Error('Invalid response from Spoonacular: missing extendedIngredients');
+  }
+
   return response.data.extendedIngredients.map((ing) => ({
     name: ing.name.toLowerCase().trim(),
     quantity: ing.amount,
     unit: normalizeUnit(ing.unit),
     category: normalizeAisle(ing.aisle ?? ""),
+    inventoryQuantity: 0,
+    checked: false,
   }));
 };
 
@@ -158,4 +166,17 @@ export const removeProduct = async (
 
 export const clearGroceryList = async (userId: string): Promise<void> => {
   await GroceryList.findOneAndUpdate({ userId }, { $set: { items: [] } });
+};
+
+export const removeBoughtItems = async (
+  userId: string,
+  names: string[],
+): Promise<GroceryItemGroup[]> => {
+  const normalizedNames = names.map((n) => n.toLowerCase().trim());
+  const list = await GroceryList.findOneAndUpdate(
+    { userId },
+    { $pull: { items: { name: { $in: normalizedNames } } } },
+    { new: true },
+  );
+  return list ? groupByCategory(list.items) : [];
 };

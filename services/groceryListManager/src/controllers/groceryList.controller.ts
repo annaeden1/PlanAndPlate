@@ -64,6 +64,8 @@ export const addProduct = async (req: Request, res: Response): Promise<void> => 
       quantity: Number(quantity),
       unit: unit.toLowerCase().trim(),
       category: normalizeAisle(aisle ?? ''),
+      inventoryQuantity: 0,
+      checked: false,
     };
 
     const groups = await GroceryService.addProducts(userId, [newItem]);
@@ -92,6 +94,23 @@ export const removeProduct = async (req: Request, res: Response): Promise<void> 
     res.status(200).json(groups);
   } catch (err) {
     res.status(500).json({ error: 'Failed to remove product', details: String(err) });
+  }
+};
+
+export const removeBoughtItems = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const { names } = req.body as { names?: string[] };
+
+    if (!Array.isArray(names) || names.length === 0) {
+      res.status(400).json({ error: 'names must be a non-empty array' });
+      return;
+    }
+
+    const groups = await GroceryService.removeBoughtItems(userId, names);
+    res.status(200).json(groups);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to remove bought items', details: String(err) });
   }
 };
 
