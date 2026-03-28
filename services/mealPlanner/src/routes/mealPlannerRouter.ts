@@ -1,7 +1,7 @@
 import express from "express";
 import MealPlannerController from "../controllers/mealPlannerController";
 
-const router = express.Router();
+export const mealPlannerRouter = express.Router();
 
 /**
  * @swagger
@@ -40,7 +40,7 @@ const router = express.Router();
  *       500:
  *         description: Internal Server Error - Server error while creating meal plan
  **/
-router.post(
+mealPlannerRouter.post(
   "/users/{userId}/meal-plans/weekly",
   MealPlannerController.createWeeklyPlan,
 );
@@ -72,7 +72,7 @@ router.post(
  *       500:
  *         description: Internal Server Error - Server error while retrieving meal plan
  **/
-router.get(
+mealPlannerRouter.get(
   "/users/{userId}/meal-plans?week=",
   MealPlannerController.getWeeklyPlan,
 );
@@ -105,7 +105,7 @@ router.get(
  *       500:
  *         description: Internal Server Error - Server error while retrieving meal plan
  **/
-router.get(
+mealPlannerRouter.get(
   "/users/{userId}/meal-plans/day?date= ",
   MealPlannerController.getDailyPlan,
 );
@@ -132,7 +132,7 @@ router.get(
  *       500:
  *         description: Internal Server Error - Server error while retrieving recipe details
  **/
-router.get(
+mealPlannerRouter.get(
   "/recipes/{recipeId}",
   MealPlannerController.getRecipeDetails,
 );
