@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongoose';
 
 export type User = {
-  _id?: ObjectId;
+  _id?: ObjectId | string;
   email: string;
   passwordHash: string;
   name: string;

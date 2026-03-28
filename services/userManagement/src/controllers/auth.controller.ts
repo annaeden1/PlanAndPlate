@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { Tokens } from '../utils/types';
+import { AuthRequest, Tokens } from '../utils/types';
 import {
   createUser,
   findUserByFilter,
@@ -141,6 +141,23 @@ const refreshToken = async (req: Request, res: Response) => {
   }
 };
 
+const verify = async (req: AuthRequest, res: Response) => {
+  const userId = req.user?._id;
+
+  try {
+    const currUser = await findUserByFilter({ _id: userId });
+    if (!currUser) {
+      return res.status(400).json({ error: 'Unauthorized' });
+    }
+
+    res.status(200).json('User Authorized');
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ error: 'Failed to verify user', details: err });
+  }
+};
+
 const generateToken = (userId: string): Tokens => {
   const secret: string = process.env.JWT_SECRET || 'secretkey';
   const refreshTokenSecret: string =
@@ -166,4 +183,5 @@ export default {
   signin,
   logout,
   refreshToken,
+  verify,
 };
