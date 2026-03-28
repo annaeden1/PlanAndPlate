@@ -2,8 +2,8 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import express, { Express } from 'express';
 import mongoose from 'mongoose';
-import { authRouter } from './routes/auth.router';
-import { userManagementRouter } from './routes/userManagement.router';
+import { authRouter } from './routes/auth.routes';
+import { userManagementRouter } from './routes/userManagement.routes';
 
 dotenv.config();
 
