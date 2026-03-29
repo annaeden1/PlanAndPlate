@@ -13,12 +13,16 @@ class MealPlannerController {
     const { userId } = req.params;
 
     const userPreferences = await axios.get(
-        `${process.env.USER_MANAGMENT_URL}/userManagement/${userId}/preferences`
+      `${process.env.USER_MANAGMENT_URL}/userManagement/${userId}/preferences`
     );
+
+    const allergyExcludeString = Array.isArray(userPreferences.data.allergies)
+      ? userPreferences.data.allergies.join(",")
+      : userPreferences.data.allergies || "";
 
     const weeklyPlanFromAPI = await generateMealPlan(
       userPreferences.data.diet,
-      userPreferences.data.allergies,
+      allergyExcludeString,
     );
 
     const mealPlan = new MealPlan({
