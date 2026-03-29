@@ -50,7 +50,7 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
 export const importFromRecipeDB = async (
   recipeId: string,
 ): Promise<GroceryItem[]> => {
-  const recipe = await Recipe.findById(Number(recipeId));
+  const recipe = await Recipe.findById(recipeId);
   if (!recipe) throw new Error(`Recipe "${recipeId}" not found`);
 
   const ingredients = recipe.instructions?.ingredients;
@@ -62,7 +62,7 @@ export const importFromRecipeDB = async (
     name: ing.name.toLowerCase().trim(),
     quantity: ing.amount,
     unit: normalizeUnit(ing.unit),
-    category: normalizeAisle(""),
+    category: normalizeAisle(ing.aisle ?? ""),
     inventoryQuantity: 0,
     checked: false,
   }));
