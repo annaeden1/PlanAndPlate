@@ -1,10 +1,15 @@
 export interface DietaryPreferences {
-  vegetarian: boolean;
-  vegan: boolean;
   glutenFree: boolean;
-  dairyFree: boolean;
-  kosher: boolean;
-  halal: boolean;
+  ketogenic: boolean;
+  vegetarian: boolean;
+  lactoVegetarian: boolean;
+  ovoVegetarian: boolean;
+  vegan: boolean;
+  pescatarian: boolean;
+  paleo: boolean;
+  primal: boolean;
+  lowFODMAP: boolean;
+  whole30: boolean;
 }
 
 export interface Allergies {

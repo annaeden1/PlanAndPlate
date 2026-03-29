@@ -6,7 +6,11 @@ import { DietaryStep } from './components/DietaryStep';
 import { AllergiesStep } from './components/AllergiesStep';
 import { GoalsStep } from './components/GoalsStep';
 import { BudgetStep } from './components/BudgetStep';
-import type { Allergies, DietaryPreferences, OnboardingData } from '../../shared';
+import type {
+  Allergies,
+  DietaryPreferences,
+  OnboardingData,
+} from '../../shared';
 
 interface PreferencesProps {
   onComplete: (data: OnboardingData) => void;
@@ -15,12 +19,17 @@ interface PreferencesProps {
 export function Preferences({ onComplete }: PreferencesProps) {
   const [step, setStep] = useState(1);
   const [preferences, setPreferences] = useState<DietaryPreferences>({
-    vegetarian: false,
-    vegan: false,
     glutenFree: false,
-    dairyFree: false,
-    kosher: false,
-    halal: false,
+    ketogenic: false,
+    vegetarian: false,
+    lactoVegetarian: false,
+    ovoVegetarian: false,
+    vegan: false,
+    pescatarian: false,
+    paleo: false,
+    primal: false,
+    lowFODMAP: false,
+    whole30: false,
   });
   const [allergies, setAllergies] = useState<Allergies>({
     nuts: false,
@@ -36,20 +45,29 @@ export function Preferences({ onComplete }: PreferencesProps) {
   const totalSteps = 4;
 
   const handlePreferenceChange = (selectedKey: keyof DietaryPreferences) => {
-    const next: DietaryPreferences = {
-      vegetarian: false,
-      vegan: false,
+    const defaultPreferences: DietaryPreferences = {
       glutenFree: false,
-      dairyFree: false,
-      kosher: false,
-      halal: false,
+      ketogenic: false,
+      vegetarian: false,
+      lactoVegetarian: false,
+      ovoVegetarian: false,
+      vegan: false,
+      pescatarian: false,
+      paleo: false,
+      primal: false,
+      lowFODMAP: false,
+      whole30: false,
     };
 
-    (Object.keys(next) as Array<keyof DietaryPreferences>).forEach((k) => {
-      next[k] = k === selectedKey;
-    });
+    const newPreferences = Object.keys(defaultPreferences).reduce(
+      (acc, key) => {
+        acc[key as keyof DietaryPreferences] = key === selectedKey;
+        return acc;
+      },
+      {} as DietaryPreferences,
+    );
 
-    setPreferences(next);
+    setPreferences(newPreferences);
   };
 
   const handleAllergyChange = (key: keyof Allergies, value: boolean) => {
@@ -60,15 +78,19 @@ export function Preferences({ onComplete }: PreferencesProps) {
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      const selectedDiet = Object.keys(preferences).find(key => preferences[key as keyof DietaryPreferences]);
-      const selectedAllergies = Object.keys(allergies).filter(key => allergies[key as keyof Allergies]);
+      const selectedDiet = Object.keys(preferences).find(
+        (key) => preferences[key as keyof DietaryPreferences],
+      );
+      const selectedAllergies = Object.keys(allergies).filter(
+        (key) => allergies[key as keyof Allergies],
+      );
 
       const onboardingData: OnboardingData = {
         preferences: {
           diet: selectedDiet ? [selectedDiet] : [],
           allergies: selectedAllergies,
           healthGoal: goal,
-          weeklyBudget: parseFloat(budget) || 0,
+          weeklyBudget: parseFloat(budget) || undefined,
         },
       };
 

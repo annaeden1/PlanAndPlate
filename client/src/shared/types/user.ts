@@ -2,7 +2,7 @@ export interface UserPreferences {
   diet: string[];
   allergies: string[];
   healthGoal: string;
-  weeklyBudget: number;
+  weeklyBudget?: number;
 }
 
 export interface OnboardingData {
