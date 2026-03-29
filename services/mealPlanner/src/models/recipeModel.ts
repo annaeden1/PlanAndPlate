@@ -1,6 +1,7 @@
 import mongoose from "mongoose";    
 
 const recipeSchema = new mongoose.Schema({
+  originRecipeId: { type: String, required: true }, // ID from Spoonacular or internal
   name: { type: String, required: true },
   image: { type: String },
   calories: { type: Number },

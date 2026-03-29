@@ -87,6 +87,7 @@ class MealPlannerController {
       const recipeDetails = await getRecipeDetails(recipeId);
 
       const recipeData = new Recipe({
+        originRecipeId: recipeDetails.id,
         name: recipeDetails.title,
         image: recipeDetails.image,
         calories:
