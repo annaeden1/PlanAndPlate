@@ -18,7 +18,7 @@ const recipeSchema = new mongoose.Schema({
       id: String, 
       name: String, 
       image: String, 
-      amount: String, 
+      amount: Number, 
       unit: String, 
       aisle: String 
     }] 
