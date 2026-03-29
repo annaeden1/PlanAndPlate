@@ -1,15 +1,7 @@
 import { Box, Checkbox, Typography } from '@mui/material';
 import LocalDiningIcon from '@mui/icons-material/LocalDining';
 import { SelectableCard } from '../../../core/components/SelectableCard';
-
-export interface DietaryPreferences {
-  vegetarian: boolean;
-  vegan: boolean;
-  glutenFree: boolean;
-  dairyFree: boolean;
-  kosher: boolean;
-  halal: boolean;
-}
+import type { DietaryPreferences } from '../../../shared';
 
 interface DietaryStepProps {
   preferences: DietaryPreferences;
@@ -42,7 +34,7 @@ export function DietaryStep({ preferences, onChange }: DietaryStepProps) {
           const selected = preferences[pref.id];
           return (
             <SelectableCard
-              key={pref.id}
+              key={String(pref.id)}
               selected={selected}
               onClick={() => onChange(pref.id)}
               contentSx={{

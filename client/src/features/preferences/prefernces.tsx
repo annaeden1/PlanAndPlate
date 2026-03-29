@@ -2,19 +2,11 @@ import { useState } from 'react';
 import { Box, Button } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { ProgressHeader } from './components/ProgressHeader';
-import { DietaryStep, type DietaryPreferences } from './components/DietaryStep';
-import { AllergiesStep, type Allergies } from './components/AllergiesStep';
+import { DietaryStep } from './components/DietaryStep';
+import { AllergiesStep } from './components/AllergiesStep';
 import { GoalsStep } from './components/GoalsStep';
 import { BudgetStep } from './components/BudgetStep';
-
-interface OnboardingData {
-  preferences: {
-    diet: string[];
-    allergies: string[];
-    healthGoal: string;
-    weeklyBudget: number;
-  };
-}
+import type { Allergies, DietaryPreferences, OnboardingData } from '../../shared';
 
 interface PreferencesProps {
   onComplete: (data: OnboardingData) => void;
@@ -61,7 +53,7 @@ export function Preferences({ onComplete }: PreferencesProps) {
   };
 
   const handleAllergyChange = (key: keyof Allergies, value: boolean) => {
-    setAllergies((prev) => ({ ...prev, [key]: value }));
+    setAllergies((prev: Allergies) => ({ ...prev, [key]: value }));
   };
 
   const handleNext = () => {
