@@ -84,10 +84,15 @@ class MealPlannerController {
     const { recipeId } = req.params;
 
     try {
+      const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
+      if (existingRecipe) {
+        return res.json(existingRecipe);
+      }
+
       const recipeDetails = await getRecipeDetails(recipeId);
 
       const recipeData = new Recipe({
-        originRecipeId: recipeDetails.id,
+        originRecipeId: recipeDetails.id || recipeId,
         name: recipeDetails.title,
         image: recipeDetails.image,
         calories:
