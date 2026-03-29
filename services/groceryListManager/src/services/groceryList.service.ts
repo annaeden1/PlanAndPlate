@@ -1,7 +1,6 @@
 import { GroceryList } from "../models/groceryList.model";
 import { Recipe } from "../models/recipe.model";
 import { Category, normalizeAisle } from "../types/categories";
-import { normalizeUnit } from "../types/units";
 import { GroceryItem, GroceryItemGroup } from "../types/groceryList.types";
 
 export const groupByCategory = (items: GroceryItem[]): GroceryItemGroup[] => {
@@ -27,8 +26,7 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
 
   for (const item of items) {
     const normalizedName = item.name.toLowerCase().trim();
-    const normalizedUnit = normalizeUnit(item.unit);
-    const key = `${normalizedName}::${normalizedUnit}`;
+    const key = `${normalizedName}::${item.unit}`;
 
     if (map.has(key)) {
       map.get(key)!.quantity += item.quantity;
@@ -36,7 +34,7 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
       map.set(key, {
         name: normalizedName,
         quantity: item.quantity,
-        unit: normalizedUnit,
+        unit: item.unit,
         category: item.category,
         inventoryQuantity: item.inventoryQuantity ?? 0,
         checked: item.checked ?? false,
@@ -61,7 +59,7 @@ export const importFromRecipeDB = async (
   return ingredients.map((ing) => ({
     name: ing.name.toLowerCase().trim(),
     quantity: ing.amount,
-    unit: normalizeUnit(ing.unit),
+    unit: ing.unit,
     category: normalizeAisle(ing.aisle ?? ""),
     inventoryQuantity: 0,
     checked: false,
