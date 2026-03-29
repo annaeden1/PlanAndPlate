@@ -42,7 +42,7 @@ export const mealPlannerRouter = express.Router();
  *         description: Internal Server Error - Server error while creating meal plan
  **/
 mealPlannerRouter.post(
-  "/users/{userId}/meal-plans/weekly",
+  "/users/:userId/meal-plans/weekly",
   authMiddleware,
   MealPlannerController.createWeeklyPlan,
 );
@@ -75,7 +75,7 @@ mealPlannerRouter.post(
  *         description: Internal Server Error - Server error while retrieving meal plan
  **/
 mealPlannerRouter.get(
-  "/users/{userId}/meal-plans?week=",
+  "/users/:userId/meal-plans?week=",
   authMiddleware,
   MealPlannerController.getWeeklyPlan,
 );
@@ -109,7 +109,7 @@ mealPlannerRouter.get(
  *         description: Internal Server Error - Server error while retrieving meal plan
  **/
 mealPlannerRouter.get(
-  "/users/{userId}/meal-plans/day?date= ",
+  "/users/:userId/meal-plans/day?date= ",
   authMiddleware,
   MealPlannerController.getDailyPlan,
 );
@@ -137,7 +137,7 @@ mealPlannerRouter.get(
  *         description: Internal Server Error - Server error while retrieving recipe details
  **/
 mealPlannerRouter.get(
-  "/recipes/{recipeId}",
+  "/recipes/:recipeId",
   authMiddleware,
   MealPlannerController.getRecipeDetails,
 );
