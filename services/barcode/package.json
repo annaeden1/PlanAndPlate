@@ -1,7 +1,7 @@
 {
-  "name": "meal-planner",
+  "name": "barcode",
   "version": "1.0.0",
-  "description": "",
+  "description": "Barcode service for the Plan and Plate web application",
   "license": "ISC",
   "author": "Yarin, Anna, Li-am, Noya",
   "type": "commonjs",
@@ -13,19 +13,19 @@
     "dev": "nodemon ./src/server.ts"
   },
   "dependencies": {
-    "axios": "^1.14.0",
+    "axios": "^1.7.9",
     "bcrypt": "^6.0.0",
     "body-parser": "^2.2.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^8.19.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.3",
     "@types/bcrypt": "^6.0.0",
+    "@types/node": "^22.13.1",
     "@types/express": "^4.17.25",
     "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",

@@ -2,6 +2,8 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import express, { Express } from 'express';
 import mongoose from 'mongoose';
+import { authRouter } from './routes/auth.routes';
+import { userManagementRouter } from './routes/userManagement.routes';
 
 dotenv.config();
 
@@ -9,6 +11,8 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use('/auth', authRouter);
+app.use('/userManagement', userManagementRouter);
 
 export const initApp = (): Promise<Express> => {
   const promise = new Promise<Express>((resolve, reject) => {
