@@ -10,6 +10,8 @@ import { MainLayout } from './components/layout/MainLayout';
 import { useEffect, useState } from 'react';
 import { Auth } from './features/auth/Auth';
 import { theme } from './core/theme/theme';
+import { Preferences } from './features/preferences/prefernces';
+import { jwtDecode } from 'jwt-decode';
 
 const Page = ({ title }: { title: string }) => (
   <Box sx={{ pt: 4, textAlign: 'center' }}>
@@ -20,7 +22,9 @@ const Page = ({ title }: { title: string }) => (
 );
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  type AuthState = 'idle' | 'preferences' | 'loggedIn';
+
+  const [authState, setAuthState] = useState<AuthState>('idle');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,13 +41,15 @@ function App() {
         });
 
         if (response.ok) {
-          setIsAuthenticated(true);
+          setAuthState('loggedIn');
         } else {
           localStorage.removeItem('access-token');
           localStorage.removeItem('refresh-token');
+          setAuthState('idle');
         }
       } catch (error) {
         console.error('Auth verification failed', error);
+        setAuthState('idle');
       } finally {
         setIsLoading(false);
       }
@@ -67,13 +73,70 @@ function App() {
     );
   }
 
-  const handleAuthComplete = (token: {
-    accessToken: string;
-    refreshToken: string;
-  }) => {
+  const handleAuthComplete = (
+    token: {
+      accessToken: string;
+      refreshToken: string;
+    },
+    isSignUp: boolean,
+  ) => {
     localStorage.setItem('access-token', token.accessToken);
     localStorage.setItem('refresh-token', token.refreshToken);
-    setIsAuthenticated(true);
+
+    if (isSignUp) {
+      setAuthState('preferences');
+    } else {
+      setAuthState('loggedIn');
+    }
+  };
+
+  const handleOnboardingComplete = async (onboardingData: {
+    preferences: {
+      diet: string[];
+      allergies: string[];
+      healthGoal: string;
+      weeklyBudget: number;
+    };
+  }) => {
+    const token = localStorage.getItem('access-token');
+
+    if (!token) {
+      alert('Could not find auth token. Please sign in again.');
+      setAuthState('idle');
+      return;
+    }
+
+    try {
+      const token: string | null = localStorage.getItem('access-token');
+      let decoded: { userId: string } = { userId: '' };
+      if (token) {
+        decoded = jwtDecode<{ userId: string }>(token);
+      }
+console.log('Decoded token:', decoded);
+console.log('Onboarding data to send:', onboardingData);
+
+      const response = await fetch(
+        `http://localhost:8080/userManagement/${decoded.userId}/preferences`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(onboardingData),
+        },
+      );
+
+      if (response.ok) {
+        setAuthState('loggedIn');
+      } else {
+        const data = await response.json();
+        alert(data.message || 'Could not complete onboarding.');
+      }
+    } catch (error) {
+      console.error('Onboarding error:', error);
+      alert('Network error while completing onboarding.');
+    }
   };
 
   const renderScreen = () => {
@@ -98,9 +161,11 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-        {!isAuthenticated ? (
-          <Auth onAuthComplete={handleAuthComplete} />
-        ) : (
+        {authState === 'idle' && <Auth onAuthComplete={handleAuthComplete} />}
+        {authState === 'preferences' && (
+          <Preferences onComplete={handleOnboardingComplete} />
+        )}
+        {authState === 'loggedIn' && (
           <>
             <Box component="main" sx={{ width: '100%' }}>
               {renderScreen()}

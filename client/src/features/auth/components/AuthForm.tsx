@@ -4,7 +4,6 @@ import {
   Button,
   IconButton,
   InputAdornment,
-  Link,
   TextField,
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
@@ -92,20 +91,6 @@ export function AuthForm({ isSignUp, onSubmit }: AuthFormProps) {
           ),
         }}
       />
-
-      {!isSignUp && (
-        <Box sx={{ textAlign: 'right', mb: '1rem' }}>
-          <Link
-            component="button"
-            type="button"
-            variant="body2"
-            color="primary"
-            underline="hover"
-          >
-            Forgot password?
-          </Link>
-        </Box>
-      )}
 
       <Button
         type="submit"

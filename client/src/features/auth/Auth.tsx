@@ -1,17 +1,31 @@
 import { useState } from 'react';
-import { Box, Card, CardContent, Typography, Button } from '@mui/material';
+import { Box, Card, CardContent, Typography } from '@mui/material';
 import AppleIcon from '@mui/icons-material/Apple';
 import { AuthForm } from './components/AuthForm';
 import { AuthTabs } from './components/AuthTabs';
 
+interface AuthFormData {
+  name?: string;
+  email: string;
+  password: string;
+}
+
+interface AuthTokenData {
+  accessToken: string;
+  refreshToken: string;
+}
+
 interface AuthProps {
-  onAuthComplete: (formData: any) => void;
+  onAuthComplete: (formData: AuthTokenData, isSignUp: boolean) => void;
 }
 
 export function Auth({ onAuthComplete }: AuthProps) {
   const [isSignUp, setIsSignUp] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent, formData: any) => {
+  const handleSubmit = async (
+    e: React.FormEvent,
+    formData: AuthFormData,
+  ) => {
     e.preventDefault();
 
     const endpoint = isSignUp ? '/auth/signup' : '/auth/signin';
@@ -26,10 +40,13 @@ export function Auth({ onAuthComplete }: AuthProps) {
       const data = await response.json();
 
       if (response.ok) {
-        onAuthComplete({
-          accessToken: data.tokens.token,
-          refreshToken: data.tokens.refreshToken,
-        });
+        onAuthComplete(
+          {
+            accessToken: data.tokens.token,
+            refreshToken: data.tokens.refreshToken,
+          },
+          isSignUp,
+        );
       } else {
         alert(data.message || 'Authentication failed');
       }
@@ -90,19 +107,6 @@ export function Auth({ onAuthComplete }: AuthProps) {
             <AuthForm isSignUp={isSignUp} onSubmit={handleSubmit} />
           </CardContent>
         </Card>
-
-        <Box sx={{ mt: '1.5rem', textAlign: 'center' }}>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ mb: '0.75rem' }}
-          >
-            Want to explore first?
-          </Typography>
-          <Button variant="text" color="primary" onClick={onAuthComplete}>
-            Continue as Guest →
-          </Button>
-        </Box>
       </Box>
     </Box>
   );
