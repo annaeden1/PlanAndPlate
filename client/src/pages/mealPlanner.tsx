@@ -21,6 +21,8 @@ export function MealPlanner({ }: MealPlannerProps) {
   const [cachedWeekKey, setCachedWeekKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mealImages, setMealImages] = useState<{ [key: string]: string }>({});
+  const [loadingImages, setLoadingImages] = useState(false);
   const navigate = useNavigate();
 
   const formatDayKey = (dateString: string) =>
@@ -55,21 +57,21 @@ export function MealPlanner({ }: MealPlannerProps) {
           name: dayRecord.breakfast.name,
           type: "Breakfast",
           calories: dayRecord.breakfast.calories,
-          image: "https://via.placeholder.com/400x300?text=Breakfast",
+          image: mealImages[dayRecord.breakfast.recipeId] || "https://via.placeholder.com/400x300?text=Breakfast",
         },
         {
           id: Number(dayRecord.lunch.recipeId),
           name: dayRecord.lunch.name,
           type: "Lunch",
           calories: dayRecord.lunch.calories,
-          image: "https://via.placeholder.com/400x300?text=Lunch",
+          image: mealImages[dayRecord.lunch.recipeId] || "https://via.placeholder.com/400x300?text=Lunch",
         },
         {
           id: Number(dayRecord.dinner.recipeId),
           name: dayRecord.dinner.name,
           type: "Dinner",
           calories: dayRecord.dinner.calories,
-          image: "https://via.placeholder.com/400x300?text=Dinner",
+          image: mealImages[dayRecord.dinner.recipeId] || "https://via.placeholder.com/400x300?text=Dinner",
         },
       );
     }
@@ -125,6 +127,46 @@ export function MealPlanner({ }: MealPlannerProps) {
   useEffect(() => {
     fetchWeeklyPlan();
   }, [currentWeek]);
+
+  useEffect(() => {
+    const fetchMealImages = async () => {
+      if (!mealPlan) return;
+
+      setLoadingImages(true);
+      const dayRecord = mealPlan.days.find(
+        (day) => formatDayKey(day.date) === selectedDay,
+      );
+      if (!dayRecord) {
+        setLoadingImages(false);
+        return;
+      }
+
+      const meals = [dayRecord.breakfast, dayRecord.lunch, dayRecord.dinner];
+      const imagePromises = meals.map(async (meal) => {
+        if (meal.recipeId && meal.recipeId !== "") {
+          try {
+            const token = localStorage.getItem('access-token');
+            const recipe = await mealPlannerApi.getRecipeDetails(meal.recipeId.toString(), token);
+            return { id: meal.recipeId, image: recipe.image || "https://via.placeholder.com/400x300?text=No+Image" };
+          } catch (err) {
+            console.error('Error fetching image for meal', meal.recipeId, err);
+            return { id: meal.recipeId, image: "https://via.placeholder.com/400x300?text=No+Image" };
+          }
+        }
+        return { id: meal.recipeId, image: "https://via.placeholder.com/400x300?text=No+Recipe" };
+      });
+
+      const images = await Promise.all(imagePromises);
+      const imageMap: { [key: string]: string } = {};
+      images.forEach(img => {
+        imageMap[img.id] = img.image;
+      });
+      setMealImages(imageMap);
+      setLoadingImages(false);
+    };
+
+    fetchMealImages();
+  }, [mealPlan, selectedDay]);
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>
