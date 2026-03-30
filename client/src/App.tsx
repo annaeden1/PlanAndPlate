@@ -9,6 +9,8 @@ import {
 import { MainLayout } from "./components/layout/MainLayout";
 import { MealPlanner } from "./pages/mealPlanner";
 import { RecipeDetail } from "./pages/recipeDetail";
+import { GroceryList } from "./pages/GroceryList";
+import { GroceryListProvider } from "./context/GroceryListContext";
 
 const theme = createTheme({
   palette: {
@@ -45,7 +47,7 @@ function App() {
             <Route path="/" element={<Page title="🏠 Home" />} />
             <Route path="/planner" element={<MealPlanner />} />
             <Route path="/recipe" element={<RecipeDetail />} />
-            <Route path="/cart" element={<Page title="🛒 Cart" />} />
+            <Route path="/cart"    element={<GroceryListProvider><GroceryList /></GroceryListProvider>} />
             <Route path="/scanner" element={<Page title="📷 Scanner" />} />
             <Route path="/profile" element={<Page title="👤 Profile" />} />
           </Routes>
