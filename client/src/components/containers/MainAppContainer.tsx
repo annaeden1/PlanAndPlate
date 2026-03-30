@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Typography, Box } from '@mui/material';
 import { MainLayout } from '../layout/MainLayout';
+import { GroceryListProvider } from '../../context/GroceryListContext';
+import { GroceryList } from '../../pages/GroceryList';
 
 const Page = ({ title }: { title: string }) => (
   <Box sx={{ pt: 4, textAlign: 'center' }}>
@@ -17,7 +19,14 @@ export function MainAppContainer() {
         <Routes>
           <Route path="/" element={<Page title="🏠 Home" />} />
           <Route path="/planner" element={<Page title="📅 Planner" />} />
-          <Route path="/cart" element={<Page title="🛒 Cart" />} />
+          <Route
+            path="/cart"
+            element={
+              <GroceryListProvider>
+                <GroceryList />
+              </GroceryListProvider>
+            }
+          />
           <Route path="/scanner" element={<Page title="📷 Scanner" />} />
           <Route path="/profile" element={<Page title="👤 Profile" />} />
         </Routes>

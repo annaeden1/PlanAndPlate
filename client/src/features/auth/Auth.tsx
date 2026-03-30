@@ -12,7 +12,7 @@ import { Close as CloseIcon } from '@mui/icons-material';
 import AppleIcon from '@mui/icons-material/Apple';
 import { AuthForm } from './components/AuthForm';
 import { AuthTabs } from './components/AuthTabs';
-import { userManagementApi } from '../../components/api/auth';
+import { userManagementApi } from '../../api/auth';
 
 interface AuthFormData {
   name?: string;

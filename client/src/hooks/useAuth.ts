@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import type { AuthState, OnboardingData, TokenData } from '../shared';
-import { userManagementApi } from '../components/api/auth';
+import { userManagementApi } from '../api/auth';
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>('idle');

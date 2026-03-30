@@ -46,6 +46,7 @@ export const getProduct = async (req: Request, res: Response): Promise<void> => 
 
 export const addProduct = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log('Received addProduct request with body:', req.body);
     const { userId } = req.params;
     const { name, quantity, unit, aisle } = req.body as {
       name: string;

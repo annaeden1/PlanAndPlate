@@ -1,8 +1,8 @@
 import axios from 'axios';
-import type { OnboardingData } from '../../shared';
+import type { OnboardingData } from '../shared';
 
 const api = axios.create({
-  baseURL: '/local',
+  baseURL: '/userManagement',
   headers: { 'Content-Type': 'application/json' },
 });
 

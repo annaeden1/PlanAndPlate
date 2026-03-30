@@ -4,15 +4,11 @@ import express, { Express } from 'express';
 import mongoose from 'mongoose';
 import { authRouter } from './routes/auth.routes';
 import { userManagementRouter } from './routes/userManagement.routes';
-import cors from 'cors';
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors({
-    origin: 'http://localhost:5174' 
-}));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use('/auth', authRouter);
