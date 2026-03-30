@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import type { AuthState, OnboardingData, TokenData } from '../shared';
+import { userManagementApi } from '../components/api/auth';
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>('idle');
@@ -15,11 +16,9 @@ export const useAuth = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:8080/auth/verify', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await userManagementApi.verify(token);
 
-        if (response.ok) {
+        if (response) {
           setAuthState('loggedIn');
         } else {
           localStorage.removeItem('access-token');
@@ -37,10 +36,7 @@ export const useAuth = () => {
     checkAuth();
   }, []);
 
-  const handleAuthComplete = (
-    token: TokenData,
-    isSignUp: boolean,
-  ) => {
+  const handleAuthComplete = (token: TokenData, isSignUp: boolean) => {
     localStorage.setItem('access-token', token.accessToken);
     localStorage.setItem('refresh-token', token.refreshToken);
 
@@ -67,23 +63,15 @@ export const useAuth = () => {
         decoded = jwtDecode<{ userId: string }>(token);
       }
 
-      const response = await fetch(
-        `http://localhost:8080/userManagement/${decoded.userId}/preferences`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(onboardingData),
-        },
+      const response = await userManagementApi.updatePreferences(
+        decoded.userId,
+        onboardingData,
+        token,
       );
-
-      if (response.ok) {
+      if (response.updatedUser) {
         setAuthState('loggedIn');
       } else {
-        const data = await response.json();
-        alert(data.message || 'Could not complete onboarding.');
+        alert(response.message || 'Could not complete onboarding.');
       }
     } catch (error) {
       console.error('Onboarding error:', error);

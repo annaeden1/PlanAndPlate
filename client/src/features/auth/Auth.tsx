@@ -3,6 +3,7 @@ import { Box, Card, CardContent, Typography } from '@mui/material';
 import AppleIcon from '@mui/icons-material/Apple';
 import { AuthForm } from './components/AuthForm';
 import { AuthTabs } from './components/AuthTabs';
+import { userManagementApi } from '../../components/api/auth';
 
 interface AuthFormData {
   name?: string;
@@ -28,27 +29,19 @@ export function Auth({ onAuthComplete }: AuthProps) {
   ) => {
     e.preventDefault();
 
-    const endpoint = isSignUp ? '/auth/signup' : '/auth/signin';
-
     try {
-      const response = await fetch(`http://localhost:8080${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
+      const response = isSignUp ? await userManagementApi.signup(formData) : await userManagementApi.signin(formData);
+console.log('Auth response:', response);
+      if (response.tokens) {
         onAuthComplete(
           {
-            accessToken: data.tokens.token,
-            refreshToken: data.tokens.refreshToken,
+            accessToken: response.tokens.token,
+            refreshToken: response.tokens.refreshToken,
           },
           isSignUp,
         );
       } else {
-        alert(data.message || 'Authentication failed');
+        alert(response.message || 'Authentication failed');
       }
     } catch (error) {
       console.error('Network error:', error);
