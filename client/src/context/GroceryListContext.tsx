@@ -3,9 +3,7 @@ import type { ReactNode } from 'react';
 import { groceryListApi } from '../api/groceryList';
 import { getErrorMessage } from '../utils/errorMessage';
 import type { IGroceryItem, IGroceryItemGroup } from '../types/grocery';
-
-// TODO: replace with real userId from auth context once auth is integrated
-const TEMP_USER_ID = 'temp-user-id';
+import { getUserId } from '../shared/utils/userId';
 
 interface GroceryListState {
   groups: IGroceryItemGroup[];
@@ -26,7 +24,7 @@ interface GroceryListActions {
 const GroceryListContext = createContext<(GroceryListState & GroceryListActions) | null>(null);
 
 export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
-  const userId = TEMP_USER_ID;
+  const userId = getUserId() ?? '';
   const [groups, setGroups] = useState<IGroceryItemGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

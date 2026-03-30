@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import * as GroceryController from '../controllers/groceryList.controller';
+import authMiddleware from '../middlewares/auth.middleware';
 
 const router = Router();
+
+router.use(authMiddleware);
 
 /**
  * @swagger
