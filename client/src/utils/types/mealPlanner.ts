@@ -23,6 +23,15 @@ export interface ApiMealPlan {
   days: ApiMealPlanDay[];
 }
 
+export interface Ingredient {
+  id: number;
+  name: string;
+  image?: string;
+  amount: number;
+  unit?: string;
+  aisle?: string;
+}
+
 export interface ApiRecipe {
   _id?: string;
   originRecipeId: string;
@@ -38,14 +47,7 @@ export interface ApiRecipe {
   isLiked?: boolean;
   instructions?: {
     steps: string[];
-    ingredients: {
-      id: number;
-      name: string;
-      image?: string;
-      amount: number;
-      unit?: string;
-      aisle?: string;
-    }[];
+    ingredients: ingredient[];
   };
 }
 
