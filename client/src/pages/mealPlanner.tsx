@@ -1,46 +1,122 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { WeeklyTimeline } from "../components/menu/weeklyTimeLine";
 import { PlannedMealCard } from "../components/menu/mealPlannerCard";
 import { MealPlannerEmptyState } from "../components/menu/mealPlannerEmptyState";
-import { DAYS, WEEKLY_MEALS } from "../utils/mockData/mealPlannerMockData";
-import { Typography } from "@mui/material";
+import { DAYS, type MealPlanItem } from "../utils/types/mealPlanner";
+import type { ApiMealPlan } from '../utils/types/mealPlanner';
+import { mealPlannerApi } from "../api/mealPlanner";
 
-interface MealPlannerProps {
-}
+interface MealPlannerProps {}
 
 export function MealPlanner({ }: MealPlannerProps) {
-  const [selectedDay, setSelectedDay] = useState("Mon");
+  const [selectedDay, setSelectedDay] = useState("Sun");
   const [currentWeek, setCurrentWeek] = useState(0);
+  const [mealPlan, setMealPlan] = useState<ApiMealPlan | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const selectedMeals = WEEKLY_MEALS[selectedDay] || [];
+  const formatDayKey = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", { weekday: "short" });
+
+  const selectedMeals: MealPlanItem[] = [];
+  if (mealPlan) {
+    const dayRecord = mealPlan.days.find(
+      (day) => formatDayKey(day.date) === selectedDay,
+    );
+    if (dayRecord) {
+      selectedMeals.push(
+        {
+          id: Number(dayRecord.breakfast.recipeId),
+          name: dayRecord.breakfast.name,
+          type: "Breakfast",
+          calories: dayRecord.breakfast.calories,
+          image: "https://via.placeholder.com/400x300?text=Breakfast",
+        },
+        {
+          id: Number(dayRecord.lunch.recipeId),
+          name: dayRecord.lunch.name,
+          type: "Lunch",
+          calories: dayRecord.lunch.calories,
+          image: "https://via.placeholder.com/400x300?text=Lunch",
+        },
+        {
+          id: Number(dayRecord.dinner.recipeId),
+          name: dayRecord.dinner.name,
+          type: "Dinner",
+          calories: dayRecord.dinner.calories,
+          image: "https://via.placeholder.com/400x300?text=Dinner",
+        },
+      );
+    }
+  }
+
+
+  const fetchWeeklyPlan = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Calculate a reference date for the week
+      const referenceDate = new Date();
+      referenceDate.setDate(referenceDate.getDate() + currentWeek * 7);
+      const weekDate = referenceDate.toISOString().split("T")[0];
+
+      const userId = "default-user"; // Replace with real user ID from auth
+
+      try {
+        const data = await mealPlannerApi.getWeeklyPlan(userId, weekDate);
+        setMealPlan(data);
+      } catch (error: any) {
+        if (error.response?.status === 404) {
+          console.log("No meal plan found, creating new weekly plan...");
+          const data = await mealPlannerApi.createWeeklyPlan(userId);
+          setMealPlan(data);
+        } else {
+          throw error;
+        }
+      }
+    } catch (fetchError: any) {
+      console.error("Error loading meal plan:", fetchError);
+      setError("Accessing meal plan failed. Please try again later.");
+      setMealPlan(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchWeeklyPlan();
+  }, [currentWeek, selectedDay]);
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>
-      <Box sx={{ maxWidth: 3000, mx: 'auto', p: '1.5rem' }}>
-      {/* Header Section */}
-      <Box sx={{ mb: '2rem' }}>
-        <Typography variant="h4" fontWeight="bold">
-          Weekly Planner
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Your personalized weekly menu
-        </Typography>
-      </Box>
+      <Box sx={{ maxWidth: 3000, mx: "auto", p: "1.5rem" }}>
+        <Box sx={{ mb: "2rem" }}>
+          <Typography variant="h4" fontWeight="bold">
+            Weekly Planner
+          </Typography>
+          <Typography variant="subtitle1" color="text.secondary">
+            Your personalized weekly menu
+          </Typography>
+        </Box>
 
-      <WeeklyTimeline
-        currentWeek={currentWeek}
-        onWeekChange={setCurrentWeek}
-        selectedDay={selectedDay}
-        onDaySelect={setSelectedDay}
-        days={DAYS}
-      />
+        <WeeklyTimeline
+          currentWeek={currentWeek}
+          onWeekChange={setCurrentWeek}
+          selectedDay={selectedDay}
+          onDaySelect={setSelectedDay}
+          days={DAYS}
+        />
 
-      <Box sx={{ px: "1.5rem", py: "1.5rem" }}>
-        <Box sx={{ maxWidth: "80rem", mx: "auto" }}>
-          {selectedMeals.length === 0 ? (
+        <Box sx={{ px: "1.5rem", py: "1.5rem" }}>
+          {loading ? (
+            <Typography>Loading weekly plan...</Typography>
+          ) : error ? (
+            <Typography color="error">{error}</Typography>
+          ) : selectedMeals.length === 0 ? (
             <MealPlannerEmptyState selectedDay={selectedDay} />
           ) : (
             <Box
@@ -56,16 +132,17 @@ export function MealPlanner({ }: MealPlannerProps) {
             >
               {selectedMeals.map((meal) => (
                 <PlannedMealCard
-                  key={meal.id}
+                  key={`${selectedDay}-${meal.type}`}
                   meal={meal}
-                  onViewRecipe={(meal) => navigate('/recipe', { state: { recipe: meal } })}
+                  onViewRecipe={(meal) =>
+                    navigate("/recipe", { state: { recipe: meal } })
+                  }
                 />
               ))}
             </Box>
           )}
         </Box>
       </Box>
-    </Box>
     </Box>
   );
 }
