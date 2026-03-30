@@ -9,48 +9,52 @@ export const DAILY_VALUES = {
 };
 
 export const mapNutritionFacts = (data: ProductData): NutritionItem[] => {
-  const n = data?.nutritionData?.nutriments || {};
+  const nutriments = data?.nutritionData?.nutriments || {};
 
   const nutritionItems: (NutritionItem | null)[] = [
-    n['energy-kcal_100g']
+    nutriments['energy-kcal_100g']
       ? {
           label: 'Calories',
-          value: `${n['energy-kcal_100g']} kcal`,
+          value: `${nutriments['energy-kcal_100g']} kcal`,
           percent: Math.round(
-            (n['energy-kcal_100g'] / DAILY_VALUES.calories) * 100,
+            (nutriments['energy-kcal_100g'] / DAILY_VALUES.calories) * 100,
           ),
         }
       : null,
-    n['proteins_100g']
+    nutriments['proteins_100g']
       ? {
           label: 'Protein',
-          value: `${n['proteins_100g']}g`,
+          value: `${nutriments['proteins_100g']}g`,
           percent: Math.round(
-            (n['proteins_100g'] / DAILY_VALUES.protein) * 100,
+            (nutriments['proteins_100g'] / DAILY_VALUES.protein) * 100,
           ),
         }
       : null,
-    n['carbohydrates_100g']
+    nutriments['carbohydrates_100g']
       ? {
           label: 'Carbs',
-          value: `${n['carbohydrates_100g']}g`,
+          value: `${nutriments['carbohydrates_100g']}g`,
           percent: Math.round(
-            (n['carbohydrates_100g'] / DAILY_VALUES.carbs) * 100,
+            (nutriments['carbohydrates_100g'] / DAILY_VALUES.carbs) * 100,
           ),
         }
       : null,
-    n['fat_100g']
+    nutriments['fat_100g']
       ? {
           label: 'Fat',
-          value: `${n['fat_100g']}g`,
-          percent: Math.round((n['fat_100g'] / DAILY_VALUES.fat) * 100),
+          value: `${nutriments['fat_100g']}g`,
+          percent: Math.round(
+            (nutriments['fat_100g'] / DAILY_VALUES.fat) * 100,
+          ),
         }
       : null,
-    n['sugars_100g']
+    nutriments['sugars_100g']
       ? {
           label: 'Sugar',
-          value: `${n['sugars_100g']}g`,
-          percent: Math.round((n['sugars_100g'] / DAILY_VALUES.sugar) * 100),
+          value: `${nutriments['sugars_100g']}g`,
+          percent: Math.round(
+            (nutriments['sugars_100g'] / DAILY_VALUES.sugar) * 100,
+          ),
         }
       : null,
   ];
