@@ -6,11 +6,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/local': {
+      '/userManagement': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/userManagement/, ''),
+      },
+      '/grocerylist': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/local/, ''),
-      }
+      },
     },
   },
 });
