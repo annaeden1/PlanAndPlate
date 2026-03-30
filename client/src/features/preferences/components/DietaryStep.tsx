@@ -2,6 +2,7 @@ import { Box, Checkbox, Typography } from '@mui/material';
 import LocalDiningIcon from '@mui/icons-material/LocalDining';
 import { SelectableCard } from '../../../core/components/SelectableCard';
 import type { DietaryPreferences } from '../../../shared';
+import { dietaryOptions } from '../utils/dietaryOptions';
 
 interface DietaryStepProps {
   preferences: DietaryPreferences;
@@ -9,19 +10,8 @@ interface DietaryStepProps {
 }
 
 export function DietaryStep({ preferences, onChange }: DietaryStepProps) {
-  const options: { id: keyof DietaryPreferences; label: string }[] = [
-    { id: 'glutenFree', label: 'Gluten Free' },
-    { id: 'ketogenic', label: 'Ketogenic' },
-    { id: 'vegetarian', label: 'Vegetarian' },
-    { id: 'lactoVegetarian', label: 'Lacto-Vegetarian' },
-    { id: 'ovoVegetarian', label: 'Ovo Vegetarian' },
-    { id: 'vegan', label: 'Vegan' },
-    { id: 'pescatarian', label: 'Pescetarian' },
-    { id: 'paleo', label: 'Paleo' },
-    { id: 'primal', label: 'Primal' },
-    { id: 'lowFODMAP', label: 'Low FODMAP' },
-    { id: 'whole30', label: 'Whole30' },
-  ];
+  const options: { id: keyof DietaryPreferences; label: string }[] =
+    dietaryOptions;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -29,9 +19,7 @@ export function DietaryStep({ preferences, onChange }: DietaryStepProps) {
         <Typography variant="h2" sx={{ mb: '0.5rem' }}>
           Dietary Preferences
         </Typography>
-        <Typography color="text.secondary">
-          Select one preference
-        </Typography>
+        <Typography color="text.secondary">Select one preference</Typography>
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
