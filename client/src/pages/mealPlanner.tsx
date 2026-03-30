@@ -17,6 +17,7 @@ export function MealPlanner({ }: MealPlannerProps) {
   const [selectedDay, setSelectedDay] = useState(todayName);
   const [currentWeek, setCurrentWeek] = useState(0);
   const [mealPlan, setMealPlan] = useState<ApiMealPlan | null>(null);
+  const [cachedWeekKey, setCachedWeekKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -85,16 +86,27 @@ export function MealPlanner({ }: MealPlannerProps) {
       selectedDate.setDate(today.getDate() + currentWeek * 7 + (dayIndex - today.getDay()));
       const weekDate = selectedDate.toISOString().split("T")[0];
 
+      // Cache key is based on currentWeek only - ensures same week doesn't re-fetch
+      const weekKey = currentWeek.toString();
+
+      // Check if week is already cached
+      if (cachedWeekKey === weekKey && mealPlan) {
+        setLoading(false);
+        return;
+      }
+
       const userId = "default-user"; // Replace with real user ID from auth
 
       try {
         const data = await mealPlannerApi.getWeeklyPlan(userId, weekDate);
         setMealPlan(data);
+        setCachedWeekKey(weekKey);
       } catch (error: any) {
         if (error.response?.status === 404) {
           console.log("No meal plan found, creating new weekly plan...");
           const data = await mealPlannerApi.createWeeklyPlan(userId);
           setMealPlan(data);
+          setCachedWeekKey(weekKey);
         } else {
           throw error;
         }
@@ -110,7 +122,7 @@ export function MealPlanner({ }: MealPlannerProps) {
 
   useEffect(() => {
     fetchWeeklyPlan();
-  }, [currentWeek, selectedDay]);
+  }, [currentWeek]);
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>
