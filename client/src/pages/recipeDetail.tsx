@@ -1,4 +1,4 @@
-import { Box, Button, Card, Chip, IconButton, Typography } from "@mui/material";
+import { Box, Button, Card, Chip, IconButton, Typography, Snackbar, Alert } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -6,6 +6,8 @@ import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import GroupIcon from "@mui/icons-material/Group";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import { mealPlannerApi } from "../api/mealPlanner";
+import { groceryListApi } from "../api/groceryList";
+import { getUserId } from "../shared/utils/userId";
 import type { Ingredient, ApiRecipe } from "../utils/types/mealPlanner";
 
 interface RecipeDetailProps {}
@@ -17,6 +19,25 @@ export function RecipeDetail({}: RecipeDetailProps) {
   const [recipe, setRecipe] = useState<ApiRecipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  const handleAddIngredientsToList = async () => {
+    if (!recipe) return;
+
+    try {
+      const userId = getUserId() ?? "";
+      const recipeId = recipe._id || recipe.originRecipeId || meal?.id?.toString() || "";
+      await groceryListApi.importRecipe(userId, recipeId, "");
+      setSnackbar({ open: true, message: 'Ingredients added to grocery list successfully!', severity: 'success' });
+    } catch (err) {
+      console.error('Failed to import ingredients from recipe:', err);
+      setSnackbar({ open: true, message: 'Failed to add ingredients to grocery list.', severity: 'error' });
+    }
+  };
 
   useEffect(() => {
     const fetchRecipe = async () => {
@@ -318,6 +339,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
                   <Button
                     variant="contained"
                     sx={{ height: "3rem", borderRadius: "0.625rem" }}
+                    onClick={handleAddIngredientsToList}
                   >
                     Add Ingredients to Cart
                   </Button>
@@ -327,6 +349,21 @@ export function RecipeDetail({}: RecipeDetailProps) {
           </Box>
         </>
       )}
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

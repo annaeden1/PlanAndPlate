@@ -11,9 +11,10 @@ import type { MealPlanItem } from "../../utils/types/mealPlanner";
 interface PlannedMealCardProps {
   meal: MealPlanItem;
   onViewRecipe: (meal: MealPlanItem) => void;
+  onAddToList: (meal: MealPlanItem) => void;
 }
 
-export function PlannedMealCard({ meal, onViewRecipe }: PlannedMealCardProps) {
+export function PlannedMealCard({ meal, onViewRecipe, onAddToList }: PlannedMealCardProps) {
   return (
     <Card
       sx={{
@@ -61,6 +62,7 @@ export function PlannedMealCard({ meal, onViewRecipe }: PlannedMealCardProps) {
             variant="contained"
             fullWidth
             sx={{ borderRadius: "0.625rem" }}
+            onClick={() => onAddToList(meal)}
           >
             Add to List
           </Button>

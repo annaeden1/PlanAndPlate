@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Snackbar, Alert } from "@mui/material";
 import { WeeklyTimeline } from "../components/menu/weeklyTimeLine";
 import { PlannedMealCard } from "../components/menu/mealPlannerCard";
 import { MealPlannerEmptyState } from "../components/menu/mealPlannerEmptyState";
 import { DAYS, type MealPlanItem } from "../utils/types/mealPlanner";
 import type { ApiMealPlan } from '../utils/types/mealPlanner';
 import { mealPlannerApi } from "../api/mealPlanner";
+import { groceryListApi } from "../api/groceryList";
 import { getUserId } from "../shared/utils/userId";
 
 interface MealPlannerProps {}
@@ -23,10 +24,30 @@ export function MealPlanner({ }: MealPlannerProps) {
   const [error, setError] = useState<string | null>(null);
   const [mealImages, setMealImages] = useState<{ [key: string]: string }>({});
   const [loadingImages, setLoadingImages] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
   const navigate = useNavigate();
 
   const formatDayKey = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { weekday: "short" });
+
+  const handleAddToList = async (meal: MealPlanItem) => {
+    try {
+      const userId = getUserId() ?? "";
+      const mealPlanId = mealPlan?._id ?? "";
+      const recipeDetails = await mealPlannerApi.getRecipeDetails(meal.id.toString(), localStorage.getItem('access-token'));
+      const recipeIdForImport = recipeDetails._id || recipeDetails.originRecipeId || meal.id.toString();
+
+      await groceryListApi.importRecipe(userId, recipeIdForImport, mealPlanId);
+      setSnackbar({ open: true, message: 'Ingredients added to grocery list successfully!', severity: 'success' });
+    } catch (err) {
+      console.error('Error adding to grocery list:', err);
+      setSnackbar({ open: true, message: 'Failed to add ingredients to grocery list.', severity: 'error' });
+    }
+  };
 
   const weekRange = (() => {
     const ref = new Date();
@@ -190,7 +211,7 @@ export function MealPlanner({ }: MealPlannerProps) {
         />
 
         <Box sx={{ px: "1.5rem", py: "1.5rem" }}>
-          {loading ? (
+          {loading || loadingImages ? (
             <Typography>Loading weekly plan...</Typography>
           ) : error ? (
             <Typography color="error">{error}</Typography>
@@ -215,12 +236,27 @@ export function MealPlanner({ }: MealPlannerProps) {
                   onViewRecipe={(meal) =>
                     navigate("/recipe", { state: { recipe: meal } })
                   }
+                  onAddToList={handleAddToList}
                 />
               ))}
             </Box>
           )}
         </Box>
       </Box>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

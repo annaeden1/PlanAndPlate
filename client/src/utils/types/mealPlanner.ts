@@ -19,6 +19,7 @@ export interface ApiMealPlanDay {
 }
 
 export interface ApiMealPlan {
+  _id?: string;
   userId: string;
   days: ApiMealPlanDay[];
 }
@@ -47,7 +48,7 @@ export interface ApiRecipe {
   isLiked?: boolean;
   instructions?: {
     steps: string[];
-    ingredients: ingredient[];
+    ingredients: Ingredient[];
   };
 }
 
