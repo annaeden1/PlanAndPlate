@@ -11,7 +11,8 @@ class MealPlannerController {
         return res.status(400).json({ error: "Invalid input data: userId is required" });
       }
 
-      const mealPlan = await mealPlannerService.createWeeklyPlan(userId, date);
+      const authHeader = req.headers.authorization;
+      const mealPlan = await mealPlannerService.createWeeklyPlan(userId, date, authHeader);
       res.status(201).json(mealPlan);
     } catch (error) {
       console.error("Error creating weekly plan:", error);

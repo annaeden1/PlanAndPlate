@@ -1,6 +1,5 @@
 import axios from "axios";
 
-const spoonacularAPI = "https://api.spoonacular.com/";
 const apiKey = process.env.SPOONACULAR_API_KEY;
 
 export const generateMealPlan = async (
@@ -9,7 +8,7 @@ export const generateMealPlan = async (
 ): Promise<any> => {
   if (!apiKey) throw new Error("SPOONACULAR_API_KEY is not set");
 
-  const url = `${spoonacularAPI}mealPlanner/generate?apiKey=${apiKey}&timeFrame=week&diet=${diet || ""}&exclude=${exclude || ""}`;
+  const url = `https://api.spoonacular.com/mealplanner/generate?apiKey=${apiKey}&timeFrame=week&diet=${diet || ""}&exclude=${exclude || ""}`;
   const response = await axios.get(url);
 
   return response.data;
@@ -18,7 +17,7 @@ export const generateMealPlan = async (
 export const getRecipeDetails = async (recipeId: string): Promise<any> => {
   if (!apiKey) throw new Error("SPOONACULAR_API_KEY is not set");
 
-  const url = `${spoonacularAPI}recipes/${recipeId}/information?includeNutrition=true&apiKey=${apiKey}`;
+  const url = `https://api.spoonacular.com/recipes/${recipeId}/information?includeNutrition=true&apiKey=${apiKey}`;
   const response = await axios.get(url);
   return response.data;
 };

@@ -97,15 +97,16 @@ export function MealPlanner({ }: MealPlannerProps) {
       }
 
       const userId = getUserId() ?? "";
+      const token = localStorage.getItem('access-token');
 
       try {
-        const data = await mealPlannerApi.getWeeklyPlan(userId, weekDate);
+        const data = await mealPlannerApi.getWeeklyPlan(userId, weekDate, token);
         setMealPlan(data);
         setCachedWeekKey(weekKey);
       } catch (error: any) {
         if (error.response?.status === 404) {
           console.log("No meal plan found, creating new weekly plan...");
-          const data = await mealPlannerApi.createWeeklyPlan(userId, weekDate);
+          const data = await mealPlannerApi.createWeeklyPlan(userId, weekDate, token);
           setMealPlan(data);
           setCachedWeekKey(weekKey);
         } else {

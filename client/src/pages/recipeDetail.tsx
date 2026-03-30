@@ -21,12 +21,13 @@ export function RecipeDetail({}: RecipeDetailProps) {
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
+        const token = localStorage.getItem('access-token');
         if (!meal?.id) {
           setError("No recipe ID provided");
           setLoading(false);
           return;
         }
-        const data = await mealPlannerApi.getRecipeDetails(meal.id.toString());
+        const data = await mealPlannerApi.getRecipeDetails(meal.id.toString(), token);
         setRecipe(data);
       } catch (err) {
         console.error("Error fetching recipe:", err);
