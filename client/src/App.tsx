@@ -1,29 +1,16 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { CssBaseline, ThemeProvider, createTheme, Typography, Box } from "@mui/material";
-import { MainLayout } from "./components/layout/MainLayout";
-import { GroceryList } from "./pages/GroceryList";
-import { GroceryListProvider } from "./context/GroceryListContext";
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#3eb489",
-    },
-    background: {
-      default: "#f9fafb",
-    },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica Neue", Arial, sans-serif',
-  },
-  shape: {
-    borderRadius: 10,
-  },
-});
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { CssBaseline, ThemeProvider, Typography, Box } from '@mui/material';
+import { MainLayout } from './components/layout/MainLayout';
+import { GroceryList } from './pages/GroceryList';
+import { GroceryListProvider } from './context/GroceryListContext';
+import { theme } from './core/theme/theme';
+import { Scanner } from './pages/Scanner/Scanner';
 
 const Page = ({ title }: { title: string }) => (
-  <Box sx={{ pt: 4, textAlign: "center" }}>
-    <Typography variant="h4" fontWeight={700}>{title}</Typography>
+  <Box sx={{ pt: 4, textAlign: 'center' }}>
+    <Typography variant="h4" fontWeight={700}>
+      {title}
+    </Typography>
   </Box>
 );
 
@@ -34,10 +21,17 @@ function App() {
       <BrowserRouter>
         <MainLayout>
           <Routes>
-            <Route path="/"        element={<Page title="🏠 Home" />} />
+            <Route path="/" element={<Page title="🏠 Home" />} />
             <Route path="/planner" element={<Page title="📅 Planner" />} />
-            <Route path="/cart"    element={<GroceryListProvider><GroceryList /></GroceryListProvider>} />
-            <Route path="/scanner" element={<Page title="📷 Scanner" />} />
+            <Route
+              path="/cart"
+              element={
+                <GroceryListProvider>
+                  <GroceryList />
+                </GroceryListProvider>
+              }
+            />
+            <Route path="/scanner" element={<Scanner />} />
             <Route path="/profile" element={<Page title="👤 Profile" />} />
           </Routes>
         </MainLayout>
