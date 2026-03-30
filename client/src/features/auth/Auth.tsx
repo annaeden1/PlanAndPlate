@@ -50,13 +50,13 @@ export function Auth({ onAuthComplete }: AuthProps) {
           isSignUp,
         );
       } else {
-        setErrorMessage('שם משתמש או סיסמה שגויים');
+        setErrorMessage('Email or password is incorrect');
         setShowError(true);
       }
     } catch (error) {
       isSignUp
-        ? setErrorMessage('דוא"ל כבר קיים')
-        : setErrorMessage('שם משתמש או סיסמה שגויים');
+        ? setErrorMessage('Email already exists')
+        : setErrorMessage('Email or password is incorrect');
       setShowError(true);
     }
   };
