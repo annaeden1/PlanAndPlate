@@ -3,6 +3,8 @@ import { Typography, Box } from '@mui/material';
 import { MainLayout } from '../layout/MainLayout';
 import { GroceryListProvider } from '../../context/GroceryListContext';
 import { GroceryList } from '../../pages/GroceryList';
+import { MealPlanner } from '../../pages/mealPlanner';
+import { RecipeDetail } from '../../pages/recipeDetail';
 
 const Page = ({ title }: { title: string }) => (
   <Box sx={{ pt: 4, textAlign: 'center' }}>
@@ -18,8 +20,8 @@ export function MainAppContainer() {
       <MainLayout>
         <Routes>
           <Route path="/" element={<Page title="🏠 Home" />} />
-          <Route path="/planner" element={<Page title="📅 Planner" />} />
-          <Route
+            <Route path="/planner" element={<MealPlanner />} />
+            <Route path="/recipe" element={<RecipeDetail />} />          <Route
             path="/cart"
             element={
               <GroceryListProvider>
