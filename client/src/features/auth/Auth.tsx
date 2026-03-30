@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Box, Card, CardContent, Typography } from '@mui/material';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Alert,
+  Collapse,
+  IconButton,
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import AppleIcon from '@mui/icons-material/Apple';
 import { AuthForm } from './components/AuthForm';
 import { AuthTabs } from './components/AuthTabs';
@@ -22,16 +31,16 @@ interface AuthProps {
 
 export function Auth({ onAuthComplete }: AuthProps) {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [showError, setShowError] = useState(false);
 
-  const handleSubmit = async (
-    e: React.FormEvent,
-    formData: AuthFormData,
-  ) => {
+  const handleSubmit = async (e: React.FormEvent, formData: AuthFormData) => {
     e.preventDefault();
 
     try {
-      const response = isSignUp ? await userManagementApi.signup(formData) : await userManagementApi.signin(formData);
-console.log('Auth response:', response);
+      const response = isSignUp
+        ? await userManagementApi.signup(formData)
+        : await userManagementApi.signin(formData);
       if (response.tokens) {
         onAuthComplete(
           {
@@ -41,10 +50,14 @@ console.log('Auth response:', response);
           isSignUp,
         );
       } else {
-        alert(response.message || 'Authentication failed');
+        setErrorMessage('שם משתמש או סיסמה שגויים');
+        setShowError(true);
       }
     } catch (error) {
-      console.error('Network error:', error);
+      isSignUp
+        ? setErrorMessage('דוא"ל כבר קיים')
+        : setErrorMessage('שם משתמש או סיסמה שגויים');
+      setShowError(true);
     }
   };
 
@@ -96,10 +109,42 @@ console.log('Auth response:', response);
           sx={{ p: '2rem', borderRadius: '0.75rem', border: 'none' }}
         >
           <CardContent sx={{ p: 0 }}>
-            <AuthTabs isSignUp={isSignUp} setIsSignUp={setIsSignUp} />
+            <AuthTabs
+              isSignUp={isSignUp}
+              setIsSignUp={(value) => {
+                setIsSignUp(value);
+                setShowError(false);
+              }}
+            />
             <AuthForm isSignUp={isSignUp} onSubmit={handleSubmit} />
           </CardContent>
         </Card>
+
+        <Collapse in={showError}>
+          <Alert
+            severity="error"
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={() => setShowError(false)}
+              >
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            }
+            sx={{
+              mt: 2,
+              borderRadius: '0.75rem',
+              boxShadow: 2,
+              '& .MuiAlert-message': {
+                fontWeight: 500,
+              },
+            }}
+          >
+            {errorMessage}
+          </Alert>
+        </Collapse>
       </Box>
     </Box>
   );
