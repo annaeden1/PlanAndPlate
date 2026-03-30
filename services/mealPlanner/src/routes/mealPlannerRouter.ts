@@ -75,7 +75,7 @@ mealPlannerRouter.post(
  *         description: Internal Server Error - Server error while retrieving meal plan
  **/
 mealPlannerRouter.get(
-  "/users/:userId/meal-plans?week=",
+  "/users/:userId/meal-plans",
   authMiddleware,
   MealPlannerController.getWeeklyPlan,
 );
@@ -109,7 +109,7 @@ mealPlannerRouter.get(
  *         description: Internal Server Error - Server error while retrieving meal plan
  **/
 mealPlannerRouter.get(
-  "/users/:userId/meal-plans/day?date= ",
+  "/users/:userId/meal-plans/day",
   authMiddleware,
   MealPlannerController.getDailyPlan,
 );
