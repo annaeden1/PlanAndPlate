@@ -7,6 +7,7 @@ import { MealPlannerEmptyState } from "../components/menu/mealPlannerEmptyState"
 import { DAYS, type MealPlanItem } from "../utils/types/mealPlanner";
 import type { ApiMealPlan } from '../utils/types/mealPlanner';
 import { mealPlannerApi } from "../api/mealPlanner";
+import { getUserId } from "../shared/utils/userId";
 
 interface MealPlannerProps {}
 
@@ -95,7 +96,7 @@ export function MealPlanner({ }: MealPlannerProps) {
         return;
       }
 
-      const userId = "default-user"; // Replace with real user ID from auth
+      const userId = getUserId() ?? "";
 
       try {
         const data = await mealPlannerApi.getWeeklyPlan(userId, weekDate);
