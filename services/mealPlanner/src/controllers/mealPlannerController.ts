@@ -5,12 +5,13 @@ class MealPlannerController {
   async createWeeklyPlan(req: Request, res: Response) {
     try {
       const { userId } = req.params;
+      const date = (req.query.date as string | undefined) || undefined;
 
       if (!userId || typeof userId !== "string" || userId.trim() === "") {
         return res.status(400).json({ error: "Invalid input data: userId is required" });
       }
 
-      const mealPlan = await mealPlannerService.createWeeklyPlan(userId);
+      const mealPlan = await mealPlannerService.createWeeklyPlan(userId, date);
       res.status(201).json(mealPlan);
     } catch (error) {
       console.error("Error creating weekly plan:", error);
@@ -21,13 +22,13 @@ class MealPlannerController {
   async getWeeklyPlan(req: Request, res: Response) {
     try {
       const { userId } = req.params;
-      const { week } = req.query;
+      const date = req.query.date as string | undefined;
 
-      if (!userId || !week) {
-        return res.status(400).json({ error: "Invalid input data: userId and week are required" });
+      if (!userId || !date) {
+        return res.status(400).json({ error: "Invalid input data: userId and date are required" });
       }
 
-      const weeklyPlan = await mealPlannerService.getWeeklyPlan(userId, week);
+      const weeklyPlan = await mealPlannerService.getWeeklyPlan(userId, date);
 
       if (!weeklyPlan) {
         return res.status(404).json({ error: "Weekly meal plan not found" });

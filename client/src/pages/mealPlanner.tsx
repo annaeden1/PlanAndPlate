@@ -104,7 +104,7 @@ export function MealPlanner({ }: MealPlannerProps) {
       } catch (error: any) {
         if (error.response?.status === 404) {
           console.log("No meal plan found, creating new weekly plan...");
-          const data = await mealPlannerApi.createWeeklyPlan(userId);
+          const data = await mealPlannerApi.createWeeklyPlan(userId, weekDate);
           setMealPlan(data);
           setCachedWeekKey(weekKey);
         } else {

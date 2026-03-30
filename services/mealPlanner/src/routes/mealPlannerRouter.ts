@@ -13,13 +13,18 @@ export const mealPlannerRouter = express.Router();
 
 /**
  * @swagger
- * /users/{userId}/meal-plans/weekly:
+ * /users/{userId}/meal-plans/weekly?date=:
  *   post:
  *     summary: Create a new weekly meal plan for a user from a given start date from the API
  *     tags: [MealPlanner]
  *     parameters:
  *       - in: path
  *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *       - in: query
+ *         name: date
  *         schema:
  *           type: string
  *         required: true
@@ -49,7 +54,7 @@ mealPlannerRouter.post(
 
 /**
  * @swagger
- * /users/{userId}/meal-plans?week=:
+ * /users/{userId}/meal-plans?date=:
  *   get:
  *     summary: Get the weekly meal plan for a user for a specific week from DB
  *     tags: [MealPlanner]
@@ -60,7 +65,7 @@ mealPlannerRouter.post(
  *           type: string
  *         required: true
  *       - in: query
- *         name: week
+ *         name: date
  *         schema:
  *           type: string
  *         required: true

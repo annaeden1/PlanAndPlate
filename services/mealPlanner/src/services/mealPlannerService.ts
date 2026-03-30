@@ -8,7 +8,12 @@ import {
 import { normalizeUnit } from "../utils/types/units";
 
 class MealPlannerService {
-  async createWeeklyPlan(userId: string): Promise<IMealPlan & any> {
+  async createWeeklyPlan(userId: string, date?: string): Promise<IMealPlan & any> {
+    // Calculate week start (Sunday) from the provided date or current date
+    const refDate = date ? new Date(date) : new Date();
+    const weekStart = new Date(refDate);
+    weekStart.setDate(refDate.getDate() - refDate.getDay());
+
     const userPreferences = await axios.get(
       `${process.env.USER_MANAGMENT_URL}/userManagement/${userId}/preferences`
     );
@@ -22,26 +27,23 @@ class MealPlannerService {
       allergyExcludeString,
     );
 
+    // Map meals to Sunday-Saturday dates
+    const days = (weeklyPlanFromAPI.meals || []).slice(0, 7).map((meal: any, index: number) => {
+      const dateObj = new Date(weekStart);
+      dateObj.setDate(weekStart.getDate() + index);
+      const dateStr = dateObj.toISOString().split("T")[0];
+
+      return {
+        date: dateStr,
+        breakfast: { recipeId: meal.meals[0]?.id || 0, name: meal.meals[0]?.title || "", calories: meal.nutrients?.calories || 0 },
+        lunch: { recipeId: meal.meals[1]?.id || 0, name: meal.meals[1]?.title || "", calories: meal.nutrients?.calories || 0 },
+        dinner: { recipeId: meal.meals[2]?.id || 0, name: meal.meals[2]?.title || "", calories: meal.nutrients?.calories || 0 },
+      };
+    });
+
     const mealPlan = new MealPlan({
       userId,
-      days: weeklyPlanFromAPI.meals.map((meal: any) => ({
-        date: meal.date,
-        breakfast: {
-          recipeId: meal.meals[0].id,
-          name: meal.meals[0].title,
-          calories: meal.nutrients.calories,
-        },
-        lunch: {
-          recipeId: meal.meals[1].id,
-          name: meal.meals[1].title,
-          calories: meal.nutrients.calories,
-        },
-        dinner: {
-          recipeId: meal.meals[2].id,
-          name: meal.meals[2].title,
-          calories: meal.nutrients.calories,
-        },
-      })),
+      days,
       nutritionSummary: {
         calories: weeklyPlanFromAPI.nutrients.calories,
         protein: weeklyPlanFromAPI.nutrients.protein,
@@ -54,8 +56,13 @@ class MealPlannerService {
     return mealPlan;
   }
 
-  async getWeeklyPlan(userId: string, week: any): Promise<IMealPlan | null> {
-    const weeklyPlan = await MealPlan.findOne({ userId, "days.date": week });
+  async getWeeklyPlan(userId: string, date: string): Promise<IMealPlan | null> {
+    const refDate = new Date(date);
+    const weekStart = new Date(refDate);
+    weekStart.setDate(refDate.getDate() - refDate.getDay());
+    const weekStartStr = weekStart.toISOString().split("T")[0];
+
+    const weeklyPlan = await MealPlan.findOne({ userId, "days.date": weekStartStr });
     return weeklyPlan;
   }
 
