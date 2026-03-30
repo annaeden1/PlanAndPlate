@@ -1,4 +1,4 @@
-import type { NutritionItem, ProductData } from '../shared';
+import type { NutritionItem, ProductData } from '../../shared';
 
 export const DAILY_VALUES = {
   calories: 2000,

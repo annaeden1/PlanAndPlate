@@ -12,7 +12,7 @@ import {
 import { useState } from 'react';
 import { barcodeApi } from '../../api/barcode';
 import type { ProductData } from '../../shared';
-import { mapNutritionFacts } from '../../utils/nutrition';
+import { mapNutritionFacts } from '../../utils/scanner/nutrition';
 import { HealthScoreCard } from '../../components/scanner/HealthScoreCard';
 import { NutritionFactsCard } from '../../components/scanner/NutritionFactsCard';
 import { PreferenceMatchesCard } from '../../components/scanner/PreferenceMatchesCard';

@@ -1,7 +1,6 @@
 import { Box, Card, Typography } from '@mui/material';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
-import { pulseAnimation } from '../../utils/animations';
 
 interface ScannerCameraProps {
   scanning: boolean;
@@ -74,7 +73,11 @@ export const ScannerCamera = ({ scanning }: ScannerCameraProps) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              ...pulseAnimation,
+              animation: 'pulse 1.5s infinite',
+              '@keyframes pulse': {
+                '0%, 100%': { opacity: 1 },
+                '50%': { opacity: 0.5 },
+              },
             }}
           >
             <InsertDriveFileIcon

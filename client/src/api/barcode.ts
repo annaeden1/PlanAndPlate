@@ -6,7 +6,7 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-//TODO: add useId to the endpoint
+//TODO: add userId to the endpoint
 export const barcodeApi = {
   scan: (barcode: string) =>
     api.post<ProductData>('/scan/123', { barcode }).then((r) => r.data),

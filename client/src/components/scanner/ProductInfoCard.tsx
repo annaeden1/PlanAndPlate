@@ -1,6 +1,6 @@
 import { Box, Card, CardContent, Chip, Typography } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import { formatTags } from '../../utils/nutrition';
+import { formatTags } from '../../utils/scanner/nutrition';
 import type { ProductData } from '../../shared';
 
 export interface ProductInfoCardProps {
