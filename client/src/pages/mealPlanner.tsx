@@ -11,7 +11,10 @@ import { mealPlannerApi } from "../api/mealPlanner";
 interface MealPlannerProps {}
 
 export function MealPlanner({ }: MealPlannerProps) {
-  const [selectedDay, setSelectedDay] = useState("Sun");
+  const today = new Date();
+  const todayName = DAYS[today.getDay()];
+
+  const [selectedDay, setSelectedDay] = useState(todayName);
   const [currentWeek, setCurrentWeek] = useState(0);
   const [mealPlan, setMealPlan] = useState<ApiMealPlan | null>(null);
   const [loading, setLoading] = useState(false);
@@ -20,6 +23,23 @@ export function MealPlanner({ }: MealPlannerProps) {
 
   const formatDayKey = (dateString: string) =>
     new Date(dateString).toLocaleDateString("en-US", { weekday: "short" });
+
+  const weekRange = (() => {
+    const ref = new Date();
+    ref.setDate(ref.getDate() + currentWeek * 7);
+
+    const day = ref.getDay();
+    const sunday = new Date(ref);
+    sunday.setDate(ref.getDate() - day);
+
+    const saturday = new Date(sunday);
+    saturday.setDate(sunday.getDate() + 6);
+
+    const format = (d: Date) =>
+      d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+    return `${format(sunday)} - ${format(saturday)}`;
+  })();
 
   const selectedMeals: MealPlanItem[] = [];
   if (mealPlan) {
@@ -59,10 +79,11 @@ export function MealPlanner({ }: MealPlannerProps) {
     setError(null);
 
     try {
-      // Calculate a reference date for the week
-      const referenceDate = new Date();
-      referenceDate.setDate(referenceDate.getDate() + currentWeek * 7);
-      const weekDate = referenceDate.toISOString().split("T")[0];
+      const today = new Date();
+      const dayIndex = DAYS.indexOf(selectedDay);
+      const selectedDate = new Date(today);
+      selectedDate.setDate(today.getDate() + currentWeek * 7 + (dayIndex - today.getDay()));
+      const weekDate = selectedDate.toISOString().split("T")[0];
 
       const userId = "default-user"; // Replace with real user ID from auth
 
@@ -109,6 +130,7 @@ export function MealPlanner({ }: MealPlannerProps) {
           selectedDay={selectedDay}
           onDaySelect={setSelectedDay}
           days={DAYS}
+          weekRange={weekRange}
         />
 
         <Box sx={{ px: "1.5rem", py: "1.5rem" }}>

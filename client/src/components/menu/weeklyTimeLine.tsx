@@ -8,6 +8,7 @@ interface WeeklyTimelineProps {
   selectedDay: string;
   onDaySelect: (day: string) => void;
   days: string[];
+  weekRange: string;
 }
 
 export function WeeklyTimeline({
@@ -16,6 +17,7 @@ export function WeeklyTimeline({
   selectedDay,
   onDaySelect,
   days,
+  weekRange,
 }: WeeklyTimelineProps) {
   return (
     <>
@@ -47,7 +49,7 @@ export function WeeklyTimeline({
             <Typography variant="body2" color="text.secondary">
               Week of
             </Typography>
-            <Typography>Dec 16 - Dec 22</Typography>
+            <Typography>{weekRange}</Typography>
           </Box>
           <IconButton onClick={() => onWeekChange(currentWeek + 1)}>
             <ChevronRightIcon />
