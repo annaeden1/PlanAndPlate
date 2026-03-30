@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { jwtDecode } from 'jwt-decode';
-import type { AuthState, OnboardingData, TokenData } from '../shared';
 import { userManagementApi } from '../api/auth';
+import type { AuthState, OnboardingData, TokenData } from '../shared';
+import { getUserId } from '../shared/utils/userId';
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>('idle');
@@ -57,14 +57,14 @@ export const useAuth = () => {
     }
 
     try {
-      const token: string | null = localStorage.getItem('access-token');
-      let decoded: { userId: string } = { userId: '' };
-      if (token) {
-        decoded = jwtDecode<{ userId: string }>(token);
+      const userId = getUserId();
+
+      if (!userId) {
+        throw new Error('Authentication required');
       }
 
       const response = await userManagementApi.updatePreferences(
-        decoded.userId,
+        userId,
         onboardingData,
         token,
       );

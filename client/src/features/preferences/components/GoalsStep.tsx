@@ -1,7 +1,9 @@
-import { Box, Typography } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import { SelectableCard } from '../../../core/components/SelectableCard';
+import { Box, Typography } from '@mui/material';
 import { IconBox } from '../../../core/components/IconBox';
+import { SelectableCard } from '../../../core/components/SelectableCard';
+import type { Options } from '../utils/optionsTypes';
+import { goalsOptions } from '../utils/preferencesOptions';
 
 interface GoalsStepProps {
   goal: string;
@@ -9,12 +11,7 @@ interface GoalsStepProps {
 }
 
 export function GoalsStep({ goal, onChange }: GoalsStepProps) {
-  const options = [
-    { id: 'lose_weight', label: 'Lose Weight' },
-    { id: 'gain_muscle', label: 'Gain Muscle' },
-    { id: 'eat_healthier', label: 'Eat Healthier' },
-    { id: 'maintain_weight', label: 'Maintain Weight' },
-  ];
+  const options: Options<string> = goalsOptions;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

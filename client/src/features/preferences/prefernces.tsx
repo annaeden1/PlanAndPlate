@@ -1,16 +1,20 @@
-import { useState } from 'react';
-import { Box, Button } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { ProgressHeader } from './components/ProgressHeader';
-import { DietaryStep } from './components/DietaryStep';
-import { AllergiesStep } from './components/AllergiesStep';
-import { GoalsStep } from './components/GoalsStep';
-import { BudgetStep } from './components/BudgetStep';
+import { Box, Button } from '@mui/material';
+import { useState } from 'react';
 import type {
   Allergies,
   DietaryPreferences,
   OnboardingData,
 } from '../../shared';
+import { AllergiesStep } from './components/AllergiesStep';
+import { BudgetStep } from './components/BudgetStep';
+import { DietaryStep } from './components/DietaryStep';
+import { GoalsStep } from './components/GoalsStep';
+import { ProgressHeader } from './components/ProgressHeader';
+import {
+  allergiesInitialState,
+  dietaryInitialState,
+} from './utils/preferencesInitialStates';
 
 interface PreferencesProps {
   onComplete: (data: OnboardingData) => void;
@@ -18,46 +22,16 @@ interface PreferencesProps {
 
 export function Preferences({ onComplete }: PreferencesProps) {
   const [step, setStep] = useState(1);
-  const [preferences, setPreferences] = useState<DietaryPreferences>({
-    glutenFree: false,
-    ketogenic: false,
-    vegetarian: false,
-    lactoVegetarian: false,
-    ovoVegetarian: false,
-    vegan: false,
-    pescatarian: false,
-    paleo: false,
-    primal: false,
-    lowFODMAP: false,
-    whole30: false,
-  });
-  const [allergies, setAllergies] = useState<Allergies>({
-    nuts: false,
-    dairy: false,
-    gluten: false,
-    shellfish: false,
-    eggs: false,
-    soy: false,
-  });
+  const [preferences, setPreferences] =
+    useState<DietaryPreferences>(dietaryInitialState);
+  const [allergies, setAllergies] = useState<Allergies>(allergiesInitialState);
   const [goal, setGoal] = useState('');
   const [budget, setBudget] = useState('');
 
   const totalSteps = 4;
 
   const handlePreferenceChange = (selectedKey: keyof DietaryPreferences) => {
-    const defaultPreferences: DietaryPreferences = {
-      glutenFree: false,
-      ketogenic: false,
-      vegetarian: false,
-      lactoVegetarian: false,
-      ovoVegetarian: false,
-      vegan: false,
-      pescatarian: false,
-      paleo: false,
-      primal: false,
-      lowFODMAP: false,
-      whole30: false,
-    };
+    const defaultPreferences: DietaryPreferences = dietaryInitialState;
 
     const newPreferences = Object.keys(defaultPreferences).reduce(
       (acc, key) => {

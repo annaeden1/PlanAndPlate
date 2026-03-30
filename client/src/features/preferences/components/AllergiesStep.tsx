@@ -1,7 +1,9 @@
-import { Box, Checkbox, Typography } from '@mui/material';
 import WarningIcon from '@mui/icons-material/Warning';
+import { Box, Checkbox, Typography } from '@mui/material';
 import { SelectableCard } from '../../../core/components/SelectableCard';
 import type { Allergies } from '../../../shared';
+import type { Options } from '../utils/optionsTypes';
+import { allergiesOptions } from '../utils/preferencesOptions';
 
 interface AllergiesStepProps {
   allergies: Allergies;
@@ -9,14 +11,7 @@ interface AllergiesStepProps {
 }
 
 export function AllergiesStep({ allergies, onChange }: AllergiesStepProps) {
-  const options: { id: keyof Allergies; label: string }[] = [
-    { id: 'nuts', label: 'Nuts' },
-    { id: 'dairy', label: 'Dairy' },
-    { id: 'gluten', label: 'Gluten' },
-    { id: 'shellfish', label: 'Shellfish' },
-    { id: 'eggs', label: 'Eggs' },
-    { id: 'soy', label: 'Soy' },
-  ];
+  const options: Options<keyof Allergies> = allergiesOptions;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

@@ -1,8 +1,9 @@
-import { Box, Checkbox, Typography } from '@mui/material';
 import LocalDiningIcon from '@mui/icons-material/LocalDining';
+import { Box, Checkbox, Typography } from '@mui/material';
 import { SelectableCard } from '../../../core/components/SelectableCard';
 import type { DietaryPreferences } from '../../../shared';
-import { dietaryOptions } from '../utils/dietaryOptions';
+import type { Options } from '../utils/optionsTypes';
+import { dietaryOptions } from '../utils/preferencesOptions';
 
 interface DietaryStepProps {
   preferences: DietaryPreferences;
@@ -10,8 +11,7 @@ interface DietaryStepProps {
 }
 
 export function DietaryStep({ preferences, onChange }: DietaryStepProps) {
-  const options: { id: keyof DietaryPreferences; label: string }[] =
-    dietaryOptions;
+  const options: Options<keyof DietaryPreferences> = dietaryOptions;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
