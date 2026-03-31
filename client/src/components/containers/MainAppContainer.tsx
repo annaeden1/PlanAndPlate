@@ -1,9 +1,10 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Typography, Box } from '@mui/material';
-import { MainLayout } from '../layout/MainLayout';
+import { Box, Typography } from '@mui/material';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { GroceryListProvider } from '../../context/GroceryListContext';
+import { Profile } from '../../features/profile/Profile';
 import { GroceryList } from '../../pages/GroceryList';
 import { Scanner } from '../../pages/Scanner/Scanner';
+import { MainLayout } from '../layout/MainLayout';
 
 const Page = ({ title }: { title: string }) => (
   <Box sx={{ pt: 4, textAlign: 'center' }}>
@@ -29,7 +30,7 @@ export function MainAppContainer() {
             }
           />
           <Route path="/scanner" element={<Scanner />} />
-          <Route path="/profile" element={<Page title="👤 Profile" />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </MainLayout>
     </BrowserRouter>
