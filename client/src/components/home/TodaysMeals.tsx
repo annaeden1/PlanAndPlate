@@ -1,4 +1,5 @@
 import { Box, Typography, Stack } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { MealCard } from "./MealCard";
 import type { Meal } from "../../utils/types/home";
 
@@ -8,6 +9,8 @@ interface TodaysMealsProps {
 }
 
 export const TodaysMeals = ({ meals, onToggleMeal }: TodaysMealsProps) => {
+  const navigate = useNavigate();
+
   return (
     <Box>
       <Box
@@ -24,6 +27,10 @@ export const TodaysMeals = ({ meals, onToggleMeal }: TodaysMealsProps) => {
         <Typography
           variant="body2"
           fontWeight={600}
+          onClick={() => {
+            window.scrollTo(0, 0);
+            navigate("/planner");
+          }}
           sx={{
             color: "primary.main",
             cursor: "pointer",
