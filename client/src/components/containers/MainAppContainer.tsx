@@ -5,6 +5,7 @@ import { Profile } from '../../features/profile/Profile';
 import { GroceryList } from '../../pages/GroceryList';
 import { Scanner } from '../../pages/Scanner/Scanner';
 import { MainLayout } from '../layout/MainLayout';
+import { HomePage } from '../../pages/Home/HomePage';
 
 const Page = ({ title }: { title: string }) => (
   <Box sx={{ pt: 4, textAlign: 'center' }}>
@@ -19,7 +20,7 @@ export function MainAppContainer() {
     <BrowserRouter>
       <MainLayout>
         <Routes>
-          <Route path="/" element={<Page title="🏠 Home" />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/planner" element={<Page title="📅 Planner" />} />
           <Route
             path="/cart"
