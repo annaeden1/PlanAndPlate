@@ -11,16 +11,21 @@ import {
   Alert,
   CircularProgress,
   Autocomplete,
+  MenuItem,
 } from '@mui/material';
 import { UNIT_OPTIONS } from '../../utils/grocery/unitOptions';
+import { CATEGORY_EMOJIS } from '../../utils/grocery/categoryEmojis';
+import type { Category } from '../../types/grocery';
+
+const CATEGORY_OPTIONS = Object.keys(CATEGORY_EMOJIS) as Category[];
 
 interface AddItemDialogProps {
   open: boolean;
   onClose: () => void;
-  onAdd: (item: { name: string; quantity: number; unit: string }) => Promise<void>;
+  onAdd: (item: { name: string; quantity: number; unit: string; aisle?: string }) => Promise<void>;
 }
 
-const EMPTY_FORM = { name: '', quantity: '', unit: '' };
+const EMPTY_FORM = { name: '', quantity: '', unit: '', aisle: '' };
 
 export const AddItemDialog = ({ open, onClose, onAdd }: AddItemDialogProps) => {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -44,7 +49,7 @@ export const AddItemDialog = ({ open, onClose, onAdd }: AddItemDialogProps) => {
     setFormError('');
     setSubmitting(true);
     try {
-      await onAdd({ name: form.name.trim(), quantity: qty, unit: form.unit.trim() });
+      await onAdd({ name: form.name.trim(), quantity: qty, unit: form.unit.trim(), aisle: form.aisle || undefined });
       handleClose();
     } finally {
       setSubmitting(false);
@@ -97,6 +102,21 @@ export const AddItemDialog = ({ open, onClose, onAdd }: AddItemDialogProps) => {
               )}
             />
           </Box>
+          <TextField
+            select
+            label="Aisle (optional)"
+            value={form.aisle}
+            onChange={(e) => setForm((f) => ({ ...f, aisle: e.target.value }))}
+            fullWidth
+            size="small"
+          >
+            <MenuItem value="">— None —</MenuItem>
+            {CATEGORY_OPTIONS.map((cat) => (
+              <MenuItem key={cat} value={cat}>
+                {CATEGORY_EMOJIS[cat]} {cat}
+              </MenuItem>
+            ))}
+          </TextField>
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: '1.5rem', pb: '1.25rem' }}>

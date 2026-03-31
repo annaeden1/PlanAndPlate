@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { findUserByFilter, saveUser } from '../dal/authentication.repository';
 import { hashPassword } from '../utils/password';
+import { findUserAndUpdateFields } from '../dal/userManagement.repository';
 
 export const updatePassword = async (req: Request, res: Response) => {
   const userId = req.params.userId;
@@ -77,6 +78,31 @@ export const getPreferences = async (req: Request, res: Response) => {
 
     const userPreferences = user.preferences;
     res.status(200).json({ userPreferences });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ error: 'Failed to retreive data', details: err });
+  }
+};
+
+export const updatePreferences = async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const { preferences } = req.body;
+
+  try {
+    const updatePayload: any = {};
+
+    for (const [key, value] of Object.entries(preferences)) {
+      updatePayload[`preferences.${key}`] = value;
+    }
+
+    const updatedUser = await findUserAndUpdateFields(userId, updatePayload);
+
+    if (!updatedUser) {
+      throw new Error('User not found');
+    }
+
+   res.status(200).json({ updatedUser });
   } catch (err) {
     return res
       .status(500)

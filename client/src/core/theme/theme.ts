@@ -1,8 +1,7 @@
-import { createTheme } from '@mui/material/styles';
+import { createTheme } from '@mui/material';
 
 export const theme = createTheme({
   palette: {
-    mode: 'light',
     primary: {
       main: '#3eb489',
       contrastText: '#ffffff',
@@ -30,7 +29,8 @@ export const theme = createTheme({
     divider: 'rgba(0, 0, 0, 0.08)',
   },
   typography: {
-    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    fontFamily:
+      "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     h1: {
       fontSize: '2rem',
       fontWeight: 700,
@@ -70,7 +70,7 @@ export const theme = createTheme({
     },
   },
   shape: {
-    borderRadius: 16,
+    borderRadius: 10,
   },
   components: {
     MuiButton: {
