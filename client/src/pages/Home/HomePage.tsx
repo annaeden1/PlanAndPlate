@@ -28,14 +28,14 @@ export const HomePage = () => {
 
   const calorieTarget = useMemo(() => {
     const total = meals.reduce((sum, m) => sum + m.calories, 0);
-    return total > 0 ? total : 2000;
+    return Math.round(total > 0 ? total : 2000);
   }, [meals]);
 
   const calorieProgress: CalorieProgress = useMemo(() => {
     const consumed = meals
       .filter((m) => m.completed)
       .reduce((sum, m) => sum + m.calories, 0);
-    return { consumed, target: calorieTarget };
+    return { consumed: Math.round(consumed), target: calorieTarget };
   }, [meals, calorieTarget]);
 
   return (

@@ -59,7 +59,7 @@ export const MealCard = ({ meal, onToggle }: MealCardProps) => {
           </Typography>
         </Box>
         <Typography variant="caption" color="text.secondary" sx={{ mt: "0.25rem" }}>
-          {meal.calories} kcal
+          {Math.round(meal.calories)} kcal
         </Typography>
       </Box>
 
