@@ -119,35 +119,3 @@ export const theme = createTheme({
     },
   },
 });
-
-export const darkTheme = createTheme({
-  ...theme,
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#4ade9a',
-      contrastText: '#1a1a1f',
-    },
-    secondary: {
-      main: '#2d2d35',
-      contrastText: '#f1f5f9',
-    },
-    error: {
-      main: '#ef4444',
-      contrastText: '#ffffff',
-    },
-    warning: {
-      main: '#ff9f70',
-      contrastText: '#1a1a1f',
-    },
-    background: {
-      default: '#1a1a1f',
-      paper: '#242429',
-    },
-    text: {
-      primary: '#f1f5f9',
-      secondary: '#94a3b8',
-    },
-    divider: 'rgba(255, 255, 255, 0.1)',
-  },
-});
