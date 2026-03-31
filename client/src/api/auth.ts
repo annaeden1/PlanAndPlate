@@ -18,6 +18,20 @@ export const userManagementApi = {
   signup: (formData: any) =>
     api.post(`/auth/signup`, formData).then((r) => r.data),
 
+  getAccountData: (userId: string, token: string | null) =>
+    api
+      .get(`/userManagement/${userId}/account`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((r) => r.data),
+
+  getPreferences: (userId: string, token: string | null) =>
+    api
+      .get(`/userManagement/${userId}/preferences`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((r) => r.data),
+
   updatePreferences: (
     userId: string,
     preferences: OnboardingData,
