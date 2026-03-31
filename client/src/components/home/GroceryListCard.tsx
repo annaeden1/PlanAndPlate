@@ -1,4 +1,5 @@
 import { Box, Typography, Button } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { ProgressCard } from "../common/ProgressCard";
 import type { GroceryListStatus } from "../../utils/types/home";
 
@@ -7,6 +8,7 @@ interface GroceryListCardProps {
 }
 
 export const GroceryListCard = ({ groceryStatus }: GroceryListCardProps) => {
+  const navigate = useNavigate();
   const { checkedItems, totalItems } = groceryStatus;
   const itemsToBuy = totalItems - checkedItems;
   const percentage = totalItems === 0 ? 0 : (checkedItems / totalItems) * 100;
@@ -27,6 +29,7 @@ export const GroceryListCard = ({ groceryStatus }: GroceryListCardProps) => {
         <Button
           variant="contained"
           size="small"
+          onClick={() => navigate("/cart")}
           sx={{
             borderRadius: "1.25rem",
             textTransform: "none",

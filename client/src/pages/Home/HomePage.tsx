@@ -6,11 +6,11 @@ import {
   GroceryListCard,
   TodaysMeals,
 } from "../../components/home";
-import { mockMeals } from "../../utils/mockData/homeMockData";
-import type { Meal, GroceryListStatus, CalorieProgress } from "../../utils/types/home";
+import type { GroceryListStatus, CalorieProgress } from "../../utils/types/home";
 import { userManagementApi } from "../../api/auth";
 import { getUserId } from "../../shared/utils/userId";
 import { useGroceryList } from "../../context/GroceryListContext";
+import { useMealPlanner } from "../../context/MealPlannerContext";
 
 const CALORIE_TARGET_BY_GOAL: Record<string, number> = {
   lose_weight: 1500,
@@ -20,9 +20,9 @@ const CALORIE_TARGET_BY_GOAL: Record<string, number> = {
 };
 
 export const HomePage = () => {
-  const [meals, setMeals] = useState<Meal[]>(mockMeals);
   const [calorieTarget, setCalorieTarget] = useState<number>(2000);
   const { groups } = useGroceryList();
+  const { meals, toggleMeal } = useMealPlanner();
 
   const groceryStatus: GroceryListStatus = useMemo(() => {
     let total = 0;
@@ -49,14 +49,6 @@ export const HomePage = () => {
     }).catch(() => {});
   }, []);
 
-  const handleToggleMeal = (id: string) => {
-    setMeals((prev) =>
-      prev.map((meal) =>
-        meal.id === id ? { ...meal, completed: !meal.completed } : meal
-      )
-    );
-  };
-
   const calorieProgress: CalorieProgress = useMemo(() => {
     const consumed = meals
       .filter((m) => m.completed)
@@ -69,7 +61,7 @@ export const HomePage = () => {
       <GreetingHeader />
       <TodaysProgressCard calorieProgress={calorieProgress} />
       <GroceryListCard groceryStatus={groceryStatus} />
-      <TodaysMeals meals={meals} onToggleMeal={handleToggleMeal} />
+      <TodaysMeals meals={meals} onToggleMeal={toggleMeal} />
     </Stack>
   );
 };

@@ -17,8 +17,8 @@ export default defineConfig({
       },
       '/mealPlanner': {
         target: 'http://localhost:3000',
-        changeOrigin: true
-      }
+        changeOrigin: true,
+      },
       '/barcode': {
         target: 'http://localhost:9000',
         changeOrigin: true,
