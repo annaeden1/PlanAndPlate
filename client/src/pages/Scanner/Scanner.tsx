@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { barcodeApi } from '../../api/barcode';
 import type { ProductData } from '../../shared';
 import { getUserId } from '../../shared/utils/userId';
@@ -8,13 +8,29 @@ import { ManualBarcodeEntryView } from './views/ManualBarcodeEntryView';
 import { CameraUploadView } from './views/CameraUploadView';
 
 export const Scanner = () => {
-  const userId = getUserId() ?? '';
+  const userId = getUserId();
   const [scanned, setScanned] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [isManual, setIsManual] = useState(false);
   const [barcode, setBarcode] = useState('');
   const [product, setProduct] = useState<ProductData | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  if (!userId) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'background.default',
+        }}
+      >
+        <Typography variant="h5">Please log in to use the scanner</Typography>
+      </Box>
+    );
+  }
 
   const performScan = async (shouldCloseManual = false) => {
     if (!barcode.trim()) {
