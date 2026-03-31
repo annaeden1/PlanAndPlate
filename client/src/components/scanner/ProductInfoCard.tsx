@@ -8,18 +8,18 @@ export interface ProductInfoCardProps {
 }
 
 export const ProductInfoCard = ({ data }: ProductInfoCardProps) => {
-  const p = data?.nutritionData;
+  const nutritionData = data?.nutritionData;
 
-  const tags = formatTags(p?.ingredients_analysis_tags || []);
+  const tags = formatTags(nutritionData?.ingredients_analysis_tags || []);
 
   return (
     <Card sx={{ overflow: 'hidden', mb: '1rem' }}>
-      {p?.image_front_url && (
+      {nutritionData?.image_front_url && (
         <Box sx={{ position: 'relative', height: '16rem' }}>
           <Box
             component="img"
-            src={p.image_front_url}
-            alt={p?.product_name || 'product image'}
+            src={nutritionData.image_front_url}
+            alt={nutritionData?.product_name || 'product image'}
             sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
           />
         </Box>
@@ -27,12 +27,12 @@ export const ProductInfoCard = ({ data }: ProductInfoCardProps) => {
 
       <CardContent>
         <Typography variant="h2" sx={{ mb: '0.5rem' }}>
-          {p?.product_name || 'Unknown product'}
+          {nutritionData?.product_name || 'Unknown product'}
         </Typography>
 
         <Typography color="text.secondary" sx={{ mb: '1rem' }}>
-          {p?.brands || ''}
-          {p?.quantity ? ` • ${p.quantity}` : ''}
+          {nutritionData?.brands || ''}
+          {nutritionData?.quantity ? ` • ${nutritionData.quantity}` : ''}
         </Typography>
 
         {tags.length > 0 && (
