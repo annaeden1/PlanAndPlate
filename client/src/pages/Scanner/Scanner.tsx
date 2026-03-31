@@ -6,6 +6,7 @@ import { getUserId } from '../../shared/utils/userId';
 import { ProductDetailsView } from './views/ProductDetailsView';
 import { ManualBarcodeEntryView } from './views/ManualBarcodeEntryView';
 import { CameraUploadView } from './views/CameraUploadView';
+import { extractBarcodeFromImage } from '../../utils/scanner/barcodeDetector';
 
 export const Scanner = () => {
   const userId = getUserId();
@@ -46,11 +47,41 @@ export const Scanner = () => {
       setProduct(data);
       setScanned(true);
       if (shouldCloseManual) setIsManual(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error: string } } };
       setError(
-        err.response?.data?.error ||
+        error.response?.data?.error ||
           'Product not found. Please check the barcode.',
       );
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handlePhotoSelected = async (file: File) => {
+    setScanning(true);
+    setError(null);
+
+    try {
+      // Extract barcode from the image
+      const extractedBarcode = await extractBarcodeFromImage(file);
+      setBarcode(extractedBarcode);
+
+      // Perform scan with the extracted barcode
+      const data = await barcodeApi.scan(userId, extractedBarcode);
+      setProduct(data);
+      setScanned(true);
+    } catch (err: unknown) {
+      const error = err as {
+        response?: { data?: { error: string } };
+        message?: string;
+      };
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        'Could not extract barcode from image. Please make sure the barcode is visible and clear.';
+      setError(errorMessage);
+      setBarcode('');
     } finally {
       setScanning(false);
     }
@@ -85,7 +116,7 @@ export const Scanner = () => {
         <CameraUploadView
           scanning={scanning}
           error={error}
-          onUploadClick={() => performScan()}
+          onPhotoSelected={handlePhotoSelected}
           onManualEntryClick={() => {
             setIsManual(true);
             setError(null);

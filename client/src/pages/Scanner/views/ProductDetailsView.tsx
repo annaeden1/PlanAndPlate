@@ -6,6 +6,17 @@ import { NutritionFactsCard } from '../../../components/scanner/NutritionFactsCa
 import { PreferenceMatchesCard } from '../../../components/scanner/PreferenceMatchesCard';
 import { ProductInfoCard } from '../../../components/scanner/ProductInfoCard';
 
+const VALID_GRADES = ['a', 'b', 'c', 'd', 'e'] as const;
+type NutriGrade = (typeof VALID_GRADES)[number] | 'unknown';
+
+const normalizeNutriScore = (grade: string | undefined): NutriGrade => {
+  if (!grade) return 'unknown';
+  const normalized = grade.toLowerCase();
+  return VALID_GRADES.includes(normalized as any)
+    ? (normalized as NutriGrade)
+    : 'unknown';
+};
+
 interface ProductDetailsViewProps {
   product: ProductData;
   onScanAnother: () => void;
@@ -37,7 +48,7 @@ export const ProductDetailsView = ({
           <ProductInfoCard data={product} />
 
           <HealthScoreCard
-            grade={product.nutritionData?.nutriscore_grade || 'unknown'}
+            grade={normalizeNutriScore(product.nutritionData?.nutriscore_grade)}
           />
 
           <NutritionFactsCard nutritionFacts={mapNutritionFacts(product)} />

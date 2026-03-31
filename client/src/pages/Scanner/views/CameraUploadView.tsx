@@ -1,20 +1,34 @@
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { Alert, Box, Button, Typography } from '@mui/material';
+import { useRef } from 'react';
 import { ScannerCamera } from '../../../components/scanner/ScannerCamera';
 
 interface CameraUploadViewProps {
   scanning: boolean;
   error: string | null;
-  onUploadClick: () => void;
+  onPhotoSelected: (file: File) => void;
   onManualEntryClick: () => void;
 }
 
 export const CameraUploadView = ({
   scanning,
   error,
-  onUploadClick,
+  onPhotoSelected,
   onManualEntryClick,
 }: CameraUploadViewProps) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onPhotoSelected(file);
+    }
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ px: '1.5rem', pt: '3rem', pb: '1.5rem' }}>
@@ -32,6 +46,15 @@ export const CameraUploadView = ({
 
           <ScannerCamera scanning={scanning} />
 
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+            disabled={scanning}
+          />
+
           <Box
             sx={{
               mt: '1.5rem',
@@ -43,7 +66,7 @@ export const CameraUploadView = ({
             <Button
               variant="contained"
               size="large"
-              onClick={onUploadClick}
+              onClick={handleFileClick}
               disabled={scanning}
               startIcon={<FileUploadIcon />}
               sx={{ height: '3.5rem', borderRadius: '0.75rem' }}
