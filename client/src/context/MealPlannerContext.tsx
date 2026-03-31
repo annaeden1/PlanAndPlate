@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import axios from 'axios';
 import { mealPlannerApi } from '../api/mealPlanner';
 import type { Meal } from '../utils/types/home';
 import { getUserId } from '../shared/utils/userId';
@@ -51,6 +52,15 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
           completed: false,
         }));
         setMeals(mapped);
+
+        axios.all(
+          mapped.map((meal) =>
+            mealPlannerApi
+              .getRecipeDetails(meal.id.toString(), token)
+              .then((recipe) => ({ ...meal, image: recipe.image || '' }))
+              .catch(() => meal),
+          ),
+        ).then((mealsWithImages) => setMeals(mealsWithImages));
       })
       .catch(() => setMeals([]))
       .finally(() => setLoading(false));
