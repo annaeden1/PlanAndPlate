@@ -165,3 +165,19 @@ export const removeBoughtItems = async (
   );
   return list ? groupByCategory(list.items) : [];
 };
+
+export const toggleItem = async (
+  userId: string,
+  productName: string,
+): Promise<GroceryItemGroup[]> => {
+  const normalizedName = productName.toLowerCase().trim();
+  const list = await GroceryList.findOne({ userId });
+  if (!list) throw new Error('Grocery list not found');
+
+  const item = list.items.find((i) => i.name === normalizedName);
+  if (!item) throw new Error(`Product "${productName}" not found`);
+
+  item.checked = !item.checked;
+  await list.save();
+  return groupByCategory(list.items);
+};

@@ -18,22 +18,17 @@ const Page = ({ title }: { title: string }) => (
 export function MainAppContainer() {
   return (
     <BrowserRouter>
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/planner" element={<Page title="📅 Planner" />} />
-          <Route
-            path="/cart"
-            element={
-              <GroceryListProvider>
-                <GroceryList />
-              </GroceryListProvider>
-            }
-          />
-          <Route path="/scanner" element={<Scanner />} />
-          <Route path="/profile" element={<Profile />} />
-        </Routes>
-      </MainLayout>
+      <GroceryListProvider>
+        <MainLayout>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/planner" element={<Page title="📅 Planner" />} />
+            <Route path="/cart" element={<GroceryList />} />
+            <Route path="/scanner" element={<Scanner />} />
+            <Route path="/profile" element={<Profile />} />
+          </Routes>
+        </MainLayout>
+      </GroceryListProvider>
     </BrowserRouter>
   );
 }
