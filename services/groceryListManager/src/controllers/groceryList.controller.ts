@@ -114,6 +114,16 @@ export const removeBoughtItems = async (req: Request, res: Response): Promise<vo
   }
 };
 
+export const toggleItem = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId, productName } = req.params;
+    const groups = await GroceryService.toggleItem(userId, productName);
+    res.status(200).json(groups);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to toggle item', details: String(err) });
+  }
+};
+
 export const clearGroceryList = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;

@@ -27,8 +27,8 @@ export const ProgressCard = ({
               sx={{
                 fontWeight: 500,
                 opacity: 0.8,
-                bgcolor: '#f9cfd0',    // Light red background
-                color: '#c62828',      // Dark red text
+                bgcolor: '#f9cfd0',
+                color: '#c62828',
               }}
             />
           )}
@@ -45,7 +45,7 @@ export const ProgressCard = ({
             opacity: 0.8,
             '& .MuiLinearProgress-bar': {
               borderRadius: '0.25rem',
-              backgroundColor: '#4caf50', // Darker green progress
+              backgroundColor: '#4caf50',
             },
           }}
         />

@@ -97,7 +97,6 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [groups, userId]);
 
-  // TODO: persist checked state to backend once a PATCH endpoint is added
   const toggleChecked = useCallback((productName: string) => {
     setGroups((prev) =>
       prev.map((group) => ({
@@ -107,7 +106,10 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
         ),
       })),
     );
-  }, []);
+    groceryListApi.toggleItem(userId, productName)
+      .then(setGroups)
+      .catch(() => refresh());
+  }, [userId, refresh]);
 
   return (
     <GroceryListContext.Provider

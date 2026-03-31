@@ -44,4 +44,9 @@ export const groceryListApi = {
     api
       .get<IGroceryItem[]>(`/users/${userId}/products/search`, { params: { name } })
       .then((r) => r.data),
+
+  toggleItem: (userId: string, productName: string) =>
+    api
+      .patch<IGroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}/toggle`)
+      .then((r) => r.data),
 };

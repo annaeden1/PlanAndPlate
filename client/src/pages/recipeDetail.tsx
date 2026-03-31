@@ -137,7 +137,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
                     sx={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
                   >
                     <LocalFireDepartmentIcon sx={{ fontSize: "1.25rem" }} />
-                    <Typography>{recipe.calories} cal</Typography>
+                    <Typography>{Math.round(recipe.calories || 0)} cal</Typography>
                   </Box>
                 </Box>
               </Box>
@@ -290,7 +290,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
                         }}
                       >
                         <Typography color="text.secondary">Calories</Typography>
-                        <Typography fontWeight={600}>{recipe.calories}</Typography>
+                        <Typography fontWeight={600}>{Math.round(recipe.calories || 0)}</Typography>
                       </Box>
                       <Box
                         sx={{

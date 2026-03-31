@@ -47,7 +47,7 @@ export function PlannedMealCard({ meal, onViewRecipe, onAddToList }: PlannedMeal
           {meal.name}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: "1rem" }}>
-          {meal.calories} calories
+          {Math.round(meal.calories)} calories
         </Typography>
         <Box sx={{ display: "flex", gap: "0.5rem" }}>
           <Button
