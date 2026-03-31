@@ -3,6 +3,8 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { GroceryListProvider } from '../../context/GroceryListContext';
 import { Profile } from '../../features/profile/Profile';
 import { GroceryList } from '../../pages/GroceryList';
+import { MealPlanner } from '../../pages/mealPlanner';
+import { RecipeDetail } from '../../pages/recipeDetail';
 import { Scanner } from '../../pages/Scanner/Scanner';
 import { MainLayout } from '../layout/MainLayout';
 
@@ -20,8 +22,8 @@ export function MainAppContainer() {
       <MainLayout>
         <Routes>
           <Route path="/" element={<Page title="🏠 Home" />} />
-          <Route path="/planner" element={<Page title="📅 Planner" />} />
-          <Route
+            <Route path="/planner" element={<MealPlanner />} />
+            <Route path="/recipe" element={<RecipeDetail />} />          <Route
             path="/cart"
             element={
               <GroceryListProvider>
