@@ -18,8 +18,10 @@ import { NutritionFactsCard } from '../../components/scanner/NutritionFactsCard'
 import { PreferenceMatchesCard } from '../../components/scanner/PreferenceMatchesCard';
 import { ProductInfoCard } from '../../components/scanner/ProductInfoCard';
 import { ScannerCamera } from '../../components/scanner/ScannerCamera';
+import { getUserId } from '../../shared/utils/userId';
 
 export const Scanner = () => {
+  const userId = getUserId() ?? '';
   const [scanned, setScanned] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [isManual, setIsManual] = useState(false);
@@ -37,7 +39,7 @@ export const Scanner = () => {
     setError(null);
 
     try {
-      const data = await barcodeApi.scan(barcode);
+      const data = await barcodeApi.scan(userId, barcode);
       setProduct(data);
       setScanned(true);
       if (shouldCloseManual) setIsManual(false);
@@ -83,7 +85,9 @@ export const Scanner = () => {
             <Box sx={{ maxWidth: '28rem', mx: 'auto', width: '100%' }}>
               <ProductInfoCard data={product} />
 
-              <HealthScoreCard grade={product.nutritionData.nutriscore_grade} />
+              <HealthScoreCard
+                grade={product.nutritionData?.nutriscore_grade || 'unknown'}
+              />
 
               <NutritionFactsCard nutritionFacts={mapNutritionFacts(product)} />
 
@@ -91,7 +95,7 @@ export const Scanner = () => {
                 preferenceMatches={[
                   {
                     label: 'Matches your preferences',
-                    match: product.matchesPreferences,
+                    match: product.matchesPreferences || false,
                   },
                 ]}
               />

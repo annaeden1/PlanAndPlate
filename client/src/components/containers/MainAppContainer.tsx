@@ -3,6 +3,7 @@ import { Typography, Box } from '@mui/material';
 import { MainLayout } from '../layout/MainLayout';
 import { GroceryListProvider } from '../../context/GroceryListContext';
 import { GroceryList } from '../../pages/GroceryList';
+import { Scanner } from '../../pages/Scanner/Scanner';
 
 const Page = ({ title }: { title: string }) => (
   <Box sx={{ pt: 4, textAlign: 'center' }}>
@@ -27,7 +28,7 @@ export function MainAppContainer() {
               </GroceryListProvider>
             }
           />
-          <Route path="/scanner" element={<Page title="📷 Scanner" />} />
+          <Route path="/scanner" element={<Scanner />} />
           <Route path="/profile" element={<Page title="👤 Profile" />} />
         </Routes>
       </MainLayout>

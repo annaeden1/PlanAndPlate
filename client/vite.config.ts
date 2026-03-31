@@ -16,7 +16,7 @@ export default defineConfig({
         changeOrigin: true,
       },
       '/barcode': {
-        target: 'http://localhost:8000',
+        target: 'http://localhost:9000',
         changeOrigin: true,
       },
     },

@@ -6,8 +6,13 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-//TODO: add userId to the endpoint
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access-token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 export const barcodeApi = {
-  scan: (barcode: string) =>
-    api.post<ProductData>('/scan/123', { barcode }).then((r) => r.data),
+  scan: (userId: string, barcode: string) =>
+    api.post<ProductData>(`/scan/${userId}`, { barcode }).then((r) => r.data),
 };
