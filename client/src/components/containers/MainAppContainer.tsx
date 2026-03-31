@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { GroceryListProvider } from '../../context/GroceryListContext';
 import { Profile } from '../../features/profile/Profile';
 import { GroceryList } from '../../pages/GroceryList';
+import { Scanner } from '../../pages/Scanner/Scanner';
 import { MainLayout } from '../layout/MainLayout';
 
 const Page = ({ title }: { title: string }) => (
@@ -28,7 +29,7 @@ export function MainAppContainer() {
               </GroceryListProvider>
             }
           />
-          <Route path="/scanner" element={<Page title="📷 Scanner" />} />
+          <Route path="/scanner" element={<Scanner />} />
           <Route path="/profile" element={<Profile />} />
         </Routes>
       </MainLayout>
