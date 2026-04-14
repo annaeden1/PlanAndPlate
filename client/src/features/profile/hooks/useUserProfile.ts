@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { userManagementApi } from '../../../api/auth';
+import { userManagementApi } from '@/features/auth/api/auth';
 import { getUserId } from '../../../shared/utils/userId';
-import type { UserProfile } from '../../../types/profileTypes';
+import type { UserProfile } from '@/features/profile/types/profileTypes';
 import {
   dietaryOptions,
   goalsOptions,
@@ -15,7 +15,7 @@ export const useUserProfile = (): UserProfile => {
     const fetchProfile = async () => {
       const token = localStorage.getItem('access-token');
       if (!token) {
-        setProfile((prev) => ({
+        setProfile((prev: UserProfile) => ({
           ...prev,
           loading: false,
           error: 'No token found',
@@ -25,7 +25,7 @@ export const useUserProfile = (): UserProfile => {
 
       const userId = getUserId();
       if (!userId) {
-        setProfile((prev) => ({
+        setProfile((prev: UserProfile) => ({
           ...prev,
           loading: false,
           error: 'Invalid token',
@@ -77,7 +77,7 @@ export const useUserProfile = (): UserProfile => {
         });
       } catch (error) {
         console.error('Failed to fetch user profile:', error);
-        setProfile((prev) => ({
+        setProfile((prev: UserProfile) => ({
           ...prev,
           ...errorProfileState,
         }));

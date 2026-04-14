@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { groceryListApi } from '../api/groceryList';
+import { groceryListApi } from '@/features/groceryList/api/groceryList';
 import { getErrorMessage } from '../utils/errorMessage';
-import type { IGroceryItem, IGroceryItemGroup } from '../types/grocery';
+import type { IGroceryItem, IGroceryItemGroup } from '@/features/groceryList/types/grocery';
 import { getUserId } from '../shared/utils/userId';
 
 interface GroceryListState {

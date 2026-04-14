@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import axios from 'axios';
-import { mealPlannerApi } from '../api/mealPlanner';
-import type { Meal } from '../utils/types/home';
+import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
+import type { Meal } from '@/features/home/types/home';
 import { getUserId } from '../shared/utils/userId';
 
 const MEAL_TIMES: Record<'breakfast' | 'lunch' | 'dinner', string> = {

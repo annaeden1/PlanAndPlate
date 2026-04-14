@@ -46,6 +46,8 @@ export const getProduct = async (req: Request, res: Response): Promise<void> => 
 
 export const addProduct = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log('1');
+
     const { userId } = req.params;
     const { name, quantity, unit, aisle } = req.body as {
       name: string;
@@ -71,6 +73,7 @@ export const addProduct = async (req: Request, res: Response): Promise<void> => 
     const groups = await GroceryService.addProducts(userId, [newItem]);
     res.status(201).json(groups);
   } catch (err) {
+    console.log(err);
     res.status(500).json({ error: 'Failed to add product', details: String(err) });
   }
 };

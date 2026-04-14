@@ -12,10 +12,11 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import { ProgressCard } from '../components/common/ProgressCard';
-import { GroceryItemCard } from '../components/grocery/GroceryItemCard';
-import { AddItemDialog } from '../components/grocery/AddItemDialog';
-import { useGroceryList } from '../context/GroceryListContext';
-import { CATEGORY_EMOJIS } from '../utils/grocery/categoryEmojis';
+import { GroceryItemCard } from '@/features/groceryList/components/GroceryItemCard';
+import { AddItemDialog } from '@/features/groceryList/components/AddItemDialog';
+import { useGroceryList } from '@/context/GroceryListContext';
+import { CATEGORY_EMOJIS } from '@/features/groceryList/utils/categoryEmojis';
+import type { Category } from '@/features/groceryList/types/grocery';
 
 export const GroceryList = () => {
   const { groups, loading, error, toggleChecked, removeItem, removeBoughtItems, addItem } = useGroceryList();
@@ -26,8 +27,8 @@ export const GroceryList = () => {
     if (!searchQuery) return groups;
     const q = searchQuery.toLowerCase();
     return groups
-      .map((g) => ({ ...g, items: g.items.filter((item) => item.name.toLowerCase().includes(q)) }))
-      .filter((g) => g.items.length > 0);
+      .map((g: any) => ({ ...g, items: g.items.filter((item: any) => item.name.toLowerCase().includes(q)) }))
+      .filter((g: any) => g.items.length > 0);
   }, [groups, searchQuery]);
 
   const { totalItems, checkedItems, itemsToBuy, percentage } = useMemo(() => {
@@ -111,10 +112,10 @@ export const GroceryList = () => {
           {filteredGroups.map((group) => (
             <Box key={group.category}>
               <Typography variant="h5" fontWeight="bold" sx={{ mb: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                {CATEGORY_EMOJIS[group.category]} {group.category}
+                {CATEGORY_EMOJIS[group.category as Category] || '🛒'} {group.category}
               </Typography>
               <Stack spacing="0.75rem">
-                {group.items.map((item) => (
+                {group.items.map((item: any) => (
                   <GroceryItemCard key={item.name} item={item} onToggleCheck={toggleChecked} onDelete={removeItem} />
                 ))}
               </Stack>

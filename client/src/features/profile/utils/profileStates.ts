@@ -1,4 +1,4 @@
-import type { UserProfile } from '../../../types/profileTypes';
+import type { UserProfile } from '@/features/profile/types/profileTypes';
 
 export const initialProfileState: UserProfile = {
   username: 'Loading...',

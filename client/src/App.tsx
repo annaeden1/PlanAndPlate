@@ -1,9 +1,9 @@
 import { Box, CircularProgress, CssBaseline, ThemeProvider } from '@mui/material';
-import { AuthContainer } from './components/containers/AuthContainer';
+import { AuthContainer } from '@/features/auth/components/AuthContainer';
 import { MainAppContainer } from './components/containers/MainAppContainer';
-import { PreferencesContainer } from './components/containers/PreferencesContainer';
+import { PreferencesContainer } from '@/features/preferences/components/PreferencesContainer';
 import { theme } from './core/theme/theme';
-import { useAuth } from './hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 function App() {
   const { authState, isLoading, handleAuthComplete, handleOnboardingComplete } = useAuth();
