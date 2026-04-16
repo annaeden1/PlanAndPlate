@@ -1,14 +1,14 @@
-import { useMemo } from "react";
-import { Stack } from "@mui/material";
-import {
-  GreetingHeader,
-  TodaysProgressCard,
-  GroceryListCard,
-  TodaysMeals,
-} from "@/features/home/components";
-import type { GroceryListStatus, CalorieProgress } from "@/features/home/types/home";
 import { useGroceryList } from "@/context/GroceryListContext";
 import { useMealPlanner } from "@/context/MealPlannerContext";
+import {
+  GreetingHeader,
+  GroceryListCard,
+  TodaysMeals,
+  TodaysProgressCard,
+} from "@/features/home/components";
+import type { CalorieProgress, GroceryListStatus, Meal } from "@/features/home/types/home";
+import { Stack } from "@mui/material";
+import { useMemo } from "react";
 
 export const HomePage = () => {
   const { groups } = useGroceryList();
@@ -27,14 +27,14 @@ export const HomePage = () => {
   }, [groups]);
 
   const calorieTarget = useMemo(() => {
-    const total = meals.reduce((sum: number, m: any) => sum + m.calories, 0);
+    const total = meals.reduce((sum: number, m: Meal) => sum + m.calories, 0);
     return Math.round(total > 0 ? total : 2000);
   }, [meals]);
 
   const calorieProgress: CalorieProgress = useMemo(() => {
     const consumed = meals
-      .filter((m: any) => m.completed)
-      .reduce((sum: number, m: any) => sum + m.calories, 0);
+      .filter((m: Meal) => m.completed)
+      .reduce((sum: number, m: Meal) => sum + m.calories, 0);
     return { consumed: Math.round(consumed), target: calorieTarget };
   }, [meals, calorieTarget]);
 

@@ -1,22 +1,22 @@
-import { useState, useMemo } from 'react';
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Stack,
-  InputAdornment,
-  CircularProgress,
-  Alert,
-} from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import AddIcon from '@mui/icons-material/Add';
-import { ProgressCard } from '../components/common/ProgressCard';
-import { GroceryItemCard } from '@/features/groceryList/components/GroceryItemCard';
-import { AddItemDialog } from '@/features/groceryList/components/AddItemDialog';
 import { useGroceryList } from '@/context/GroceryListContext';
+import { AddItemDialog } from '@/features/groceryList/components/AddItemDialog';
+import { GroceryItemCard } from '@/features/groceryList/components/GroceryItemCard';
+import type { Category, GroceryItem, GroceryItemGroup } from '@/features/groceryList/types/grocery';
 import { CATEGORY_EMOJIS } from '@/features/groceryList/utils/categoryEmojis';
-import type { Category } from '@/features/groceryList/types/grocery';
+import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  InputAdornment,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { useMemo, useState } from 'react';
+import { ProgressCard } from '../components/common/ProgressCard';
 
 export const GroceryList = () => {
   const { groups, loading, error, toggleChecked, removeItem, removeBoughtItems, addItem } = useGroceryList();
@@ -27,8 +27,8 @@ export const GroceryList = () => {
     if (!searchQuery) return groups;
     const q = searchQuery.toLowerCase();
     return groups
-      .map((g: any) => ({ ...g, items: g.items.filter((item: any) => item.name.toLowerCase().includes(q)) }))
-      .filter((g: any) => g.items.length > 0);
+      .map((g: GroceryItemGroup) => ({ ...g, items: g.items.filter((item: GroceryItem) => item.name.toLowerCase().includes(q)) }))
+      .filter((g: GroceryItemGroup) => g.items.length > 0);
   }, [groups, searchQuery]);
 
   const { totalItems, checkedItems, itemsToBuy, percentage } = useMemo(() => {
@@ -115,7 +115,7 @@ export const GroceryList = () => {
                 {CATEGORY_EMOJIS[group.category as Category] || '🛒'} {group.category}
               </Typography>
               <Stack spacing="0.75rem">
-                {group.items.map((item: any) => (
+                {group.items.map((item: GroceryItem) => (
                   <GroceryItemCard key={item.name} item={item} onToggleCheck={toggleChecked} onDelete={removeItem} />
                 ))}
               </Stack>

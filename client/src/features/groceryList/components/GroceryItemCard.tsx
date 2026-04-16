@@ -1,9 +1,9 @@
-import { Paper, Box, Checkbox, Stack, Typography, IconButton } from '@mui/material';
+import type { GroceryItem } from '@/features/groceryList/types/grocery';
 import CloseIcon from '@mui/icons-material/Close';
-import type { IGroceryItem } from '@/features/groceryList/types/grocery';
+import { Box, Checkbox, IconButton, Paper, Stack, Typography } from '@mui/material';
 
 interface GroceryItemCardProps {
-  item: IGroceryItem;
+  item: GroceryItem;
   onToggleCheck: (name: string) => void;
   onDelete: (name: string) => void;
 }

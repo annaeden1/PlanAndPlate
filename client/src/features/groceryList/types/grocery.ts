@@ -18,7 +18,7 @@ export type Category =
   | 'Health Foods'
   | 'Other';
 
-export interface IGroceryItem {
+export interface GroceryItem {
   name: string;
   quantity: number;
   unit: string;
@@ -27,8 +27,8 @@ export interface IGroceryItem {
   checked: boolean;
 }
 
-export interface IGroceryItemGroup {
+export interface GroceryItemGroup {
   category: Category;
   count: number;
-  items: IGroceryItem[];
+  items: GroceryItem[];
 }
