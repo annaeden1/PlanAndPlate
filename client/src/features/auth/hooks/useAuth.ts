@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { userManagementApi } from '../api/auth';
-import type { AuthState, OnboardingData, TokenData } from '@/shared';
+import type { OnboardingData } from '@/shared';
 import { getUserId } from '@/shared/utils/userId';
+import type { AuthState, TokenData } from '../types/auth';
 
 export const useAuth = () => {
   const [authState, setAuthState] = useState<AuthState>('idle');

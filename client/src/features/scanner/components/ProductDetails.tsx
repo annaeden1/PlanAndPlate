@@ -1,20 +1,20 @@
 import { Box, Button, Typography } from '@mui/material';
 import type { ProductData } from '@/shared';
-import { mapNutritionFacts } from '@/utils/scanner/nutrition';
+import { mapNutritionFacts } from '@/features/scanner/utils/nutrition';
 import { HealthScoreCard } from '@/features/scanner/components/HealthScoreCard';
 import { NutritionFactsCard } from '@/features/scanner/components/NutritionFactsCard';
 import { PreferenceMatchesCard } from '@/features/scanner/components/PreferenceMatchesCard';
 import { ProductInfoCard } from '@/features/scanner/components/ProductInfoCard';
 
-interface ProductDetailsViewProps {
+interface ProductDetailsProps {
   product: ProductData;
   onScanAnother: () => void;
 }
 
-export const ProductDetailsView = ({
+export const ProductDetails = ({
   product,
   onScanAnother,
-}: ProductDetailsViewProps) => {
+}: ProductDetailsProps) => {
   return (
     <Box>
       <Box sx={{ px: '1.5rem', pt: '3rem', pb: '1.5rem' }}>

@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { groceryListApi } from '@/features/groceryList/api/groceryList';
-import { getErrorMessage } from '../utils/errorMessage';
+import { getErrorMessage } from '../shared/utils/errorMessage';
 import type { IGroceryItem, IGroceryItemGroup } from '@/features/groceryList/types/grocery';
 import { getUserId } from '../shared/utils/userId';
 

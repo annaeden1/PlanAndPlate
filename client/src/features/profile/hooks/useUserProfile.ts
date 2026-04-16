@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { userManagementApi } from '@/features/auth/api/auth';
 import { getUserId } from '../../../shared/utils/userId';
-import type { UserProfile } from '@/features/profile/types/profileTypes';
+import type { UserProfile } from '@/features/profile/types/profile';
 import {
   dietaryOptions,
   goalsOptions,
@@ -53,7 +53,6 @@ export const useUserProfile = (): UserProfile => {
           .map((key: string) => dietaryLabels[key])
           .filter(Boolean);
 
-        // Parse goal
         const goalLabels = goalsOptions.reduce(
           (acc, option) => {
             acc[option.id] = option.label;

@@ -2,19 +2,19 @@ import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { Alert, Box, Button, Typography } from '@mui/material';
 import { ScannerCamera } from '@/features/scanner/components/ScannerCamera';
 
-interface CameraUploadViewProps {
+interface CameraUploadProps {
   scanning: boolean;
   error: string | null;
   onUploadClick: () => void;
   onManualEntryClick: () => void;
 }
 
-export const CameraUploadView = ({
+export const CameraUpload = ({
   scanning,
   error,
   onUploadClick,
   onManualEntryClick,
-}: CameraUploadViewProps) => {
+}: CameraUploadProps) => {
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ px: '1.5rem', pt: '3rem', pb: '1.5rem' }}>

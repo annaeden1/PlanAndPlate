@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
-interface ManualBarcodeEntryViewProps {
+interface ManualBarcodeEntryProps {
   barcode: string;
   scanning: boolean;
   error: string | null;
@@ -18,14 +18,14 @@ interface ManualBarcodeEntryViewProps {
   onBack: () => void;
 }
 
-export const ManualBarcodeEntryView = ({
+export const ManualBarcodeEntry = ({
   barcode,
   scanning,
   error,
   onBarcodeChange,
   onSubmit,
   onBack,
-}: ManualBarcodeEntryViewProps) => {
+}: ManualBarcodeEntryProps) => {
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ px: '1.5rem', pt: '3rem', pb: '1.5rem' }}>

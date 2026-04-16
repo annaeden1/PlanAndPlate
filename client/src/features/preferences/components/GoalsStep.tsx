@@ -1,8 +1,8 @@
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { Box, Typography } from '@mui/material';
-import { IconBox } from '../../../core/components/IconBox';
-import { SelectableCard } from '../../../core/components/SelectableCard';
-import type { Options } from '../utils/optionsTypes';
+import { IconBox } from '@/components/common/IconBox';
+import { SelectableCard } from '@/components/common/SelectableCard';
+import type { Options } from '../types/options';
 import { goalsOptions } from '../utils/preferencesOptions';
 
 interface GoalsStepProps {

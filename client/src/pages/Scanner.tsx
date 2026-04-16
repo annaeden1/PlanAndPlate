@@ -3,9 +3,9 @@ import { Box, Typography } from '@mui/material';
 import { barcodeApi } from '@/features/scanner/api/barcode';
 import type { ProductData } from '@/shared';
 import { getUserId } from '@/shared/utils/userId';
-import { ProductDetailsView } from '@/features/scanner/views/ProductDetailsView';
-import { ManualBarcodeEntryView } from '@/features/scanner/views/ManualBarcodeEntryView';
-import { CameraUploadView } from '@/features/scanner/views/CameraUploadView';
+import { ProductDetails } from '@/features/scanner/components/ProductDetails';
+import { ManualBarcodeEntry } from '@/features/scanner/components/ManualBarcodeEntry';
+import { CameraUpload } from '@/features/scanner/components/CameraUpload';
 
 export const Scanner = () => {
   const userId = getUserId();
@@ -49,7 +49,7 @@ export const Scanner = () => {
     } catch (err: any) {
       setError(
         err.response?.data?.error ||
-          'Product not found. Please check the barcode.',
+        'Product not found. Please check the barcode.',
       );
     } finally {
       setScanning(false);
@@ -68,9 +68,9 @@ export const Scanner = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       {scanned && product ? (
-        <ProductDetailsView product={product} onScanAnother={handleReset} />
+        <ProductDetails product={product} onScanAnother={handleReset} />
       ) : isManual ? (
-        <ManualBarcodeEntryView
+        <ManualBarcodeEntry
           barcode={barcode}
           scanning={scanning}
           error={error}
@@ -82,7 +82,7 @@ export const Scanner = () => {
           }}
         />
       ) : (
-        <CameraUploadView
+        <CameraUpload
           scanning={scanning}
           error={error}
           onUploadClick={() => performScan()}
