@@ -10,7 +10,8 @@
     "test": "tsc && jest --runInBand --detectOpenHandles --forceExit",
     "start": "tsc && node --env-file=.env ./dist/src/server.js",
     "lint": "eslint . --ext .ts",
-    "dev": "nodemon ./src/server.ts"
+    "dev": "nodemon ./src/server.ts",
+    "seed": "ts-node src/seedMockData.ts"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
