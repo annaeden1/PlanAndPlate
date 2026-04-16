@@ -1,8 +1,8 @@
 import LocalDiningIcon from '@mui/icons-material/LocalDining';
 import { Box, Checkbox, Typography } from '@mui/material';
-import { SelectableCard } from '../../../core/components/SelectableCard';
+import { SelectableCard } from '@/components/common/SelectableCard';
 import type { DietaryPreferences } from '../../../shared';
-import type { Options } from '../utils/optionsTypes';
+import type { Options } from '../types/options';
 import { dietaryOptions } from '../utils/preferencesOptions';
 
 interface DietaryStepProps {

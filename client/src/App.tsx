@@ -1,9 +1,9 @@
 import { Box, CircularProgress, CssBaseline, ThemeProvider } from '@mui/material';
-import { AuthContainer } from './components/containers/AuthContainer';
 import { MainAppContainer } from './components/containers/MainAppContainer';
-import { PreferencesContainer } from './components/containers/PreferencesContainer';
 import { theme } from './core/theme/theme';
-import { useAuth } from './hooks/useAuth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
+import { Auth } from './pages/Auth';
+import { Preferences } from './pages/Preferences';
 
 function App() {
   const { authState, isLoading, handleAuthComplete, handleOnboardingComplete } = useAuth();
@@ -28,10 +28,10 @@ function App() {
       <CssBaseline />
       <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
         {authState === 'idle' && (
-          <AuthContainer onAuthComplete={handleAuthComplete} />
+          <Auth onAuthComplete={handleAuthComplete} />
         )}
         {authState === 'preferences' && (
-          <PreferencesContainer onComplete={handleOnboardingComplete} />
+          <Preferences onComplete={handleOnboardingComplete} />
         )}
         {authState === 'loggedIn' && <MainAppContainer />}
       </Box>

@@ -1,12 +1,12 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { groceryListApi } from '@/features/groceryList/api/groceryList';
+import type { GroceryItem, GroceryItemGroup } from '@/features/groceryList/types/grocery';
 import type { ReactNode } from 'react';
-import { groceryListApi } from '../api/groceryList';
-import { getErrorMessage } from '../utils/errorMessage';
-import type { IGroceryItem, IGroceryItemGroup } from '../types/grocery';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { getErrorMessage } from '../shared/utils/errorMessage';
 import { getUserId } from '../shared/utils/userId';
 
 interface GroceryListState {
-  groups: IGroceryItemGroup[];
+  groups: GroceryItemGroup[];
   loading: boolean;
   error: string | null;
   userId: string;
@@ -25,7 +25,7 @@ const GroceryListContext = createContext<(GroceryListState & GroceryListActions)
 
 export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
   const userId = getUserId() ?? '';
-  const [groups, setGroups] = useState<IGroceryItemGroup[]>([]);
+  const [groups, setGroups] = useState<GroceryItemGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,7 +101,7 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
     setGroups((prev) =>
       prev.map((group) => ({
         ...group,
-        items: group.items.map((item: IGroceryItem) =>
+        items: group.items.map((item: GroceryItem) =>
           item.name === productName ? { ...item, checked: !item.checked } : item,
         ),
       })),

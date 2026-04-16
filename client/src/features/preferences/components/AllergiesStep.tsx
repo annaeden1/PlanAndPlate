@@ -1,8 +1,8 @@
 import WarningIcon from '@mui/icons-material/Warning';
 import { Box, Checkbox, Typography } from '@mui/material';
-import { SelectableCard } from '../../../core/components/SelectableCard';
+import { SelectableCard } from '@/components/common/SelectableCard';
 import type { Allergies } from '../../../shared';
-import type { Options } from '../utils/optionsTypes';
+import type { Options } from '../types/options';
 import { allergiesOptions } from '../utils/preferencesOptions';
 
 interface AllergiesStepProps {
