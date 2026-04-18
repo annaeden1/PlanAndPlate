@@ -1,6 +1,7 @@
 import axios from "axios";
 import { MealPlan, IMealPlan } from "../models/mealPlanModel";
 import { Recipe, IRecipe } from "../models/recipeModel";
+import { UserFavorites } from "../models/userFavoritesModel";
 import {
   generateMealPlan,
   getRecipeDetails as getSpoonacularRecipe,
@@ -113,53 +114,83 @@ class MealPlannerService {
     return dailyPlan.days[0];
   }
 
-  async getRecipeDetails(recipeId: string): Promise<IRecipe & any> {
+  async getRecipeDetails(recipeId: string, userId?: string): Promise<IRecipe & any> {
     const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
+    let recipeData;
+    
     if (existingRecipe) {
-      return existingRecipe;
+      recipeData = existingRecipe;
+    } else {
+      const recipeDetails = await getSpoonacularRecipe(recipeId);
+
+      recipeData = new Recipe({
+        originRecipeId: recipeDetails.id || recipeId,
+        name: recipeDetails.title,
+        image: recipeDetails.image,
+        calories:
+          recipeDetails.nutrition.nutrients.find(
+            (n: any) => n.name === "Calories",
+          )?.amount || 0,
+        protein:
+          recipeDetails.nutrition.nutrients.find(
+            (n: any) => n.name === "Protein",
+          )?.amount || 0,
+        fat:
+          recipeDetails.nutrition.nutrients.find((n: any) => n.name === "Fat")
+            ?.amount || 0,
+        carbs:
+          recipeDetails.nutrition.nutrients.find(
+            (n: any) => n.name === "Carbohydrates",
+          )?.amount || 0,
+        servings: recipeDetails.servings,
+        readyInMinutes: recipeDetails.readyInMinutes,
+        diets: recipeDetails.diets,
+        instructions: {
+          steps:
+            recipeDetails.analyzedInstructions[0]?.steps.map(
+              (s: any) => s.step,
+            ) || [],
+          ingredients: recipeDetails.extendedIngredients.map((ing: any) => ({
+            id: ing.id,
+            name: ing.name,
+            image: ing.image,
+            amount: ing.amount,
+            unit: normalizeUnit(ing.unit),
+            aisle: ing.aisle,
+          })),
+        },
+      });
+      await recipeData.save();
     }
 
-    const recipeDetails = await getSpoonacularRecipe(recipeId);
+    let isLiked = false;
+    if (userId) {
+      const userFavs = await UserFavorites.findOne({ userId });
+      if (userFavs && userFavs.likedRecipeIds.includes(recipeId)) {
+        isLiked = true;
+      }
+    }
 
-    const recipeData = new Recipe({
-      originRecipeId: recipeDetails.id || recipeId,
-      name: recipeDetails.title,
-      image: recipeDetails.image,
-      calories:
-        recipeDetails.nutrition.nutrients.find(
-          (n: any) => n.name === "Calories",
-        )?.amount || 0 * recipeDetails.servings,
-      protein:
-        recipeDetails.nutrition.nutrients.find(
-          (n: any) => n.name === "Protein",
-        )?.amount || 0 * recipeDetails.servings,
-      fat:
-        recipeDetails.nutrition.nutrients.find((n: any) => n.name === "Fat")
-          ?.amount || 0 * recipeDetails.servings,
-      carbs:
-        recipeDetails.nutrition.nutrients.find(
-          (n: any) => n.name === "Carbohydrates",
-        )?.amount || 0 * recipeDetails.servings,
-      servings: recipeDetails.servings,
-      readyInMinutes: recipeDetails.readyInMinutes,
-      diets: recipeDetails.diets,
-      instructions: {
-        steps:
-          recipeDetails.analyzedInstructions[0]?.steps.map(
-            (s: any) => s.step,
-          ) || [],
-        ingredients: recipeDetails.extendedIngredients.map((ing: any) => ({
-          id: ing.id,
-          name: ing.name,
-          image: ing.image,
-          amount: ing.amount,
-          unit: normalizeUnit(ing.unit),
-          aisle: ing.aisle,
-        })),
-      },
-    });
-    await recipeData.save();
-    return recipeData;
+    return { ...recipeData.toObject(), isLiked };
+  }
+
+  async toggleRecipeLike(userId: string, recipeId: string): Promise<{ isLiked: boolean }> {
+    const userFavs = await UserFavorites.findOne({ userId });
+    
+    if (!userFavs) {
+      await UserFavorites.create({ userId, likedRecipeIds: [recipeId] });
+      return { isLiked: true };
+    }
+
+    const isCurrentlyLiked = userFavs.likedRecipeIds.includes(recipeId);
+    
+    if (isCurrentlyLiked) {
+      await UserFavorites.updateOne({ userId }, { $pull: { likedRecipeIds: recipeId } });
+    } else {
+      await UserFavorites.updateOne({ userId }, { $addToSet: { likedRecipeIds: recipeId } });
+    }
+    
+    return { isLiked: !isCurrentlyLiked };
   }
 }
 
