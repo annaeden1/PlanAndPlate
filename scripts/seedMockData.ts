@@ -2,69 +2,13 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Define Schemas locally to avoid import issues across services
-const recipeSchema = new mongoose.Schema({
-  originRecipeId: { type: String, required: true },
-  name: { type: String, required: true },
-  image: { type: String },
-  calories: { type: Number },
-  protein: { type: Number },
-  fat: { type: Number },
-  carbs: { type: Number },
-  servings: { type: Number },
-  readyInMinutes: { type: Number },
-  diets: [{ type: String }],
-  isLiked: { type: Boolean, default: false },
-  instructions: {
-    steps: [{ type: String }],
-    ingredients: [{
-      id: Number,
-      name: String,
-      image: String,
-      amount: Number,
-      unit: String,
-      aisle: String,
-    }],
-  },
-});
+// Import existing schemas instead of defining them locally
+import { Recipe } from '../services/mealPlanner/src/models/recipeModel';
+import { MealPlan } from '../services/mealPlanner/src/models/mealPlanModel';
+import { GroceryList } from '../services/groceryListManager/src/models/groceryList.model';
+import { normalizeAisle } from '../services/groceryListManager/src/types/categories';
 
-const mealPlanSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  days: [{
-    date: { type: Date, required: true },
-    breakfast: { recipeId: String, name: String, calories: Number },
-    lunch: { recipeId: String, name: String, calories: Number },
-    dinner: { recipeId: String, name: String, calories: Number },
-  }],
-  nutritionSummary: {
-    calories: Number,
-    protein: Number,
-    fat: Number,
-    carbs: Number,
-  },
-});
-
-const groceryListSchema = new mongoose.Schema(
-  {
-    userId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    mealPlanId: { type: String, default: null },
-    items: [{
-      name: { type: String, required: true },
-      quantity: { type: Number, required: true },
-      unit: { type: String, required: true },
-      inventoryQuantity: { type: Number, default: 0 },
-      category: { type: String, default: 'Other' },
-      checked: { type: Boolean, default: false },
-    }],
-  },
-  { timestamps: true }
-);
-
-const Recipe = mongoose.model('Recipe', recipeSchema);
-const MealPlan = mongoose.model('MealPlan', mealPlanSchema);
-const GroceryList = mongoose.model('GroceryList', groceryListSchema);
-
-dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config({ path: path.join(__dirname, '../services/mealPlanner/.env') });
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/planandplate';
 const USER_ID = '69cad35321eafa0edf72e669';
@@ -480,10 +424,10 @@ async function seedData() {
             existing.quantity += ing.amount;
         } else {
             ingredientMap.set(key, {
-                name: ing.name,
+                name: ing.name.toLowerCase(), // Normalize to lowercase
                 quantity: ing.amount,
-                unit: ing.unit,
-                category: ing.aisle || 'Other'
+                unit: (ing.unit || 'unit').toLowerCase(), // Normalize to lowercase
+                category: normalizeAisle(ing.aisle || 'other') // Map to valid enum category
             });
         }
     });
@@ -497,7 +441,7 @@ async function seedData() {
             checked: false,
             inventoryQuantity: 0
         }))
-        .slice(0, 50); // Keep it to 50 items max for a "huge" but readable list
+        .slice(0, 50);
 
     const groceryList = new GroceryList({
         userId: new mongoose.Types.ObjectId(USER_ID),
