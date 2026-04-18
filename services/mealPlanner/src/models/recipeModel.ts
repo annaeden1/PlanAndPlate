@@ -41,7 +41,6 @@ const recipeSchema = new mongoose.Schema({
   servings: { type: Number },
   readyInMinutes: { type: Number },
   diets: [{ type: String }],
-  isLiked: { type: Boolean, default: false },
   instructions: {
     steps: [{ type: String }],
     ingredients: [{
