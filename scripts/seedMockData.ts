@@ -2,20 +2,80 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Import existing schemas instead of defining them locally
-import { Recipe } from '../services/mealPlanner/src/models/recipeModel';
-import { MealPlan } from '../services/mealPlanner/src/models/mealPlanModel';
-import { GroceryList } from '../services/groceryListManager/src/models/groceryList.model';
+// ** CRITICAL FIX: Define schemas locally to guarantee they use the root mongoose instance **
+const recipeSchema = new mongoose.Schema({
+  originRecipeId: { type: String, required: true },
+  name: { type: String, required: true },
+  image: { type: String },
+  calories: { type: Number },
+  protein: { type: Number },
+  fat: { type: Number },
+  carbs: { type: Number },
+  servings: { type: Number },
+  readyInMinutes: { type: Number },
+  diets: [{ type: String }],
+  instructions: {
+    steps: [{ type: String }],
+    ingredients: [{
+      id: Number,
+      name: String,
+      image: String,
+      amount: Number,
+      unit: String,
+      aisle: String,
+    }],
+  },
+});
+const Recipe = mongoose.model("Recipe", recipeSchema);
+
+const mealPlanSchema = new mongoose.Schema({
+  userId: { type: String, required: true },
+  days: [{
+    date: { type: Date, required: true },
+    breakfast: { recipeId: String, name: String, calories: Number },
+    lunch: { recipeId: String, name: String, calories: Number },
+    dinner: { recipeId: String, name: String, calories: Number },
+  }],
+  nutritionSummary: {
+    calories: Number,
+    protein: Number,
+    fat: Number,
+    carbs: Number,
+  },
+});
+const MealPlan = mongoose.model("MealPlan", mealPlanSchema);
+
+const GroceryItemSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, trim: true, lowercase: true },
+    quantity: { type: Number, required: true, min: 0 },
+    unit: { type: String, required: true, trim: true, lowercase: true },
+    inventoryQuantity: { type: Number, required: true, min: 0, default: 0 },
+    category: { type: String, required: true, default: 'Other' },
+    checked: { type: Boolean, required: true, default: false },
+  },
+  { _id: false },
+);
+
+const GroceryListSchema = new mongoose.Schema(
+  {
+    userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    mealPlanId: { type: String, default: null },
+    items: { type: [GroceryItemSchema], default: [] },
+  },
+  { timestamps: true },
+);
+const GroceryList = mongoose.model('GroceryList', GroceryListSchema);
 import { normalizeAisle } from '../services/groceryListManager/src/types/categories';
 
 dotenv.config({ path: path.join(__dirname, '../services/mealPlanner/.env') });
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/planandplate';
-const USER_ID = '69cad35321eafa0edf72e669';
+const USER_ID = '69cbd89483240a476420567f';
 
 const recipesData = [
   {
-    originRecipeId: 'rec_01',
+    originRecipeId: '100001',
     name: 'Avocado Toast with Poached Egg',
     calories: 350, protein: 15, fat: 22, carbs: 28,
     servings: 1, readyInMinutes: 15,
@@ -36,7 +96,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_02',
+    originRecipeId: '100002',
     name: 'Grilled Chicken Quinoa Bowl',
     calories: 550, protein: 45, fat: 12, carbs: 65,
     servings: 1, readyInMinutes: 25,
@@ -57,7 +117,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_03',
+    originRecipeId: '100003',
     name: 'Salmon with Roasted Asparagus',
     calories: 450, protein: 38, fat: 25, carbs: 10,
     servings: 1, readyInMinutes: 20,
@@ -78,7 +138,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_04',
+    originRecipeId: '100004',
     name: 'Berry Smoothie Bowl',
     calories: 300, protein: 8, fat: 5, carbs: 55,
     servings: 1, readyInMinutes: 10,
@@ -98,7 +158,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_05',
+    originRecipeId: '100005',
     name: 'Beef and Broccoli Stir-Fry',
     calories: 500, protein: 35, fat: 20, carbs: 45,
     servings: 1, readyInMinutes: 20,
@@ -119,7 +179,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_06',
+    originRecipeId: '100006',
     name: 'Greek Yogurt Parfait',
     calories: 250, protein: 20, fat: 4, carbs: 32,
     servings: 1, readyInMinutes: 5,
@@ -139,7 +199,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_07',
+    originRecipeId: '100007',
     name: 'Lentil Soup',
     calories: 380, protein: 22, fat: 8, carbs: 55,
     servings: 1, readyInMinutes: 40,
@@ -159,7 +219,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_08',
+    originRecipeId: '100008',
     name: 'Turkey Club Sandwich',
     calories: 480, protein: 30, fat: 18, carbs: 48,
     servings: 1, readyInMinutes: 10,
@@ -180,7 +240,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_09',
+    originRecipeId: '100009',
     name: 'Pasta Primavera',
     calories: 520, protein: 18, fat: 15, carbs: 78,
     servings: 1, readyInMinutes: 25,
@@ -200,7 +260,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_10',
+    originRecipeId: '100010',
     name: 'Oatmeal with Apple and Cinnamon',
     calories: 320, protein: 10, fat: 6, carbs: 58,
     servings: 1, readyInMinutes: 10,
@@ -220,7 +280,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_11',
+    originRecipeId: '100011',
     name: 'Shrimp Tacos',
     calories: 420, protein: 28, fat: 16, carbs: 38,
     servings: 1, readyInMinutes: 20,
@@ -241,7 +301,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_12',
+    originRecipeId: '100012',
     name: 'Spinach and Feta Omelet',
     calories: 280, protein: 18, fat: 20, carbs: 6,
     servings: 1, readyInMinutes: 10,
@@ -262,7 +322,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_13',
+    originRecipeId: '100013',
     name: 'Tuna Salad Wrap',
     calories: 380, protein: 32, fat: 14, carbs: 32,
     servings: 1, readyInMinutes: 10,
@@ -282,7 +342,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_14',
+    originRecipeId: '100014',
     name: 'Mushroom Risotto',
     calories: 460, protein: 12, fat: 18, carbs: 62,
     servings: 1, readyInMinutes: 45,
@@ -303,7 +363,7 @@ const recipesData = [
     }
   },
   {
-    originRecipeId: 'rec_15',
+    originRecipeId: '100015',
     name: 'Chia Seed Pudding',
     calories: 220, protein: 8, fat: 12, carbs: 22,
     servings: 1, readyInMinutes: 5,
@@ -338,6 +398,7 @@ async function seedData() {
 
     const recipeInfo = createdRecipes.map(r => ({
       id: r._id,
+      originRecipeId: r.originRecipeId,
       name: r.name,
       calories: r.calories,
       protein: r.protein,
@@ -383,9 +444,9 @@ async function seedData() {
 
             days.push({
                 date: dateStr,
-                breakfast: { recipeId: breakfast.id.toString(), name: breakfast.name, calories: breakfast.calories },
-                lunch: { recipeId: lunch.id.toString(), name: lunch.name, calories: lunch.calories },
-                dinner: { recipeId: dinner.id.toString(), name: dinner.name, calories: dinner.calories },
+                breakfast: { recipeId: breakfast.originRecipeId, name: breakfast.name, calories: breakfast.calories },
+                lunch: { recipeId: lunch.originRecipeId, name: lunch.name, calories: lunch.calories },
+                dinner: { recipeId: dinner.originRecipeId, name: dinner.name, calories: dinner.calories },
             });
 
             [breakfast, lunch, dinner].forEach(meal => {
