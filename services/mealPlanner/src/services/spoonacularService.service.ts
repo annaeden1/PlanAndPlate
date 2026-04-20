@@ -1,37 +1,34 @@
 import axios from "axios";
+import { MealPlanResponse, RecipeResponse } from "../utils/types/spoonacularTypes";
 
 export const generateMealPlan = async (
   diet?: string,
   exclude?: string,
-): Promise<any> => {
+): Promise<MealPlanResponse> => {
   const apiKey = process.env.SPOONACULAR_API_KEY;
   if (!apiKey) throw new Error("SPOONACULAR_API_KEY is not set");
 
   const url = `https://api.spoonacular.com/mealplanner/generate?apiKey=${apiKey}&timeFrame=week&diet=${diet || ""}&exclude=${exclude || ""}`;
   const response = await axios.get(url);
-
   return response.data;
 };
 
-export const getRecipeDetails = async (recipeId: string): Promise<any> => {
+export const getRecipeDetails = async (recipeId: string): Promise<RecipeResponse> => {
   const apiKey = process.env.SPOONACULAR_API_KEY;
   if (!apiKey) throw new Error("SPOONACULAR_API_KEY is not set");
 
   const url = `https://api.spoonacular.com/recipes/${recipeId}/information?includeNutrition=true&apiKey=${apiKey}`;
   const response = await axios.get(url);
+  console.log("Spoonacular recipe details response: instructions ", response.data.analyzedInstructions[0].steps[0].ingredients);
+  console.log("Spoonacular recipe details response: analyzedInstructions ", response.data.analyzedInstructions[0].steps[0].equipment);
   return response.data;
 };
 
-/**
- * Fetches details for multiple recipes in a single request using Spoonacular's
- * bulk endpoint: GET /recipes/informationBulk?ids=<comma-separated>&includeNutrition=true
- * Returns an array of recipe objects in the same shape as getRecipeDetails.
- */
-export const getRecipeDetailsBulk = async (ids: string): Promise<any[]> => {
+export const getRecipeDetailsBulk = async (ids: string): Promise<RecipeResponse[]> => {
   const apiKey = process.env.SPOONACULAR_API_KEY;
   if (!apiKey) throw new Error("SPOONACULAR_API_KEY is not set");
 
   const url = `https://api.spoonacular.com/recipes/informationBulk?ids=${ids}&includeNutrition=true&apiKey=${apiKey}`;
   const response = await axios.get(url);
-  return response.data; // array of recipe objects
+  return response.data;
 };
