@@ -4,7 +4,7 @@ import path from 'path';
 
 // ** CRITICAL FIX: Define schemas locally to guarantee they use the root mongoose instance **
 const recipeSchema = new mongoose.Schema({
-  originRecipeId: { type: String, required: true },
+  originRecipeId: { type: String, required: true, unique: true },
   name: { type: String, required: true },
   image: { type: String },
   calories: { type: Number },
