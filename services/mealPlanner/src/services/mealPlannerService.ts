@@ -7,6 +7,7 @@ import {
   getRecipeDetailsBulk,
 } from "./spoonacularService.service";
 import { normalizeUnit } from "../utils/types/units";
+import { nutrients } from "../utils/types/spoonacularTypes";
 
 class MealPlannerService {
   async createWeeklyPlan(
@@ -131,7 +132,23 @@ class MealPlannerService {
       };
     });
 
-    const sourceNutrients = weeklyPlanFromAPI.nutrients || {};
+    let sourceNutrients: nutrients = {
+        calories: 0,
+        protein: 0,
+        fat: 0,
+        carbohydrates: 0,
+      };
+    daysOfWeek.forEach((dayName, index) => {
+      const spoonacularDayIndex = (index + 6) % 7;
+      const spoonacularDay = spoonacularDays[spoonacularDayIndex];
+      sourceNutrients = {
+        calories: sourceNutrients.calories + (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.calories || 0),
+        protein: sourceNutrients.protein + (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.protein || 0),
+        fat: sourceNutrients.fat + (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.fat || 0),
+        carbohydrates: sourceNutrients.carbohydrates + (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.carbohydrates || 0),
+      };
+    });
+
     const mealPlan = new MealPlan({
       userId,
       days,
