@@ -162,8 +162,12 @@ mealPlannerRouter.get(
  *     responses:
  *       200:
  *         description: OK - Like status toggled
+ *       400:
+ *         description: Invalid recipe ID
  *       401:
  *         description: Unauthorized
+ *       500:
+ *         description: Failed to toggle recipe like
  */
 mealPlannerRouter.patch(
   "/recipes/:recipeId/like",
