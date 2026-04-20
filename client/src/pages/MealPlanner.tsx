@@ -9,7 +9,6 @@ import type { ApiMealPlan } from '@/features/mealPlanner/types/mealPlanner';
 import { mealPlannerApi } from "@/features/mealPlanner/api/mealPlanner";
 import { groceryListApi } from "@/features/groceryList/api/groceryList";
 import { getUserId } from "@/shared/utils/userId";
-import platePicturePlaceholder from '../assets/plate pic.jpg';
 
 interface MealPlannerProps { }
 
@@ -24,7 +23,7 @@ export function MealPlanner({ }: MealPlannerProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const spoonacularImageUrl = (recipeId: string | number, size = '312x231') =>
-    `https://spoonacular.com/recipeImages/${recipeId}-${size}.jpg` || platePicturePlaceholder;
+    `https://spoonacular.com/recipeImages/${recipeId}-${size}.jpg`;
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',

@@ -5,8 +5,6 @@ import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import type { Meal } from '@/features/home/types/home';
 import { getUserId } from '../shared/utils/userId';
 
-import platePicturePlaceholder from '../assets/plate pic.jpg';
-
 const MEAL_TIMES: Record<'breakfast' | 'lunch' | 'dinner', string> = {
   breakfast: '8:00 AM',
   lunch: '12:30 PM',
@@ -47,7 +45,7 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
         const mapped: Meal[] = (['breakfast', 'lunch', 'dinner'] as const).map((type) => ({
           id: day[type].recipeId,
           name: day[type].name,
-          image: `https://spoonacular.com/recipeImages/${day[type].recipeId}-312x231.jpg` || platePicturePlaceholder,
+          image: `https://spoonacular.com/recipeImages/${day[type].recipeId}-312x231.jpg`,
           mealType: MEAL_TYPES[type],
           time: MEAL_TIMES[type],
           calories: day[type].calories,
