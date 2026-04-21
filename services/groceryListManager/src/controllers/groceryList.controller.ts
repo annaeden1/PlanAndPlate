@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import * as GroceryService from '../services/groceryList.service';
-import { GroceryItem } from '../types/groceryList.types';
 import { normalizeAisle } from '../types/categories';
+import { NotFoundError } from '../types/errors';
+import { GroceryItem } from '../types/groceryList.types';
 
 export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -145,9 +146,8 @@ export const updateInventoryQuantity = async (req: Request, res: Response): Prom
     );
     res.status(200).json(groups);
   } catch (err) {
-    const msg = String(err);
-    if (msg.includes('not found')) {
-      res.status(404).json({ error: msg });
+    if (err instanceof NotFoundError) {
+      res.status(404).json({ error: err.message });
       return;
     }
     res.status(500).json({ error: 'Failed to update inventory quantity' });

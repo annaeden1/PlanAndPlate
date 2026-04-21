@@ -114,6 +114,12 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
 
   const inventoryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  useEffect(() => {
+    return () => {
+      if (inventoryDebounceRef.current) clearTimeout(inventoryDebounceRef.current);
+    };
+  }, []);
+
   const updateInventoryQuantity = useCallback((productName: string, quantity: number) => {
     const clamped = Math.max(0, quantity);
     setGroups((prev) =>

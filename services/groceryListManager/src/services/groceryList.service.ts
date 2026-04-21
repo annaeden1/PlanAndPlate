@@ -1,6 +1,7 @@
 import { GroceryList } from "../models/groceryList.model";
 import { Recipe } from "../models/recipe.model";
 import { Category, normalizeAisle } from "../types/categories";
+import { NotFoundError } from "../types/errors";
 import { GroceryItem, GroceryItemGroup } from "../types/groceryList.types";
 
 export const groupByCategory = (items: GroceryItem[]): GroceryItemGroup[] => {
@@ -189,12 +190,12 @@ export const updateInventoryQuantity = async (
 ): Promise<GroceryItemGroup[]> => {
   const normalizedName = productName.toLowerCase().trim();
   const list = await GroceryList.findOne({ userId });
-  if (!list) throw new Error('Grocery list not found');
+  if (!list) throw new NotFoundError('Grocery list not found');
 
   const item = list.items.find((i) => i.name === normalizedName);
-  if (!item) throw new Error(`Product "${productName}" not found`);
+  if (!item) throw new NotFoundError(`Product "${productName}" not found`);
 
-  item.inventoryQuantity = Math.max(0, inventoryQuantity);
+  item.inventoryQuantity = inventoryQuantity;
   await list.save();
   return groupByCategory(list.items);
 };

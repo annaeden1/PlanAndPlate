@@ -30,7 +30,7 @@ export const GroceryItemCard = ({ item, onDelete, onUpdateInventory }: GroceryIt
     isPendingRef.current = true;
     setLocalHave(next);
     onUpdateInventory(item.name, next);
-    setTimeout(() => { isPendingRef.current = false; }, 600);
+    setTimeout(() => { isPendingRef.current = false; }, 500);
   };
 
   const formatQty = (n: number) =>
