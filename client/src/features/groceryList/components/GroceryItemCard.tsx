@@ -1,37 +1,17 @@
 import type { GroceryItem } from '@/features/groceryList/types/grocery';
-import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import RemoveIcon from '@mui/icons-material/Remove';
-import { Box, Chip, IconButton, Paper, Stack, Typography } from '@mui/material';
-import { useEffect, useRef, useState } from 'react';
+import { Box, Checkbox, Chip, IconButton, Paper, Stack, Typography } from '@mui/material';
 
 interface GroceryItemCardProps {
   item: GroceryItem;
   onDelete: (name: string) => void;
-  onUpdateInventory: (name: string, quantity: number) => void;
+  onUpdateInventory?: (name: string, quantity: number) => void; // Keeping optional if used elsewhere
+  onToggle: (name: string) => void;
 }
 
-export const GroceryItemCard = ({ item, onDelete, onUpdateInventory }: GroceryItemCardProps) => {
-  const [localHave, setLocalHave] = useState(item.inventoryQuantity);
-  const isPendingRef = useRef(false);
-
-  useEffect(() => {
-    if (!isPendingRef.current) {
-      setLocalHave(item.inventoryQuantity);
-    }
-  }, [item.inventoryQuantity]);
-
-  const isInStock = localHave >= item.quantity;
-  const buyAmount = Math.max(0, item.quantity - localHave);
-  const step = Number.isInteger(item.quantity) ? 1 : 0.5;
-
-  const adjust = (delta: number) => {
-    const next = Math.max(0, localHave + delta * step);
-    isPendingRef.current = true;
-    setLocalHave(next);
-    onUpdateInventory(item.name, next);
-    setTimeout(() => { isPendingRef.current = false; }, 500);
-  };
+export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardProps) => {
+  const isInStock = item.inventoryQuantity >= item.quantity;
+  const buyAmount = Math.max(0, item.quantity - item.inventoryQuantity);
 
   const formatQty = (n: number) =>
     Number.isInteger(n) ? String(n) : n.toFixed(1);
@@ -50,10 +30,22 @@ export const GroceryItemCard = ({ item, onDelete, onUpdateInventory }: GroceryIt
         backgroundColor: 'background.paper',
       }}
     >
+      {/* Checkbox */}
+      <Checkbox
+        checked={item.checked}
+        onChange={() => onToggle(item.name)}
+        sx={{
+          color: 'divider',
+          '&.Mui-checked': {
+            color: 'primary.main',
+          },
+        }}
+      />
+
       {/* Item info */}
       <Stack flexGrow={1} spacing="0.5rem">
         <Stack direction="row" alignItems="center" spacing="0.5rem" flexWrap="wrap">
-          <Typography variant="body1" fontWeight={600} sx={{ textTransform: 'capitalize' }}>
+          <Typography variant="body1" fontWeight={600} sx={{ textTransform: 'capitalize', textDecoration: item.checked ? 'line-through' : 'none', color: item.checked ? 'text.secondary' : 'text.primary' }}>
             {item.name}
           </Typography>
           {isInStock && (
@@ -85,49 +77,14 @@ export const GroceryItemCard = ({ item, onDelete, onUpdateInventory }: GroceryIt
             </Typography>
           </Box>
 
-          {/* Have stepper */}
+          {/* Have stepper -> Just display amount */}
           <Box>
             <Typography variant="caption" color="text.secondary" fontWeight={500}>
               Have
             </Typography>
-            <Stack direction="row" alignItems="center" spacing="0.2rem">
-              <IconButton
-                onClick={() => adjust(-1)}
-                disabled={localHave <= 0}
-                sx={{
-                  width: '1.375rem',
-                  height: '1.375rem',
-                  p: 0,
-                  border: '1.5px solid',
-                  borderColor: 'divider',
-                  borderRadius: '50%',
-                  '&:not(:disabled):hover': { borderColor: 'primary.main', color: 'primary.main' },
-                }}
-              >
-                <RemoveIcon sx={{ fontSize: '0.7rem' }} />
-              </IconButton>
-              <Typography
-                variant="body2"
-                fontWeight={600}
-                sx={{ minWidth: '2.5rem', textAlign: 'center' }}
-              >
-                {formatQty(localHave)} {item.unit}
-              </Typography>
-              <IconButton
-                onClick={() => adjust(1)}
-                sx={{
-                  width: '1.375rem',
-                  height: '1.375rem',
-                  p: 0,
-                  border: '1.5px solid',
-                  borderColor: 'divider',
-                  borderRadius: '50%',
-                  '&:hover': { borderColor: 'primary.main', color: 'primary.main' },
-                }}
-              >
-                <AddIcon sx={{ fontSize: '0.7rem' }} />
-              </IconButton>
-            </Stack>
+            <Typography sx={{ pt: '0.1rem' }} variant="body2" fontWeight={600}>
+              {formatQty(item.inventoryQuantity)} {item.unit}
+            </Typography>
           </Box>
 
           {/* Buy badge */}

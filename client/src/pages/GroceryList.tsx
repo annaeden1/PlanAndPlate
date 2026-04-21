@@ -4,12 +4,14 @@ import { GroceryItemCard } from '@/features/groceryList/components/GroceryItemCa
 import type { Category, GroceryItem, GroceryItemGroup } from '@/features/groceryList/types/grocery';
 import { CATEGORY_EMOJIS } from '@/features/groceryList/utils/categoryEmojis';
 import AddIcon from '@mui/icons-material/Add';
+import CheckIcon from '@mui/icons-material/Check';
 import SearchIcon from '@mui/icons-material/Search';
 import {
   Alert,
   Box,
   Button,
   CircularProgress,
+  Fab,
   InputAdornment,
   Stack,
   TextField,
@@ -20,7 +22,7 @@ import { useMemo, useState } from 'react';
 import { ProgressCard } from '../components/common/ProgressCard';
 
 export const GroceryList = () => {
-  const { groups, loading, error, removeItem, addItem, updateInventoryQuantity } = useGroceryList();
+  const { groups, loading, error, removeItem, addItem, toggleChecked, removeBoughtItems } = useGroceryList();
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -44,8 +46,12 @@ export const GroceryList = () => {
     };
   }, [groups]);
 
+  const hasCheckedItems = useMemo(() => {
+    return groups.some((g) => g.items.some((item) => item.checked));
+  }, [groups]);
+
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem' }}>
+    <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem', pb: hasCheckedItems ? '6rem' : '1.5rem' }}>
       <Box sx={{ mb: '2rem' }}>
         <Typography variant="h4" fontWeight="bold">Grocery List</Typography>
         <Typography variant="subtitle1" color="text.secondary">Smart shopping made easy</Typography>
@@ -108,7 +114,7 @@ export const GroceryList = () => {
               </Typography>
               <Stack spacing="0.75rem">
                 {group.items.map((item: GroceryItem) => (
-                  <GroceryItemCard key={item.name} item={item} onDelete={removeItem} onUpdateInventory={updateInventoryQuantity} />
+                  <GroceryItemCard key={item.name} item={item} onDelete={removeItem} onToggle={toggleChecked} />
                 ))}
               </Stack>
             </Box>
@@ -121,6 +127,27 @@ export const GroceryList = () => {
         onClose={() => setDialogOpen(false)}
         onAdd={addItem}
       />
+
+      {/* Floating Finish Shopping Button */}
+      {hasCheckedItems && (
+        <Fab
+          variant="extended"
+          color="primary"
+          onClick={removeBoughtItems}
+          sx={{
+            position: 'fixed',
+            bottom: '2rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            boxShadow: 4,
+            fontWeight: 'bold',
+            px: '2rem',
+          }}
+        >
+          <CheckIcon sx={{ mr: 1 }} />
+          Finish Shopping
+        </Fab>
+      )}
     </Box>
   );
 };
