@@ -1,7 +1,7 @@
 import { groceryListApi } from '@/features/groceryList/api/groceryList';
 import type { GroceryItem, GroceryItemGroup } from '@/features/groceryList/types/grocery';
 import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getErrorMessage } from '../shared/utils/errorMessage';
 import { getUserId } from '../shared/utils/userId';
 
@@ -19,6 +19,7 @@ interface GroceryListActions {
   removeBoughtItems: () => Promise<void>;
   clearList: () => Promise<void>;
   toggleChecked: (productName: string) => void;
+  updateInventoryQuantity: (productName: string, quantity: number) => void;
 }
 
 const GroceryListContext = createContext<(GroceryListState & GroceryListActions) | null>(null);
@@ -111,9 +112,29 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
       .catch(() => refresh());
   }, [userId, refresh]);
 
+  const inventoryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const updateInventoryQuantity = useCallback((productName: string, quantity: number) => {
+    const clamped = Math.max(0, quantity);
+    setGroups((prev) =>
+      prev.map((group) => ({
+        ...group,
+        items: group.items.map((item: GroceryItem) =>
+          item.name === productName ? { ...item, inventoryQuantity: clamped } : item,
+        ),
+      })),
+    );
+    if (inventoryDebounceRef.current) clearTimeout(inventoryDebounceRef.current);
+    inventoryDebounceRef.current = setTimeout(() => {
+      groceryListApi.updateInventoryQuantity(userId, productName, clamped)
+        .then(setGroups)
+        .catch(() => refresh());
+    }, 400);
+  }, [userId, refresh]);
+
   return (
     <GroceryListContext.Provider
-      value={{ groups, loading, error, userId, refresh, addItem, removeItem, removeBoughtItems, clearList, toggleChecked }}
+      value={{ groups, loading, error, userId, refresh, addItem, removeItem, removeBoughtItems, clearList, toggleChecked, updateInventoryQuantity }}
     >
       {children}
     </GroceryListContext.Provider>
