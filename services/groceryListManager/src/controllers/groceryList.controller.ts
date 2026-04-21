@@ -124,6 +124,36 @@ export const toggleItem = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
+export const updateInventoryQuantity = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId, productName } = req.params;
+    const { inventoryQuantity } = req.body as { inventoryQuantity: unknown };
+
+    if (typeof inventoryQuantity !== 'number' || isNaN(inventoryQuantity)) {
+      res.status(400).json({ error: 'inventoryQuantity is required and must be a number' });
+      return;
+    }
+    if (inventoryQuantity < 0) {
+      res.status(400).json({ error: 'inventoryQuantity cannot be negative' });
+      return;
+    }
+
+    const groups = await GroceryService.updateInventoryQuantity(
+      userId,
+      productName.toLowerCase().trim(),
+      inventoryQuantity,
+    );
+    res.status(200).json(groups);
+  } catch (err) {
+    const msg = String(err);
+    if (msg.includes('not found')) {
+      res.status(404).json({ error: msg });
+      return;
+    }
+    res.status(500).json({ error: 'Failed to update inventory quantity' });
+  }
+};
+
 export const clearGroceryList = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;

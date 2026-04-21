@@ -171,6 +171,7 @@ router.post('/users/:userId/recipes/:recipeId/ingredients', GroceryController.im
  *         description: Updated grocery list items
  */
 router.patch('/users/:userId/products/:productName/toggle', GroceryController.toggleItem);
+router.patch('/users/:userId/products/:productName/inventory', GroceryController.updateInventoryQuantity);
 router.delete('/users/:userId/products/bought', GroceryController.removeBoughtItems);
 router.delete('/users/:userId/products/:productName', GroceryController.removeProduct);
 
