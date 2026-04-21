@@ -15,11 +15,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+
 import { useMemo, useState } from 'react';
 import { ProgressCard } from '../components/common/ProgressCard';
 
 export const GroceryList = () => {
-  const { groups, loading, error, toggleChecked, removeItem, removeBoughtItems, addItem } = useGroceryList();
+  const { groups, loading, error, removeItem, addItem, updateInventoryQuantity } = useGroceryList();
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -31,15 +32,15 @@ export const GroceryList = () => {
       .filter((g: GroceryItemGroup) => g.items.length > 0);
   }, [groups, searchQuery]);
 
-  const { totalItems, checkedItems, itemsToBuy, percentage } = useMemo(() => {
+  const { totalItems, inStockItems, itemsToBuy, percentage } = useMemo(() => {
     const allItems = groups.flatMap((g) => g.items);
     const total = allItems.length;
-    const checked = allItems.filter((item) => item.checked).length;
+    const inStock = allItems.filter((item) => item.inventoryQuantity >= item.quantity).length;
     return {
       totalItems: total,
-      checkedItems: checked,
-      itemsToBuy: total - checked,
-      percentage: total === 0 ? 0 : (checked / total) * 100,
+      inStockItems: inStock,
+      itemsToBuy: total - inStock,
+      percentage: total === 0 ? 0 : (inStock / total) * 100,
     };
   }, [groups]);
 
@@ -54,7 +55,7 @@ export const GroceryList = () => {
 
       <ProgressCard
         title="Shopping Progress"
-        primaryText={`${checkedItems} of ${totalItems} items`}
+        primaryText={`${inStockItems} of ${totalItems} items in stock`}
         chipLabel={`${itemsToBuy} to buy`}
         progressValue={percentage}
       />
@@ -88,15 +89,6 @@ export const GroceryList = () => {
         >
           Add Item
         </Button>
-        {checkedItems > 0 && (
-          <Button
-            fullWidth variant="contained" color="success"
-            sx={{ borderRadius: '1rem', py: '0.75rem' }}
-            onClick={removeBoughtItems}
-          >
-            Bought it! Remove {checkedItems} item{checkedItems > 1 ? 's' : ''}
-          </Button>
-        )}
       </Box>
 
       {loading ? (
@@ -116,7 +108,7 @@ export const GroceryList = () => {
               </Typography>
               <Stack spacing="0.75rem">
                 {group.items.map((item: GroceryItem) => (
-                  <GroceryItemCard key={item.name} item={item} onToggleCheck={toggleChecked} onDelete={removeItem} />
+                  <GroceryItemCard key={item.name} item={item} onDelete={removeItem} onUpdateInventory={updateInventoryQuantity} />
                 ))}
               </Stack>
             </Box>
