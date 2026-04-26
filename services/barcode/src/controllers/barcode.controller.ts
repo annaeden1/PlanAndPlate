@@ -1,5 +1,11 @@
 import { Request, Response } from 'express';
+import axios from 'axios';
 import * as openFoodFactsService from '../services/openFoodFactsService';
+import {
+  checkPreferenceMatches,
+  type UserPreferences,
+  type PreferenceMatch,
+} from '../services/preferenceMatchService';
 
 export const scanBarcode = async (req: Request, res: Response) => {
   const { userId } = req.params;
@@ -20,12 +26,30 @@ export const scanBarcode = async (req: Request, res: Response) => {
         .json({ error: 'Product not found in OpenFoodFacts' });
     }
 
-    // TODO: Implement product matching with the user’s preferences
-    const matchesPreferences = true;
+    // Get user preferences from user management service
+    let preferenceMatches: PreferenceMatch[] = [];
+    try {
+      const userManagementUrl =
+        process.env.USER_MANAGEMENT_URL || 'http://localhost:8000';
+      const authorization = req.headers.authorization;
+      const preferencesResponse = await axios.get(
+        `${userManagementUrl}/userManagement/${userId}/preferences`,
+        {
+          headers: authorization ? { Authorization: authorization } : {},
+        },
+      );
+
+      const userPreferences: UserPreferences =
+        preferencesResponse.data.userPreferences || {};
+      preferenceMatches = checkPreferenceMatches(product, userPreferences);
+    } catch (error) {
+      // If we can't get preferences, just skip the matching
+      console.log('Could not fetch user preferences:', error);
+    }
 
     return res.json({
       nutritionData: product,
-      matchesPreferences,
+      preferenceMatches,
     });
   } catch (error) {
     return res

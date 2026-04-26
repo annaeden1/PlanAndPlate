@@ -4,7 +4,9 @@ export interface ProductNutrition {
   quantity?: string;
   image_front_url?: string;
   ingredients_text?: string;
+  ingredients_analysis_tags?: string[];
   allergens?: string;
+  allergens_tags?: string[];
   nutriments?: {
     'energy-kcal_100g'?: number;
     fat_100g?: number;
@@ -17,5 +19,7 @@ export interface ProductNutrition {
   nutriscore_grade?: string;
   categories?: string;
   labels?: string;
+  labels_tags?: string[];
   traces?: string;
+  traces_tags?: string[];
 }
