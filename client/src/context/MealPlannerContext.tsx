@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import axios from 'axios';
-import { mealPlannerApi } from '../api/mealPlanner';
-import type { Meal } from '../utils/types/home';
+
+import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
+import type { Meal } from '@/features/home/types/home';
 import { getUserId } from '../shared/utils/userId';
 
 const MEAL_TIMES: Record<'breakfast' | 'lunch' | 'dinner', string> = {
@@ -45,22 +45,13 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
         const mapped: Meal[] = (['breakfast', 'lunch', 'dinner'] as const).map((type) => ({
           id: day[type].recipeId,
           name: day[type].name,
-          image: '',
+          image: `https://spoonacular.com/recipeImages/${day[type].recipeId}-312x231.jpg`,
           mealType: MEAL_TYPES[type],
           time: MEAL_TIMES[type],
           calories: day[type].calories,
           completed: false,
         }));
         setMeals(mapped);
-
-        axios.all(
-          mapped.map((meal) =>
-            mealPlannerApi
-              .getRecipeDetails(meal.id.toString(), token)
-              .then((recipe) => ({ ...meal, image: recipe.image || '' }))
-              .catch(() => meal),
-          ),
-        ).then((mealsWithImages) => setMeals(mealsWithImages));
       })
       .catch(() => setMeals([]))
       .finally(() => setLoading(false));

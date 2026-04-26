@@ -2,13 +2,13 @@ import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { GroceryListProvider } from "../../context/GroceryListContext";
 import { MealPlannerProvider } from "../../context/MealPlannerContext";
-import { Profile } from "../../features/profile/Profile";
+import { Profile } from "@/pages/Profile";
 import { GroceryList } from "../../pages/GroceryList";
-import { MealPlanner } from "../../pages/mealPlanner";
-import { RecipeDetail } from "../../pages/recipeDetail";
-import { Scanner } from "../../pages/Scanner/Scanner";
+import { MealPlanner } from "@/pages/MealPlanner";
+import { RecipeDetail } from "@/pages/RecipeDetail";
+import { Scanner } from '@/pages/Scanner';
 import { MainLayout } from "../layout/MainLayout";
-import { HomePage } from "../../pages/Home/HomePage";
+import { HomePage } from "@/pages/Home";
 
 function AppRoutes() {
   const navigate = useNavigate();

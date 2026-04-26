@@ -1,5 +1,5 @@
 import type { Allergies, DietaryPreferences } from '../../../shared';
-import type { Options } from './optionsTypes';
+import type { Options } from '../types/options';
 
 export const dietaryOptions: Options<keyof DietaryPreferences> = [
   { id: 'glutenFree', label: 'Gluten Free' },
