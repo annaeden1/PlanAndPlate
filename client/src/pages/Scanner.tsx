@@ -47,10 +47,9 @@ export const Scanner = () => {
       setProduct(data);
       setScanned(true);
       if (shouldCloseManual) setIsManual(false);
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: { error: string } } };
+    } catch (err: any) {
       setError(
-        error.response?.data?.error ||
+        err.response?.data?.error ||
           'Product not found. Please check the barcode.',
       );
     } finally {
