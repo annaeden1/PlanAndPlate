@@ -2,69 +2,10 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
 
-const recipeSchema = new mongoose.Schema({
-  originRecipeId: { type: String, required: true, unique: true },
-  name: { type: String, required: true },
-  image: { type: String },
-  calories: { type: Number },
-  protein: { type: Number },
-  fat: { type: Number },
-  carbs: { type: Number },
-  servings: { type: Number },
-  readyInMinutes: { type: Number },
-  diets: [{ type: String }],
-  instructions: {
-    steps: [{ type: String }],
-    ingredients: [{
-      id: Number,
-      name: String,
-      image: String,
-      amount: Number,
-      unit: String,
-      aisle: String,
-    }],
-  },
-});
-const Recipe = mongoose.model("Recipe", recipeSchema);
-
-const mealPlanSchema = new mongoose.Schema({
-  userId: { type: String, required: true },
-  days: [{
-    date: { type: Date, required: true },
-    breakfast: { recipeId: String, name: String, calories: Number },
-    lunch: { recipeId: String, name: String, calories: Number },
-    dinner: { recipeId: String, name: String, calories: Number },
-  }],
-  nutritionSummary: {
-    calories: Number,
-    protein: Number,
-    fat: Number,
-    carbs: Number,
-  },
-});
-const MealPlan = mongoose.model("MealPlan", mealPlanSchema);
-
-const GroceryItemSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true, trim: true, lowercase: true },
-    quantity: { type: Number, required: true, min: 0 },
-    unit: { type: String, required: true, trim: true, lowercase: true },
-    inventoryQuantity: { type: Number, required: true, min: 0, default: 0 },
-    category: { type: String, required: true, default: 'Other' },
-    checked: { type: Boolean, required: true, default: false },
-  },
-  { _id: false },
-);
-
-const GroceryListSchema = new mongoose.Schema(
-  {
-    userId: { type: mongoose.Schema.Types.ObjectId, required: true },
-    mealPlanId: { type: String, default: null },
-    items: { type: [GroceryItemSchema], default: [] },
-  },
-  { timestamps: true },
-);
-const GroceryList = mongoose.model('GroceryList', GroceryListSchema);
+// Real models from services — all share root's mongoose (via patchMongoose.js preload)
+import { Recipe }     from '../services/mealPlanner/src/models/recipeModel';
+import { MealPlan }   from '../services/mealPlanner/src/models/mealPlanModel';
+import { GroceryList } from '../services/groceryListManager/src/models/groceryList.model';
 import { normalizeAisle } from '../services/groceryListManager/src/types/categories';
 
 dotenv.config({ path: path.join(__dirname, '../services/mealPlanner/.env') });
@@ -391,11 +332,11 @@ async function seedData() {
 
     // 1. Seed Recipes
     console.log('Seeding Recipes...');
-    await Recipe.deleteMany({}); // Optional: clear existing recipes if they are mocks
+    await Recipe.deleteMany({});
     const createdRecipes = await Recipe.insertMany(recipesData);
     console.log(`Inserted ${createdRecipes.length} recipes.`);
 
-    const recipeInfo = createdRecipes.map(r => ({
+    const recipeInfo = createdRecipes.map((r: any) => ({
       id: r._id,
       originRecipeId: r.originRecipeId,
       name: r.name,
@@ -411,13 +352,12 @@ async function seedData() {
     await MealPlan.deleteMany({ userId: USER_ID });
     await GroceryList.deleteMany({ userId: new mongoose.Types.ObjectId(USER_ID) });
 
-    // 3. Generate 6 weeks of data (3 before, 3 after)
+    // 3. Generate 6 weeks of data (3 before, 3 after today)
     console.log('Generating 6 separate weekly MealPlans...');
-    
-    // Calculate the Sunday of 3 weeks ago
+
     const today = new Date();
     const threeWeeksAgo = new Date(today);
-    threeWeeksAgo.setDate(today.getDate() - (3 * 7));
+    threeWeeksAgo.setDate(today.getDate() - 3 * 7);
     const startSunday = new Date(threeWeeksAgo);
     startSunday.setDate(threeWeeksAgo.getDate() - threeWeeksAgo.getDay());
     startSunday.setHours(0, 0, 0, 0);
@@ -426,93 +366,91 @@ async function seedData() {
     let firstMealPlanId = '';
 
     for (let w = 0; w < 6; w++) {
-        const weekStart = new Date(startSunday);
-        weekStart.setDate(startSunday.getDate() + (w * 7));
-        
-        const days = [];
-        let weekCalories = 0, weekProtein = 0, weekFat = 0, weekCarbs = 0;
+      const weekStart = new Date(startSunday);
+      weekStart.setDate(startSunday.getDate() + w * 7);
 
-        for (let i = 0; i < 7; i++) {
-            const currentDate = new Date(weekStart);
-            currentDate.setDate(weekStart.getDate() + i);
-            const dateStr = currentDate.toISOString().split("T")[0];
+      const days = [];
+      let weekCalories = 0, weekProtein = 0, weekFat = 0, weekCarbs = 0;
 
-            const breakfast = recipeInfo[Math.floor(Math.random() * recipeInfo.length)];
-            const lunch = recipeInfo[Math.floor(Math.random() * recipeInfo.length)];
-            const dinner = recipeInfo[Math.floor(Math.random() * recipeInfo.length)];
+      for (let i = 0; i < 7; i++) {
+        const currentDate = new Date(weekStart);
+        currentDate.setDate(weekStart.getDate() + i);
 
-            days.push({
-                date: dateStr,
-                breakfast: { recipeId: breakfast.originRecipeId, name: breakfast.name, calories: breakfast.calories },
-                lunch: { recipeId: lunch.originRecipeId, name: lunch.name, calories: lunch.calories },
-                dinner: { recipeId: dinner.originRecipeId, name: dinner.name, calories: dinner.calories },
-            });
+        const breakfast = recipeInfo[Math.floor(Math.random() * recipeInfo.length)];
+        const lunch     = recipeInfo[Math.floor(Math.random() * recipeInfo.length)];
+        const dinner    = recipeInfo[Math.floor(Math.random() * recipeInfo.length)];
 
-            [breakfast, lunch, dinner].forEach(meal => {
-                weekCalories += meal.calories || 0;
-                weekProtein += meal.protein || 0;
-                weekFat += meal.fat || 0;
-                weekCarbs += meal.carbs || 0;
-                meal.ingredients.forEach(ing => allPlannedIngredients.push(ing));
-            });
-        }
-
-        const mealPlan = new MealPlan({
-            userId: USER_ID,
-            days: days,
-            nutritionSummary: {
-                calories: Math.round(weekCalories / 7),
-                protein: Math.round(weekProtein / 7),
-                fat: Math.round(weekFat / 7),
-                carbs: Math.round(weekCarbs / 7),
-            }
+        days.push({
+          date:      currentDate,
+          breakfast: { recipeId: breakfast.originRecipeId, name: breakfast.name, calories: breakfast.calories },
+          lunch:     { recipeId: lunch.originRecipeId,     name: lunch.name,     calories: lunch.calories },
+          dinner:    { recipeId: dinner.originRecipeId,    name: dinner.name,    calories: dinner.calories },
         });
 
-        const savedPlan = await mealPlan.save();
-        if (w === 3) firstMealPlanId = savedPlan._id.toString(); // Save the current week for the grocery list
-        console.log(`Saved plan for week starting ${weekStart.toISOString().split('T')[0]}`);
+        [breakfast, lunch, dinner].forEach(meal => {
+          weekCalories += meal.calories || 0;
+          weekProtein  += meal.protein  || 0;
+          weekFat      += meal.fat      || 0;
+          weekCarbs    += meal.carbs    || 0;
+          meal.ingredients.forEach((ing: any) => allPlannedIngredients.push(ing));
+        });
+      }
+
+      const mealPlan = new MealPlan({
+        userId: USER_ID,
+        days,
+        nutritionSummary: {
+          calories: Math.round(weekCalories / 7),
+          protein:  Math.round(weekProtein  / 7),
+          fat:      Math.round(weekFat      / 7),
+          carbs:    Math.round(weekCarbs    / 7),
+        },
+      });
+
+      const savedPlan = await mealPlan.save();
+      if (w === 3) firstMealPlanId = savedPlan._id.toString();
+      console.log(`Saved plan for week starting ${weekStart.toISOString().split('T')[0]}`);
     }
 
-    // 4. Generate GroceryList (based on all 6 weeks)
-    console.log(`Generating a huge GroceryList for user ${USER_ID}...`);
-    
-    const ingredientMap = new Map();
+    // 4. Generate GroceryList (aggregated across all 6 weeks)
+    console.log(`Generating GroceryList for user ${USER_ID}...`);
+
+    const ingredientMap = new Map<string, any>();
     allPlannedIngredients.forEach(ing => {
-        const key = `${ing.name.toLowerCase()}-${ing.unit.toLowerCase()}`;
-        if (ingredientMap.has(key)) {
-            const existing = ingredientMap.get(key);
-            existing.quantity += ing.amount;
-        } else {
-            ingredientMap.set(key, {
-                name: ing.name.toLowerCase(), // Normalize to lowercase
-                quantity: ing.amount,
-                unit: (ing.unit || 'unit').toLowerCase(), // Normalize to lowercase
-                category: normalizeAisle(ing.aisle || 'other') // Map to valid enum category
-            });
-        }
+      const key = `${ing.name.toLowerCase()}-${ing.unit.toLowerCase()}`;
+      if (ingredientMap.has(key)) {
+        ingredientMap.get(key).quantity += ing.amount;
+      } else {
+        ingredientMap.set(key, {
+          name:     ing.name.toLowerCase(),
+          quantity: ing.amount,
+          unit:     (ing.unit || 'unit').toLowerCase(),
+          category: normalizeAisle(ing.aisle || 'other'),
+        });
+      }
     });
 
     const groceryItems = Array.from(ingredientMap.values())
-        .map(item => ({
-            name: item.name,
-            quantity: Math.round(item.quantity * 100) / 100,
-            unit: item.unit,
-            category: item.category,
-            checked: false,
-            inventoryQuantity: 0
-        }))
-        .slice(0, 50);
+      .map(item => ({
+        name:              item.name,
+        quantity:          Math.round(item.quantity * 100) / 100,
+        unit:              item.unit,
+        category:          item.category,
+        checked:           false,
+        inventoryQuantity: 0,
+      }))
+      .slice(0, 50);
 
     const groceryList = new GroceryList({
-        userId: new mongoose.Types.ObjectId(USER_ID),
-        mealPlanId: firstMealPlanId,
-        items: groceryItems
+      userId:     new mongoose.Types.ObjectId(USER_ID),
+      mealPlanId: firstMealPlanId,
+      items:      groceryItems,
     });
 
     await groceryList.save();
     console.log('GroceryList saved.');
 
-    console.log('Extended Seeding complete!');
+    console.log('Seeding complete!');
     process.exit(0);
 
   } catch (error) {
