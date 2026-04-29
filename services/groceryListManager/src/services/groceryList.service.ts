@@ -3,6 +3,7 @@ import { Recipe } from "../models/recipe.model";
 import { Category, normalizeAisle } from "../types/categories";
 import { NotFoundError } from "../types/errors";
 import { GroceryItem, GroceryItemGroup } from "../types/groceryList.types";
+import { convertToMarketUnits, GeminiMarketResult } from './gemini.service';
 
 export const groupByCategory = (items: GroceryItem[]): GroceryItemGroup[] => {
   const map = new Map<Category, GroceryItem[]>();
@@ -31,6 +32,7 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
 
     if (map.has(key)) {
       map.get(key)!.quantity += item.quantity;
+      // Keep existing inventoryQuantity and market fields from first (existing) item
     } else {
       map.set(key, {
         name: normalizedName,
@@ -39,11 +41,35 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
         category: item.category,
         inventoryQuantity: item.inventoryQuantity ?? 0,
         checked: item.checked ?? false,
+        marketUnit: item.marketUnit,
+        marketQuantity: item.marketQuantity,
+        marketSize: item.marketSize,
+        marketSizeInRecipeUnits: item.marketSizeInRecipeUnits,
       });
     }
   }
 
   return Array.from(map.values());
+};
+
+const applyMarketUnits = (
+  items: GroceryItem[],
+  results: GeminiMarketResult[],
+): GroceryItem[] => {
+  const resultByName = new Map<string, GeminiMarketResult>(
+    results.map((r) => [r.name.toLowerCase().trim(), r]),
+  );
+  return items.map((item) => {
+    const result = resultByName.get(item.name);
+    if (!result || !result.marketUnit) return item;
+    return {
+      ...item,
+      marketUnit: result.marketUnit,
+      marketQuantity: result.marketQuantity ?? item.marketQuantity,
+      marketSize: result.marketSize ?? item.marketSize,
+      marketSizeInRecipeUnits: result.marketSizeInRecipeUnits ?? item.marketSizeInRecipeUnits,
+    };
+  });
 };
 
 export const importFromRecipeDB = async (
@@ -104,9 +130,21 @@ export const addProducts = async (
   newItems: GroceryItem[],
 ): Promise<GroceryItemGroup[]> => {
   let list = await GroceryList.findOne({ userId });
-
   const existing: GroceryItem[] = list ? list.items : [];
-  const merged = mergeIngredients([...existing, ...newItems]);
+  let merged = mergeIngredients([...existing, ...newItems]);
+
+  const needsConversion = merged.filter(
+    (item) =>
+      !item.marketUnit ||
+      (item.marketQuantity != null &&
+        item.marketSizeInRecipeUnits != null &&
+        item.quantity > item.marketQuantity * item.marketSizeInRecipeUnits),
+  );
+
+  if (needsConversion.length > 0) {
+    const results = await convertToMarketUnits(needsConversion);
+    merged = applyMarketUnits(merged, results);
+  }
 
   list = await GroceryList.findOneAndUpdate(
     { userId },
@@ -124,9 +162,21 @@ export const importRecipeIngredients = async (
 ): Promise<GroceryItemGroup[]> => {
   const recipeItems = await importFromRecipeDB(recipeId);
   let list = await GroceryList.findOne({ userId });
-
   const existing: GroceryItem[] = list ? list.items : [];
-  const merged = mergeIngredients([...existing, ...recipeItems]);
+  let merged = mergeIngredients([...existing, ...recipeItems]);
+
+  const needsConversion = merged.filter(
+    (item) =>
+      !item.marketUnit ||
+      (item.marketQuantity != null &&
+        item.marketSizeInRecipeUnits != null &&
+        item.quantity > item.marketQuantity * item.marketSizeInRecipeUnits),
+  );
+
+  if (needsConversion.length > 0) {
+    const results = await convertToMarketUnits(needsConversion);
+    merged = applyMarketUnits(merged, results);
+  }
 
   list = await GroceryList.findOneAndUpdate(
     { userId },
@@ -196,6 +246,25 @@ export const updateInventoryQuantity = async (
   if (!item) throw new NotFoundError(`Product "${productName}" not found`);
 
   item.inventoryQuantity = inventoryQuantity;
+  await list.save();
+  return groupByCategory(list.items);
+};
+
+export const finishShopping = async (userId: string): Promise<GroceryItemGroup[]> => {
+  const list = await GroceryList.findOne({ userId });
+  if (!list) throw new NotFoundError('Grocery list not found');
+
+  for (const item of list.items) {
+    if (!item.checked) continue;
+
+    if (item.marketQuantity != null && item.marketSizeInRecipeUnits != null) {
+      item.inventoryQuantity = item.marketQuantity * item.marketSizeInRecipeUnits;
+    } else {
+      item.inventoryQuantity = item.quantity;
+    }
+    item.checked = false;
+  }
+
   await list.save();
   return groupByCategory(list.items);
 };

@@ -1,4 +1,7 @@
-import { mergeIngredients, groupByCategory, updateInventoryQuantity } from '../../services/groceryList.service';
+import { mergeIngredients, groupByCategory, updateInventoryQuantity, addProducts, finishShopping } from '../../services/groceryList.service';
+import { convertToMarketUnits } from '../../services/gemini.service';
+jest.mock('../../services/gemini.service');
+const mockConvertToMarketUnits = convertToMarketUnits as jest.MockedFunction<typeof convertToMarketUnits>;
 import { GroceryItem, GroceryItemGroup } from '../../types/groceryList.types';
 import { NotFoundError } from '../../types/errors';
 import { GroceryList } from '../../models/groceryList.model';
@@ -195,6 +198,229 @@ describe('GroceryList Service - Unit Tests', () => {
     });
   });
 
+});
+
+describe('GroceryItem market fields', () => {
+  it('mergeIngredients preserves market fields from existing item', () => {
+    const items: GroceryItem[] = [
+      {
+        name: 'chicken',
+        quantity: 300,
+        unit: 'g',
+        category: 'Poultry',
+        inventoryQuantity: 0,
+        checked: false,
+        marketUnit: 'pack',
+        marketQuantity: 1,
+        marketSize: '500g',
+        marketSizeInRecipeUnits: 500,
+      },
+      {
+        name: 'chicken',
+        quantity: 200,
+        unit: 'g',
+        category: 'Poultry',
+        inventoryQuantity: 0,
+        checked: false,
+      },
+    ];
+    const merged = mergeIngredients(items);
+    expect(merged).toHaveLength(1);
+    expect(merged[0].quantity).toBe(500);
+    expect(merged[0].marketUnit).toBe('pack');
+    expect(merged[0].marketSize).toBe('500g');
+  });
+});
+
+describe('mergeIngredients market fields', () => {
+  it('preserves market fields from first (existing) item when merging', () => {
+    const items: GroceryItem[] = [
+      {
+        name: 'chicken',
+        quantity: 300,
+        unit: 'g',
+        category: 'Poultry',
+        inventoryQuantity: 500,
+        checked: false,
+        marketUnit: 'pack',
+        marketQuantity: 1,
+        marketSize: '500g',
+        marketSizeInRecipeUnits: 500,
+      },
+      {
+        name: 'chicken',
+        quantity: 200,
+        unit: 'g',
+        category: 'Poultry',
+        inventoryQuantity: 0,
+        checked: false,
+      },
+    ];
+    const merged = mergeIngredients(items);
+    expect(merged).toHaveLength(1);
+    expect(merged[0].quantity).toBe(500);
+    expect(merged[0].inventoryQuantity).toBe(500);
+    expect(merged[0].marketUnit).toBe('pack');
+    expect(merged[0].marketSize).toBe('500g');
+  });
+
+  it('keeps undefined market fields when new item has none', () => {
+    const items: GroceryItem[] = [
+      { name: 'tomato', quantity: 2, unit: 'piece', category: 'Produce', inventoryQuantity: 0, checked: false },
+      { name: 'tomato', quantity: 1, unit: 'piece', category: 'Produce', inventoryQuantity: 0, checked: false },
+    ];
+    const merged = mergeIngredients(items);
+    expect(merged[0].marketUnit).toBeUndefined();
+  });
+});
+
+describe('addProducts with Gemini', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockConvertToMarketUnits.mockResolvedValue([
+      {
+        name: 'onion',
+        marketUnit: 'bag',
+        marketQuantity: 1,
+        marketSize: '1kg',
+        marketSizeInRecipeUnits: 1000,
+      },
+    ]);
+  });
+
+  it('calls Gemini for items without market fields', async () => {
+    const mockList = {
+      items: [],
+      save: jest.fn(),
+    };
+    mockedGroceryList.findOne = jest.fn().mockResolvedValue(mockList);
+    mockedGroceryList.findOneAndUpdate = jest.fn().mockResolvedValue({
+      items: [
+        {
+          name: 'onion',
+          quantity: 200,
+          unit: 'g',
+          category: 'Produce',
+          inventoryQuantity: 0,
+          checked: false,
+          marketUnit: 'bag',
+          marketQuantity: 1,
+          marketSize: '1kg',
+          marketSizeInRecipeUnits: 1000,
+        },
+      ],
+    });
+
+    await addProducts('user1', [
+      { name: 'onion', quantity: 200, unit: 'g', category: 'Produce', inventoryQuantity: 0, checked: false },
+    ]);
+
+    expect(mockConvertToMarketUnits).toHaveBeenCalledTimes(1);
+    expect(mockConvertToMarketUnits).toHaveBeenCalledWith([
+      expect.objectContaining({ name: 'onion', quantity: 200, unit: 'g' }),
+    ]);
+  });
+
+  it('does not call Gemini when all items already have valid market fields covering their quantity', async () => {
+    const mockList = {
+      items: [
+        {
+          name: 'onion',
+          quantity: 100,
+          unit: 'g',
+          category: 'Produce',
+          inventoryQuantity: 0,
+          checked: false,
+          marketUnit: 'bag',
+          marketQuantity: 1,
+          marketSize: '1kg',
+          marketSizeInRecipeUnits: 1000,
+        },
+      ],
+      save: jest.fn(),
+    };
+    mockedGroceryList.findOne = jest.fn().mockResolvedValue(mockList);
+    mockedGroceryList.findOneAndUpdate = jest.fn().mockResolvedValue({ items: mockList.items });
+
+    await addProducts('user1', [
+      { name: 'onion', quantity: 200, unit: 'g', category: 'Produce', inventoryQuantity: 0, checked: false },
+    ]);
+
+    // 100 + 200 = 300g, still < 1000g (1 bag covers it) → no Gemini call
+    expect(mockConvertToMarketUnits).not.toHaveBeenCalled();
+  });
+});
+
+describe('finishShopping', () => {
+  it('sets inventoryQuantity from market fields for checked items and unchecks them', async () => {
+    const mockList = {
+      items: [
+        {
+          name: 'chicken',
+          quantity: 300,
+          unit: 'g',
+          category: 'Poultry',
+          inventoryQuantity: 0,
+          checked: true,
+          marketUnit: 'pack',
+          marketQuantity: 1,
+          marketSize: '500g',
+          marketSizeInRecipeUnits: 500,
+        },
+        {
+          name: 'onion',
+          quantity: 150,
+          unit: 'g',
+          category: 'Produce',
+          inventoryQuantity: 0,
+          checked: false,
+          marketUnit: 'bag',
+          marketQuantity: 1,
+          marketSize: '1kg',
+          marketSizeInRecipeUnits: 1000,
+        },
+      ],
+      save: jest.fn().mockResolvedValue(undefined),
+    };
+    mockedGroceryList.findOne = jest.fn().mockResolvedValue(mockList);
+
+    await finishShopping('user1');
+
+    const chicken = mockList.items[0];
+    const onion = mockList.items[1];
+
+    expect(chicken.inventoryQuantity).toBe(500); // 1 pack × 500g
+    expect(chicken.checked).toBe(false);
+    expect(onion.inventoryQuantity).toBe(0); // not checked, untouched
+    expect(mockList.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('falls back to recipe quantity when item has no market fields', async () => {
+    const mockList = {
+      items: [
+        {
+          name: 'salt',
+          quantity: 5,
+          unit: 'g',
+          category: 'Spices and Seasonings',
+          inventoryQuantity: 0,
+          checked: true,
+        },
+      ],
+      save: jest.fn().mockResolvedValue(undefined),
+    };
+    mockedGroceryList.findOne = jest.fn().mockResolvedValue(mockList);
+
+    await finishShopping('user1');
+
+    expect(mockList.items[0].inventoryQuantity).toBe(5); // fallback: quantity needed
+    expect(mockList.items[0].checked).toBe(false);
+  });
+
+  it('throws NotFoundError when grocery list does not exist', async () => {
+    mockedGroceryList.findOne = jest.fn().mockResolvedValue(null);
+    await expect(finishShopping('nonexistent')).rejects.toThrow(NotFoundError);
+  });
 });
 
 describe('updateInventoryQuantity', () => {
