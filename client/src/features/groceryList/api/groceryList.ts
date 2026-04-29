@@ -54,4 +54,7 @@ export const groceryListApi = {
     api
       .patch<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}/inventory`, { inventoryQuantity })
       .then((r) => r.data),
+
+  finishShopping: (userId: string) =>
+    api.patch<GroceryItemGroup[]>(`/users/${userId}/finish-shopping`).then((r) => r.data),
 };

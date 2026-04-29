@@ -22,7 +22,7 @@ import { useMemo, useState } from 'react';
 import { ProgressCard } from '../components/common/ProgressCard';
 
 export const GroceryList = () => {
-  const { groups, loading, error, removeItem, addItem, toggleChecked, removeBoughtItems } = useGroceryList();
+  const { groups, loading, error, removeItem, addItem, toggleChecked, finishShopping } = useGroceryList();
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -133,7 +133,7 @@ export const GroceryList = () => {
         <Fab
           variant="extended"
           color="primary"
-          onClick={removeBoughtItems}
+          onClick={finishShopping}
           sx={{
             position: 'fixed',
             bottom: '2rem',

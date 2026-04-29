@@ -17,6 +17,7 @@ interface GroceryListActions {
   addItem: (item: { name: string; quantity: number; unit: string; aisle?: string }) => Promise<void>;
   removeItem: (productName: string) => Promise<void>;
   removeBoughtItems: () => Promise<void>;
+  finishShopping: () => Promise<void>;
   clearList: () => Promise<void>;
   toggleChecked: (productName: string) => void;
   updateInventoryQuantity: (productName: string, quantity: number) => void;
@@ -98,6 +99,16 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [groups, userId]);
 
+  const finishShopping = useCallback(async () => {
+    setError(null);
+    try {
+      const data = await groceryListApi.finishShopping(userId);
+      setGroups(data);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  }, [userId]);
+
   const toggleChecked = useCallback((productName: string) => {
     setGroups((prev) =>
       prev.map((group) => ({
@@ -140,7 +151,7 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <GroceryListContext.Provider
-      value={{ groups, loading, error, userId, refresh, addItem, removeItem, removeBoughtItems, clearList, toggleChecked, updateInventoryQuantity }}
+      value={{ groups, loading, error, userId, refresh, addItem, removeItem, removeBoughtItems, finishShopping, clearList, toggleChecked, updateInventoryQuantity }}
     >
       {children}
     </GroceryListContext.Provider>
