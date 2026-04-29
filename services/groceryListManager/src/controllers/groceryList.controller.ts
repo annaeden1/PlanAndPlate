@@ -163,3 +163,17 @@ export const clearGroceryList = async (req: Request, res: Response): Promise<voi
     res.status(500).json({ error: 'Failed to clear grocery list', details: String(err) });
   }
 };
+
+export const finishShopping = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const groups = await GroceryService.finishShopping(userId);
+    res.status(200).json(groups);
+  } catch (err) {
+    if (err instanceof NotFoundError) {
+      res.status(404).json({ error: err.message });
+      return;
+    }
+    res.status(500).json({ error: 'Failed to finish shopping', details: String(err) });
+  }
+};

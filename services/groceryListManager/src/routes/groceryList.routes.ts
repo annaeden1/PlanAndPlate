@@ -231,4 +231,6 @@ router.delete('/users/:userId/products/:productName', GroceryController.removePr
  */
 router.delete('/users/:userId/products', GroceryController.clearGroceryList);
 
+router.patch('/users/:userId/finish-shopping', GroceryController.finishShopping);
+
 export default router;
