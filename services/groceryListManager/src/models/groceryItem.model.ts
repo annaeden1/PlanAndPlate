@@ -10,6 +10,10 @@ export const GroceryItemSchema = new Schema<GroceryItem>(
     inventoryQuantity: { type: Number, required: true, min: 0, default: 0 },
     category: { type: String, required: true, enum: CATEGORIES, default: 'Other' },
     checked: { type: Boolean, required: true, default: false },
+    marketUnit: { type: String, trim: true, lowercase: true },
+    marketQuantity: { type: Number, min: 0 },
+    marketSize: { type: String, trim: true },
+    marketSizeInRecipeUnits: { type: Number, min: 0 },
   },
   { _id: false },
 );

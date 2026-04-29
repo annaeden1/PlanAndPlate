@@ -7,6 +7,10 @@ export interface GroceryItem {
   inventoryQuantity: number;
   category: Category;
   checked: boolean;
+  marketUnit?: string;
+  marketQuantity?: number;
+  marketSize?: string;
+  marketSizeInRecipeUnits?: number;
 }
 
 export interface GroceryItemGroup {
