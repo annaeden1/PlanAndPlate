@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const ISRAEL_MARKET_PROMPT = `You are a shopping assistant for Israeli supermarkets (Rami Levy, Shufersal, Victory).
 Convert recipe ingredient quantities to real purchasable units sold in Israel.
@@ -39,13 +39,22 @@ Packaging rules for Israel:
 - Honey → jars (250g, 500g)
 - Tahini (sesame paste) → tubs (300g, 500g)
 - Hummus → tubs (250g, 400g)
+- Vegetable broth, chicken broth, beef broth, stock (any liquid broth) → cartons (1L). 1 carton = 1000ml.
+- Broth powder, bouillon cubes → packs (25g, 50g). One pack covers any recipe quantity.
+- Dried lentils (red, green, brown) → bags (500g). 1 bag ≈ 500g.
+- Dried beans (black beans, kidney beans, white beans, navy beans) → bags (500g, 1kg).
+- Dried chickpeas → bags (500g, 1kg).
+- Dried peas → bags (500g).
 
 Instructions:
 1. For each ingredient, determine the minimum number of packages to cover the total quantity needed.
 2. For spices and salt: always return marketQuantity: 1 regardless of recipe quantity.
 3. For eggs: count individual eggs (slices/pieces/units all count as eggs). Buy packs of 12.
 4. marketSizeInRecipeUnits must be in the SAME unit as the recipe input unit (e.g. if unit is "g", return grams; if unit is "ml", return ml; if unit is "piece", return count).
-5. If the ingredient is unrecognizable, return null for all market fields.
+   - For "cup" unit: 1 cup ≈ 240ml for liquids; for dry goods 1 cup ≈ 200g (flour), 190g (rice/lentils), 240g (sugar).
+   - For "medium" unit on produce: 1 medium onion ≈ 150g, 1 medium carrot ≈ 100g, 1 medium potato ≈ 170g, 1 medium tomato ≈ 120g, 1 medium zucchini ≈ 200g, 1 medium pepper ≈ 120g.
+   - For "large" unit on produce: multiply medium weight by 1.4. For "small": multiply by 0.7.
+5. If the ingredient is truly unrecognizable, return null for all market fields. Do NOT return null for common food items — always make a best-effort match.
 
 Return ONLY a valid JSON array (no markdown, no extra text) with exactly one object per ingredient in the same input order. Each object:
 {
@@ -76,10 +85,14 @@ export const convertToMarketUnits = async (
   if (ingredients.length === 0) return [];
 
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
   const inputJson = JSON.stringify(
-    ingredients.map((i) => ({ name: i.name, quantity: i.quantity, unit: i.unit })),
+    ingredients.map((i) => ({
+      name: i.name,
+      quantity: i.quantity,
+      unit: i.unit,
+    })),
   );
 
   const prompt = `${ISRAEL_MARKET_PROMPT}
@@ -93,13 +106,16 @@ Return a JSON array with exactly ${ingredients.length} objects.`;
     const result = await model.generateContent(prompt);
     const text = result.response.text();
     const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) throw new Error('No JSON array in Gemini response');
+    if (!jsonMatch) throw new Error("No JSON array in Gemini response");
     const parsed = JSON.parse(jsonMatch[0]) as GeminiMarketResult[];
     if (!Array.isArray(parsed) || parsed.length !== ingredients.length) {
-      throw new Error('Response length mismatch');
+      throw new Error(
+        `Response length mismatch: expected ${ingredients.length}, got ${parsed.length}`,
+      );
     }
     return parsed;
-  } catch {
+  } catch (err) {
+    console.error("[Gemini] convertToMarketUnits failed:", err);
     return ingredients.map((i) => ({
       name: i.name,
       marketUnit: null,

@@ -72,6 +72,19 @@ const applyMarketUnits = (
   });
 };
 
+const needsMarketConversion = (item: GroceryItem): boolean =>
+  !item.marketUnit ||
+  (item.marketQuantity != null &&
+    item.marketSizeInRecipeUnits != null &&
+    item.quantity > item.marketQuantity * item.marketSizeInRecipeUnits);
+
+const withMarketUnits = async (items: GroceryItem[]): Promise<GroceryItem[]> => {
+  const toConvert = items.filter(needsMarketConversion);
+  if (toConvert.length === 0) return items;
+  const results = await convertToMarketUnits(toConvert);
+  return applyMarketUnits(items, results);
+};
+
 export const importFromRecipeDB = async (
   recipeId: string,
 ): Promise<GroceryItem[]> => {
@@ -96,9 +109,18 @@ export const importFromRecipeDB = async (
 export const getGroceryList = async (
   userId: string,
 ): Promise<GroceryItemGroup[]> => {
-  const list = await GroceryList.findOne({ userId });
+  const list = await GroceryList.findOne({ userId }).lean();
   if (!list) return [];
-  return groupByCategory(list.items);
+
+  const items = list.items as GroceryItem[];
+  if (!items.some(needsMarketConversion)) return groupByCategory(items);
+
+  const updated = await withMarketUnits(items);
+  const anyConverted = updated.some((u, i) => u.marketUnit !== items[i]?.marketUnit);
+  if (anyConverted) {
+    await GroceryList.findOneAndUpdate({ userId }, { $set: { items: updated } });
+  }
+  return groupByCategory(updated);
 };
 
 export const searchProducts = async (
@@ -132,19 +154,7 @@ export const addProducts = async (
   let list = await GroceryList.findOne({ userId });
   const existing: GroceryItem[] = list ? list.items : [];
   let merged = mergeIngredients([...existing, ...newItems]);
-
-  const needsConversion = merged.filter(
-    (item) =>
-      !item.marketUnit ||
-      (item.marketQuantity != null &&
-        item.marketSizeInRecipeUnits != null &&
-        item.quantity > item.marketQuantity * item.marketSizeInRecipeUnits),
-  );
-
-  if (needsConversion.length > 0) {
-    const results = await convertToMarketUnits(needsConversion);
-    merged = applyMarketUnits(merged, results);
-  }
+  merged = await withMarketUnits(merged);
 
   list = await GroceryList.findOneAndUpdate(
     { userId },
@@ -164,19 +174,7 @@ export const importRecipeIngredients = async (
   let list = await GroceryList.findOne({ userId });
   const existing: GroceryItem[] = list ? list.items : [];
   let merged = mergeIngredients([...existing, ...recipeItems]);
-
-  const needsConversion = merged.filter(
-    (item) =>
-      !item.marketUnit ||
-      (item.marketQuantity != null &&
-        item.marketSizeInRecipeUnits != null &&
-        item.quantity > item.marketQuantity * item.marketSizeInRecipeUnits),
-  );
-
-  if (needsConversion.length > 0) {
-    const results = await convertToMarketUnits(needsConversion);
-    merged = applyMarketUnits(merged, results);
-  }
+  merged = await withMarketUnits(merged);
 
   list = await GroceryList.findOneAndUpdate(
     { userId },
@@ -254,17 +252,17 @@ export const finishShopping = async (userId: string): Promise<GroceryItemGroup[]
   const list = await GroceryList.findOne({ userId });
   if (!list) throw new NotFoundError('Grocery list not found');
 
-  for (const item of list.items) {
-    if (!item.checked) continue;
+  const boughtNames = list.items
+    .filter((item) => item.checked)
+    .map((item) => item.name);
 
-    if (item.marketQuantity != null && item.marketSizeInRecipeUnits != null) {
-      item.inventoryQuantity = item.marketQuantity * item.marketSizeInRecipeUnits;
-    } else {
-      item.inventoryQuantity = item.quantity;
-    }
-    item.checked = false;
-  }
+  if (boughtNames.length === 0) return groupByCategory(list.items);
 
-  await list.save();
-  return groupByCategory(list.items);
+  const updatedList = await GroceryList.findOneAndUpdate(
+    { userId },
+    { $pull: { items: { name: { $in: boughtNames } } } },
+    { new: true },
+  );
+
+  return updatedList ? groupByCategory(updatedList.items) : [];
 };

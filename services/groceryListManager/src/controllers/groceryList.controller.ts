@@ -72,7 +72,9 @@ export const addProduct = async (req: Request, res: Response): Promise<void> => 
     const groups = await GroceryService.addProducts(userId, [newItem]);
     res.status(201).json(groups);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to add product', details: String(err) });
+    console.error('[addProduct] failed:', err);
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: 'Failed to add product', details: message });
   }
 };
 
@@ -84,7 +86,9 @@ export const importRecipeIngredients = async (req: Request, res: Response): Prom
     const groups = await GroceryService.importRecipeIngredients(userId, recipeId, mealPlanId);
     res.status(201).json(groups);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to import recipe ingredients', details: String(err) });
+    console.error('[importRecipeIngredients] failed:', err);
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: 'Failed to import recipe ingredients', details: message });
   }
 };
 
