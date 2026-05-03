@@ -1,4 +1,5 @@
 import type { GroceryItem } from '@/features/groceryList/types/grocery';
+import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, Checkbox, Chip, IconButton, Paper, Stack, Typography } from '@mui/material';
 
@@ -64,7 +65,7 @@ export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardPro
             <Chip
               label="In Stock"
               size="small"
-              icon={<span style={{ fontSize: '0.75rem', marginLeft: '6px' }}>✓</span>}
+              icon={<CheckIcon style={{ fontSize: '0.75rem' }} />}
               sx={{
                 backgroundColor: 'rgba(62, 180, 137, 0.12)',
                 color: 'success.main',
@@ -116,6 +117,7 @@ export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardPro
 
       <IconButton
         size="small"
+        aria-label={`Remove ${item.name}`}
         onClick={() => onDelete(item.name)}
         sx={{
           alignSelf: 'flex-start',

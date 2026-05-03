@@ -27,10 +27,16 @@ export const GroceryList = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const filteredGroups = useMemo(() => {
-    if (!searchQuery) return groups;
     const q = searchQuery.toLowerCase();
     return groups
-      .map((g: GroceryItemGroup) => ({ ...g, items: g.items.filter((item: GroceryItem) => item.name.toLowerCase().includes(q)) }))
+      .map((g: GroceryItemGroup) => ({
+        ...g,
+        items: g.items.filter((item: GroceryItem) => {
+          const needsToBuy = item.inventoryQuantity < item.quantity;
+          const matchesSearch = !q || item.name.toLowerCase().includes(q);
+          return needsToBuy && matchesSearch;
+        }),
+      }))
       .filter((g: GroceryItemGroup) => g.items.length > 0);
   }, [groups, searchQuery]);
 
