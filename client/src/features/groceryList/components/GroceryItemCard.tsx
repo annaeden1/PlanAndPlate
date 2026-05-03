@@ -29,11 +29,11 @@ export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardPro
     <Paper
       variant="outlined"
       sx={{
-        p: '1rem',
+        p: 2,
         borderRadius: '1rem',
         display: 'flex',
         alignItems: 'center',
-        gap: '0.75rem',
+        gap: 1.5,
         transition: 'border-color 0.2s',
         borderColor: isInStock ? 'success.main' : 'divider',
         backgroundColor: 'background.paper',
@@ -48,8 +48,8 @@ export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardPro
         }}
       />
 
-      <Stack flexGrow={1} spacing="0.5rem">
-        <Stack direction="row" alignItems="center" spacing="0.5rem" flexWrap="wrap">
+      <Stack flexGrow={1} spacing={1}>
+        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
           <Typography
             variant="body1"
             fontWeight={600}
@@ -78,12 +78,12 @@ export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardPro
           )}
         </Stack>
 
-        <Stack direction="row" alignItems="flex-end" spacing="1.5rem">
+        <Stack direction="row" alignItems="flex-end" spacing={3}>
           <Box>
             <Typography variant="caption" color="text.secondary" fontWeight={500}>
               Need
             </Typography>
-            <Typography sx={{ pt: '0.1rem' }} variant="body2" fontWeight={600}>
+            <Typography variant="body2" fontWeight={600}>
               {formatQty(item.quantity)} {item.unit}
             </Typography>
           </Box>
@@ -92,7 +92,7 @@ export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardPro
             <Typography variant="caption" color="text.secondary" fontWeight={500}>
               Have
             </Typography>
-            <Typography sx={{ pt: '0.1rem' }} variant="body2" fontWeight={600}>
+            <Typography variant="body2" fontWeight={600}>
               {formatQty(item.inventoryQuantity)} {item.unit}
             </Typography>
           </Box>

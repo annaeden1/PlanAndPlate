@@ -57,13 +57,13 @@ export const GroceryList = () => {
   }, [groups]);
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem', pb: hasCheckedItems ? '6rem' : '1.5rem' }}>
-      <Box sx={{ mb: '2rem' }}>
+    <Box sx={{ maxWidth: 600, mx: 'auto', p: 3, pb: hasCheckedItems ? 12 : 3 }}>
+      <Box sx={{ mb: 4 }}>
         <Typography variant="h4" fontWeight="bold">Grocery List</Typography>
         <Typography variant="subtitle1" color="text.secondary">Smart shopping made easy</Typography>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: '1.5rem' }}>{error}</Alert>}
+      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       <ProgressCard
         title="Shopping Progress"
@@ -72,7 +72,7 @@ export const GroceryList = () => {
         progressValue={percentage}
       />
 
-      <Box sx={{ mb: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
           fullWidth
           size="small"
@@ -94,7 +94,7 @@ export const GroceryList = () => {
           startIcon={<AddIcon />}
           onClick={() => setDialogOpen(true)}
           sx={{
-            borderStyle: 'dashed', borderWidth: 2, borderRadius: '1rem', py: '0.75rem',
+            borderStyle: 'dashed', borderWidth: 2, borderRadius: '1rem', py: 1.5,
             color: 'text.primary', borderColor: 'divider',
             '&:hover': { borderStyle: 'dashed', borderWidth: 2, borderColor: 'primary.main', bgcolor: 'transparent' },
           }}
@@ -104,21 +104,21 @@ export const GroceryList = () => {
       </Box>
 
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: '3rem' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
           <CircularProgress color="primary" />
         </Box>
       ) : filteredGroups.length === 0 ? (
-        <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ py: '2rem' }}>
+        <Typography variant="body2" color="text.secondary" textAlign="center" sx={{ py: 4 }}>
           No items found.
         </Typography>
       ) : (
-        <Stack spacing="1.5rem">
+        <Stack spacing={3}>
           {filteredGroups.map((group) => (
             <Box key={group.category}>
-              <Typography variant="h5" fontWeight="bold" sx={{ mb: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Typography variant="h5" fontWeight="bold" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                 {CATEGORY_EMOJIS[group.category as Category] || '🛒'} {group.category}
               </Typography>
-              <Stack spacing="0.75rem">
+              <Stack spacing={1.5}>
                 {group.items.map((item: GroceryItem) => (
                   <GroceryItemCard key={item.name} item={item} onDelete={removeItem} onToggle={toggleChecked} />
                 ))}
@@ -134,7 +134,6 @@ export const GroceryList = () => {
         onAdd={addItem}
       />
 
-      {/* Floating Finish Shopping Button */}
       {hasCheckedItems && (
         <Fab
           variant="extended"
@@ -147,7 +146,7 @@ export const GroceryList = () => {
             transform: 'translateX(-50%)',
             boxShadow: 4,
             fontWeight: 'bold',
-            px: '2rem',
+            px: 4,
           }}
         >
           <CheckIcon sx={{ mr: 1 }} />
