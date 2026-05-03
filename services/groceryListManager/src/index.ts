@@ -4,6 +4,7 @@ import express, { Express } from 'express';
 import mongoose from 'mongoose';
 import swaggerUi from 'swagger-ui-express';
 import groceryListRoutes from './routes/groceryList.routes';
+import smartShoppingListRoutes from './routes/smartShoppingList.routes';
 import swaggerSpec from './config/swagger';
 
 dotenv.config();
@@ -15,6 +16,7 @@ app.use(bodyParser.json());
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/grocerylist', groceryListRoutes);
+app.use('/grocerylist', smartShoppingListRoutes);
 
 export const initApp = (): Promise<Express> => {
   const promise = new Promise<Express>((resolve, reject) => {
