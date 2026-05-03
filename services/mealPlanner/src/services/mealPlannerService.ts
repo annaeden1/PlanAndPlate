@@ -114,6 +114,12 @@ class MealPlannerService {
   }
 
   async getRecipeDetails(recipeId: string): Promise<IRecipe & any> {
+    // Caller may pass either a Mongo _id (24-char hex), an originRecipeId, or a Spoonacular numeric id.
+    if (/^[a-f0-9]{24}$/i.test(recipeId)) {
+      const byId = await Recipe.findById(recipeId);
+      if (byId) return byId;
+    }
+
     const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
     if (existingRecipe) {
       return existingRecipe;

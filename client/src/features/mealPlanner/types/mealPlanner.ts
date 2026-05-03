@@ -1,5 +1,5 @@
 export interface MealPlanItem {
-  id: number;
+  id: string;
   name: string;
   type: string;
   calories: number;

@@ -74,21 +74,21 @@ export function MealPlanner({ }: MealPlannerProps) {
     if (dayRecord) {
       selectedMeals.push(
         {
-          id: Number(dayRecord.breakfast.recipeId),
+          id: dayRecord.breakfast.recipeId,
           name: dayRecord.breakfast.name,
           type: "Breakfast",
           calories: dayRecord.breakfast.calories,
           image: mealImages[dayRecord.breakfast.recipeId] || "https://via.placeholder.com/400x300?text=Breakfast",
         },
         {
-          id: Number(dayRecord.lunch.recipeId),
+          id: dayRecord.lunch.recipeId,
           name: dayRecord.lunch.name,
           type: "Lunch",
           calories: dayRecord.lunch.calories,
           image: mealImages[dayRecord.lunch.recipeId] || "https://via.placeholder.com/400x300?text=Lunch",
         },
         {
-          id: Number(dayRecord.dinner.recipeId),
+          id: dayRecord.dinner.recipeId,
           name: dayRecord.dinner.name,
           type: "Dinner",
           calories: dayRecord.dinner.calories,
