@@ -2,6 +2,13 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import path from 'path';
 
+// Each service has its own nested node_modules/mongoose; models are bound to that
+// instance, so we must connect *that* instance — not the root one — to avoid the
+// "Operation buffering timed out" error on .deleteMany() / .save().
+type MongooseLike = { connect: (uri: string) => Promise<unknown> };
+const mongooseMealPlanner: MongooseLike = require('../services/mealPlanner/node_modules/mongoose');
+const mongooseGrocery: MongooseLike = require('../services/groceryListManager/node_modules/mongoose');
+
 // Import existing schemas instead of defining them locally
 import { Recipe } from '../services/mealPlanner/src/models/recipeModel';
 import { MealPlan } from '../services/mealPlanner/src/models/mealPlanModel';
@@ -326,8 +333,12 @@ const recipesData = [
 
 async function seedData() {
   try {
-    console.log('Connecting to MongoDB...');
-    await mongoose.connect(MONGODB_URI);
+    console.log('Connecting to MongoDB (3 mongoose instances)...');
+    await Promise.all([
+      mongoose.connect(MONGODB_URI),
+      mongooseMealPlanner.connect(MONGODB_URI),
+      mongooseGrocery.connect(MONGODB_URI),
+    ]);
     console.log('Connected.');
 
     // 1. Seed Recipes
@@ -349,7 +360,7 @@ async function seedData() {
     // 2. Clear existing MealPlan and GroceryList for this user
     console.log(`Clearing existing MealPlan for user ${USER_ID}...`);
     await MealPlan.deleteMany({ userId: USER_ID });
-    await GroceryList.deleteMany({ userId: new mongoose.Types.ObjectId(USER_ID) });
+    await GroceryList.deleteMany({ userId: USER_ID });
 
     // 3. Generate 6 weeks of data (3 before, 3 after)
     console.log('Generating 6 separate weekly MealPlans...');
@@ -444,7 +455,7 @@ async function seedData() {
         .slice(0, 50);
 
     const groceryList = new GroceryList({
-        userId: new mongoose.Types.ObjectId(USER_ID),
+        userId: USER_ID,
         mealPlanId: firstMealPlanId,
         items: groceryItems
     });
