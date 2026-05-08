@@ -72,7 +72,7 @@ export function MealPlanner({ }: MealPlannerProps) {
       (day) => formatDayKey(day.date) === selectedDay,
     );
     if (dayRecord) {
-      selectedMeals.push(
+      const candidates = [
         {
           id: Number(dayRecord.breakfast.recipeId),
           name: dayRecord.breakfast.name,
@@ -94,7 +94,8 @@ export function MealPlanner({ }: MealPlannerProps) {
           calories: dayRecord.dinner.calories,
           image: spoonacularImageUrl(dayRecord.dinner.recipeId),
         },
-      );
+      ];
+      selectedMeals.push(...candidates.filter((m) => m.id && m.name));
     }
   }
 
@@ -197,7 +198,7 @@ export function MealPlanner({ }: MealPlannerProps) {
                   key={`${selectedDay}-${meal.type}`}
                   meal={meal}
                   onViewRecipe={(meal) =>
-                    navigate("/recipe", { state: { recipe: meal } })
+                    navigate(`/recipe/${meal.id}`)
                   }
                   onAddToList={handleAddToList}
                 />

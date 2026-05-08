@@ -1,5 +1,5 @@
 import { Box, Button, Chip, Typography, Snackbar, Alert } from "@mui/material";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { mealPlannerApi } from "@/features/mealPlanner/api/mealPlanner";
 import { groceryListApi } from "@/features/groceryList/api/groceryList";
@@ -14,9 +14,8 @@ import { RecipeNutritionStats } from "@/features/mealPlanner/components/RecipeNu
 interface RecipeDetailProps {}
 
 export function RecipeDetail({}: RecipeDetailProps) {
-  const location = useLocation();
+  const { recipeId } = useParams<{ recipeId: string }>();
   const navigate = useNavigate();
-  const meal = location.state?.recipe;
   const [recipe, setRecipe] = useState<ApiRecipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +30,8 @@ export function RecipeDetail({}: RecipeDetailProps) {
 
     try {
       const userId = getUserId() ?? "";
-      const recipeId = recipe._id || recipe.originRecipeId || meal?.id?.toString() || "";
-      await groceryListApi.importRecipe(userId, recipeId, "");
+      const id = recipe._id || recipe.originRecipeId || recipeId || "";
+      await groceryListApi.importRecipe(userId, id, "");
       setSnackbar({ open: true, message: 'Ingredients added to grocery list successfully!', severity: 'success' });
     } catch (err) {
       console.error('Failed to import ingredients from recipe:', err);
@@ -43,18 +42,15 @@ export function RecipeDetail({}: RecipeDetailProps) {
   const handleToggleLike = async () => {
     if (!recipe) return;
     const token = localStorage.getItem('access-token');
-    const recipeId = recipe.originRecipeId || meal?.id?.toString() || "";
-    
-    // Optimistic UI update
+    const id = recipe.originRecipeId || recipeId || "";
+
     setRecipe(prev => prev ? { ...prev, isLiked: !prev.isLiked } : prev);
-    
+
     try {
-      const result = await mealPlannerApi.toggleRecipeLike(recipeId, token);
-      // Sync with backend confirmed state
+      const result = await mealPlannerApi.toggleRecipeLike(id, token);
       setRecipe(prev => prev ? { ...prev, isLiked: result.isLiked } : prev);
     } catch (err) {
       console.error('Failed to toggle like:', err);
-      // Revert optimistic update
       setRecipe(prev => prev ? { ...prev, isLiked: !prev.isLiked } : prev);
       setSnackbar({ open: true, message: 'Failed to save like status.', severity: 'error' });
     }
@@ -64,12 +60,12 @@ export function RecipeDetail({}: RecipeDetailProps) {
     const fetchRecipe = async () => {
       try {
         const token = localStorage.getItem('access-token');
-        if (!meal?.id) {
+        if (!recipeId) {
           setError("No recipe ID provided");
           setLoading(false);
           return;
         }
-        const data = await mealPlannerApi.getRecipeDetails(meal.id.toString(), token);
+        const data = await mealPlannerApi.getRecipeDetails(recipeId, token);
         setRecipe(data);
       } catch (err) {
         console.error("Error fetching recipe:", err);
@@ -80,7 +76,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
     };
 
     fetchRecipe();
-  }, [meal?.id]);
+  }, [recipeId]);
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>

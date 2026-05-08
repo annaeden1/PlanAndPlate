@@ -177,12 +177,15 @@ class MealPlannerService {
   async getWeeklyPlan(userId: string, date: string): Promise<IMealPlan | null> {
     const refDate = new Date(date);
     const weekStart = new Date(refDate);
-    weekStart.setDate(refDate.getDate() - refDate.getDay());
-    const weekStartStr = weekStart.toISOString().split("T")[0];
+    weekStart.setUTCDate(refDate.getUTCDate() - refDate.getUTCDay());
+    weekStart.setUTCHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setUTCDate(weekStart.getUTCDate() + 1);
 
     const weeklyPlan = await MealPlan.findOne({
       userId,
-      "days.date": weekStartStr,
+      "days.date": { $gte: weekStart, $lt: weekEnd },
     });
     return weeklyPlan;
   }
