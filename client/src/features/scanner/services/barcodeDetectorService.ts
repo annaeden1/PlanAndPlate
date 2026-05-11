@@ -17,7 +17,6 @@ export const extractBarcodeFromImage = async (file: File): Promise<string> => {
 
     img.onload = async () => {
       try {
-        // Use decodeFromImageElement which is designed for this use case
         const result = await codeReader.decodeFromImageElement(img);
         if (result && result.getText()) {
           resolve(result.getText());

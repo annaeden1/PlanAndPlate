@@ -6,7 +6,7 @@ import { getUserId } from '@/shared/utils/userId';
 import { ProductDetails } from '@/features/scanner/components/ProductDetails';
 import { ManualBarcodeEntry } from '@/features/scanner/components/ManualBarcodeEntry';
 import { CameraUpload } from '@/features/scanner/components/CameraUpload';
-import { extractBarcodeFromImage } from '@/features/scanner/utils/barcodeDetector';
+import { extractBarcodeFromImage } from '@/features/scanner/services/barcodeDetectorService';
 
 export const Scanner = () => {
   const userId = getUserId();
