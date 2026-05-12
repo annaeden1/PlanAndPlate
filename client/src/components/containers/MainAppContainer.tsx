@@ -21,7 +21,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/planner" element={<MealPlanner />} />
-      <Route path="/recipe" element={<RecipeDetail />} />
+      <Route path="/recipe/:recipeId" element={<RecipeDetail />} />
       <Route path="/cart" element={<GroceryList />} />
       <Route path="/scanner" element={<Scanner />} />
       <Route path="/profile" element={<Profile />} />
