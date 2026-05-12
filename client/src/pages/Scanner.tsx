@@ -6,6 +6,7 @@ import { getUserId } from '@/shared/utils/userId';
 import { ProductDetails } from '@/features/scanner/components/ProductDetails';
 import { ManualBarcodeEntry } from '@/features/scanner/components/ManualBarcodeEntry';
 import { CameraUpload } from '@/features/scanner/components/CameraUpload';
+import { extractBarcodeFromImage } from '@/features/scanner/services/barcodeDetectorService';
 
 export const Scanner = () => {
   const userId = getUserId();
@@ -49,8 +50,37 @@ export const Scanner = () => {
     } catch (err: any) {
       setError(
         err.response?.data?.error ||
-        'Product not found. Please check the barcode.',
+          'Product not found. Please check the barcode.',
       );
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handlePhotoSelected = async (file: File) => {
+    setScanning(true);
+    setError(null);
+
+    try {
+      // Extract barcode from the image
+      const extractedBarcode = await extractBarcodeFromImage(file);
+      setBarcode(extractedBarcode);
+
+      // Perform scan with the extracted barcode
+      const data = await barcodeApi.scan(userId, extractedBarcode);
+      setProduct(data);
+      setScanned(true);
+    } catch (err: unknown) {
+      const error = err as {
+        response?: { data?: { error: string } };
+        message?: string;
+      };
+      const errorMessage =
+        error.response?.data?.error ||
+        error.message ||
+        'Could not extract barcode from image. Please make sure the barcode is visible and clear.';
+      setError(errorMessage);
+      setBarcode('');
     } finally {
       setScanning(false);
     }
@@ -85,7 +115,7 @@ export const Scanner = () => {
         <CameraUpload
           scanning={scanning}
           error={error}
-          onUploadClick={() => performScan()}
+          onPhotoSelected={handlePhotoSelected}
           onManualEntryClick={() => {
             setIsManual(true);
             setError(null);
