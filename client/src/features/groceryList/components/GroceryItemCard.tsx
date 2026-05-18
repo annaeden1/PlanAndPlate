@@ -1,14 +1,25 @@
 import type { GroceryItem } from '@/features/groceryList/types/grocery';
+import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import { Box, Checkbox, IconButton, Paper, Stack, Typography } from '@mui/material';
+import RemoveIcon from '@mui/icons-material/Remove';
+import { Box, Button, Checkbox, Chip, IconButton, Paper, Stack, Typography } from '@mui/material';
 
 interface GroceryItemCardProps {
   item: GroceryItem;
-  onToggleCheck: (name: string) => void;
   onDelete: (name: string) => void;
+  onUpdateInventory: (name: string, quantity: number) => void;
+  onDone: (name: string) => void;
+  onToggle: (name: string) => void;
 }
 
-export const GroceryItemCard = ({ item, onToggleCheck, onDelete }: GroceryItemCardProps) => {
+export const GroceryItemCard = ({ item, onDelete, onUpdateInventory, onDone, onToggle }: GroceryItemCardProps) => {
+  const isInStock = item.inventoryQuantity >= item.quantity;
+  const isDone = isInStock || item.checked;
+  const buyAmount = Math.max(0, item.quantity - item.inventoryQuantity);
+
+  const formatQty = (n: number) =>
+    Number.isInteger(n) ? String(n) : n.toFixed(1);
+
   return (
     <Paper
       variant="outlined"
@@ -17,46 +28,141 @@ export const GroceryItemCard = ({ item, onToggleCheck, onDelete }: GroceryItemCa
         borderRadius: '1rem',
         display: 'flex',
         alignItems: 'center',
-        transition: 'all 0.2s',
-        backgroundColor: item.checked ? 'action.hover' : 'background.paper',
-        borderColor: item.checked ? 'success.main' : 'divider',
-        opacity: item.checked ? 0.7 : 1,
+        gap: '0.75rem',
+        transition: 'border-color 0.2s',
+        borderColor: isDone ? 'success.main' : 'divider',
+        backgroundColor: 'background.paper',
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', mr: '1rem' }}>
-        <Checkbox
-          checked={item.checked}
-          onChange={() => onToggleCheck(item.name)}
-          color="success"
-          sx={{ p: 0 }}
-        />
-      </Box>
+      <Checkbox
+        checked={isDone}
+        onChange={() => onToggle(item.name)}
+        sx={{
+          color: 'divider',
+          '&.Mui-checked': { color: 'primary.main' },
+        }}
+      />
 
-      <Stack direction="column" flexGrow={1} spacing="0.25rem">
-        <Typography
-          variant="body1"
-          fontWeight={500}
-          sx={{
-            textDecoration: item.checked ? 'line-through' : 'none',
-            color: item.checked ? 'text.secondary' : 'text.primary',
-          }}
-        >
-          {item.name}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Need: {item.quantity} {item.unit}
-        </Typography>
+      {/* Item info */}
+      <Stack flexGrow={1} spacing="0.5rem">
+        <Stack direction="row" alignItems="center" spacing="0.5rem" flexWrap="wrap">
+          <Typography
+            variant="body1"
+            fontWeight={600}
+            sx={{
+              textTransform: 'capitalize',
+              textDecoration: isDone ? 'line-through' : 'none',
+              color: isDone ? 'text.secondary' : 'text.primary',
+            }}
+          >
+            {item.name}
+          </Typography>
+          {isDone && (
+            <Chip
+              label={isInStock ? 'In Stock' : 'Done'}
+              size="small"
+              icon={<span style={{ fontSize: '0.75rem', marginLeft: '6px' }}>✓</span>}
+              sx={{
+                backgroundColor: 'rgba(62, 180, 137, 0.12)',
+                color: 'success.main',
+                fontWeight: 600,
+                fontSize: '0.7rem',
+                height: '20px',
+                '& .MuiChip-icon': { color: 'success.main' },
+              }}
+            />
+          )}
+        </Stack>
+
+        {/* Need / Have row */}
+        <Stack direction="row" alignItems="flex-end" spacing="1.5rem">
+          {/* Need */}
+          <Box>
+            <Typography variant="caption" color="text.secondary" fontWeight={500}>
+              Need
+            </Typography>
+            <Typography sx={{ pt: '0.1rem' }} variant="body2" fontWeight={600}>
+              {formatQty(item.quantity)} {item.unit}
+            </Typography>
+          </Box>
+
+          {/* Have stepper */}
+          <Box>
+            <Typography variant="caption" color="text.secondary" fontWeight={500}>
+              Have
+            </Typography>
+            <Stack direction="row" alignItems="center" spacing="0.25rem" sx={{ pt: '0.1rem' }}>
+              <IconButton
+                size="small"
+                onClick={() => onUpdateInventory(item.name, item.inventoryQuantity - 1)}
+                disabled={item.inventoryQuantity === 0}
+                sx={{ p: '2px' }}
+              >
+                <RemoveIcon sx={{ fontSize: '0.9rem' }} />
+              </IconButton>
+              <Typography variant="body2" fontWeight={600} sx={{ minWidth: '2.5rem', textAlign: 'center' }}>
+                {formatQty(item.inventoryQuantity)} {item.unit}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={() => onUpdateInventory(item.name, item.inventoryQuantity + 1)}
+                sx={{ p: '2px' }}
+              >
+                <AddIcon sx={{ fontSize: '0.9rem' }} />
+              </IconButton>
+            </Stack>
+          </Box>
+
+          {/* Buy badge (not in stock) OR Done button (in stock) */}
+          {!isDone && buyAmount > 0 && (
+            <Chip
+              label={`Buy ${formatQty(buyAmount)} ${item.unit}`}
+              size="small"
+              sx={{
+                backgroundColor: 'rgba(255, 143, 90, 0.12)',
+                color: 'warning.main',
+                fontWeight: 600,
+                fontSize: '0.7rem',
+                height: '22px',
+                alignSelf: 'flex-end',
+                mb: '2px',
+              }}
+            />
+          )}
+          {isDone && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="success"
+              onClick={() => onDone(item.name)}
+              sx={{
+                alignSelf: 'flex-end',
+                mb: '2px',
+                fontSize: '0.7rem',
+                height: '22px',
+                px: '0.5rem',
+                minWidth: 'unset',
+                textTransform: 'none',
+              }}
+            >
+              Done
+            </Button>
+          )}
+        </Stack>
       </Stack>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', ml: '1rem' }}>
-        <IconButton
-          size="small"
-          onClick={() => onDelete(item.name)}
-          sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Box>
+      {/* Delete */}
+      <IconButton
+        size="small"
+        onClick={() => onDelete(item.name)}
+        sx={{
+          alignSelf: 'flex-start',
+          color: 'text.secondary',
+          '&:hover': { color: 'error.main' },
+        }}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
     </Paper>
   );
 };

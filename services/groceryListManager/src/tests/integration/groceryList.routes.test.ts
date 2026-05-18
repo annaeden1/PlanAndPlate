@@ -135,6 +135,44 @@ describe('GroceryList API - Integration Tests', () => {
     });
   });
 
+  describe('PATCH /grocerylist/users/:userId/products/:productName/inventory', () => {
+    it('updates inventoryQuantity and returns 200', async () => {
+      await request(app).post(`/grocerylist/users/${TEST_USER_ID}/products`).send({ name: 'milk', quantity: 2, unit: 'l' });
+
+      const res = await request(app)
+        .patch(`/grocerylist/users/${TEST_USER_ID}/products/milk/inventory`)
+        .send({ inventoryQuantity: 1 });
+
+      expect(res.status).toBe(200);
+      const dairyGroup = res.body.find((g: any) => g.category === 'Dairy');
+      expect(dairyGroup.items[0].inventoryQuantity).toBe(1);
+    });
+
+    it('returns 400 when inventoryQuantity is missing', async () => {
+      const res = await request(app)
+        .patch(`/grocerylist/users/${TEST_USER_ID}/products/milk/inventory`)
+        .send({});
+
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 400 when inventoryQuantity is negative', async () => {
+      const res = await request(app)
+        .patch(`/grocerylist/users/${TEST_USER_ID}/products/milk/inventory`)
+        .send({ inventoryQuantity: -5 });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('returns 404 when product does not exist', async () => {
+      const res = await request(app)
+        .patch(`/grocerylist/users/${TEST_USER_ID}/products/unicorn/inventory`)
+        .send({ inventoryQuantity: 1 });
+
+      expect(res.status).toBe(404);
+    });
+  });
+
   describe('POST /grocerylist/users/:userId/recipes/:recipeId/ingredients', () => {
     it('imports ingredients from Spoonacular into the grocery list', async () => {
       mockedAxios.get.mockResolvedValue({

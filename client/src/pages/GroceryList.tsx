@@ -4,22 +4,25 @@ import { GroceryItemCard } from '@/features/groceryList/components/GroceryItemCa
 import type { Category, GroceryItem, GroceryItemGroup } from '@/features/groceryList/types/grocery';
 import { CATEGORY_EMOJIS } from '@/features/groceryList/utils/categoryEmojis';
 import AddIcon from '@mui/icons-material/Add';
+import CheckIcon from '@mui/icons-material/Check';
 import SearchIcon from '@mui/icons-material/Search';
 import {
   Alert,
   Box,
   Button,
   CircularProgress,
+  Fab,
   InputAdornment,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
+
 import { useMemo, useState } from 'react';
 import { ProgressCard } from '../components/common/ProgressCard';
 
 export const GroceryList = () => {
-  const { groups, loading, error, toggleChecked, removeItem, removeBoughtItems, addItem } = useGroceryList();
+  const { groups, loading, error, removeItem, addItem, updateInventoryQuantity, removeBoughtItems, toggleChecked } = useGroceryList();
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -31,20 +34,21 @@ export const GroceryList = () => {
       .filter((g: GroceryItemGroup) => g.items.length > 0);
   }, [groups, searchQuery]);
 
-  const { totalItems, checkedItems, itemsToBuy, percentage } = useMemo(() => {
+  const { totalItems, inStockItems, itemsToBuy, percentage, hasInStockItems } = useMemo(() => {
     const allItems = groups.flatMap((g) => g.items);
     const total = allItems.length;
-    const checked = allItems.filter((item) => item.checked).length;
+    const inStock = allItems.filter((item) => item.inventoryQuantity >= item.quantity).length;
     return {
       totalItems: total,
-      checkedItems: checked,
-      itemsToBuy: total - checked,
-      percentage: total === 0 ? 0 : (checked / total) * 100,
+      inStockItems: inStock,
+      itemsToBuy: total - inStock,
+      percentage: total === 0 ? 0 : (inStock / total) * 100,
+      hasInStockItems: allItems.some((item) => item.inventoryQuantity >= item.quantity || item.checked),
     };
   }, [groups]);
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem' }}>
+    <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem', pb: hasInStockItems ? '6rem' : '1.5rem' }}>
       <Box sx={{ mb: '2rem' }}>
         <Typography variant="h4" fontWeight="bold">Grocery List</Typography>
         <Typography variant="subtitle1" color="text.secondary">Smart shopping made easy</Typography>
@@ -54,7 +58,7 @@ export const GroceryList = () => {
 
       <ProgressCard
         title="Shopping Progress"
-        primaryText={`${checkedItems} of ${totalItems} items`}
+        primaryText={`${inStockItems} of ${totalItems} items in stock`}
         chipLabel={`${itemsToBuy} to buy`}
         progressValue={percentage}
       />
@@ -88,15 +92,6 @@ export const GroceryList = () => {
         >
           Add Item
         </Button>
-        {checkedItems > 0 && (
-          <Button
-            fullWidth variant="contained" color="success"
-            sx={{ borderRadius: '1rem', py: '0.75rem' }}
-            onClick={removeBoughtItems}
-          >
-            Bought it! Remove {checkedItems} item{checkedItems > 1 ? 's' : ''}
-          </Button>
-        )}
       </Box>
 
       {loading ? (
@@ -116,7 +111,14 @@ export const GroceryList = () => {
               </Typography>
               <Stack spacing="0.75rem">
                 {group.items.map((item: GroceryItem) => (
-                  <GroceryItemCard key={item.name} item={item} onToggleCheck={toggleChecked} onDelete={removeItem} />
+                  <GroceryItemCard
+                    key={item.name}
+                    item={item}
+                    onDelete={removeItem}
+                    onUpdateInventory={updateInventoryQuantity}
+                    onDone={removeItem} // same action as delete; both remove from DB
+                    onToggle={toggleChecked}
+                  />
                 ))}
               </Stack>
             </Box>
@@ -129,6 +131,27 @@ export const GroceryList = () => {
         onClose={() => setDialogOpen(false)}
         onAdd={addItem}
       />
+
+      {/* FAB operates on the full list, not just filtered view — intentional */}
+      {hasInStockItems && (
+        <Fab
+          variant="extended"
+          color="primary"
+          onClick={removeBoughtItems}
+          sx={{
+            position: 'fixed',
+            bottom: '2rem',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            boxShadow: 4,
+            fontWeight: 'bold',
+            px: '2rem',
+          }}
+        >
+          <CheckIcon sx={{ mr: 1 }} />
+          Finish Shopping
+        </Fab>
+      )}
     </Box>
   );
 };

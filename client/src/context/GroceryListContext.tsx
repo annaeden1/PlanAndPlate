@@ -1,7 +1,7 @@
 import { groceryListApi } from '@/features/groceryList/api/groceryList';
 import type { GroceryItem, GroceryItemGroup } from '@/features/groceryList/types/grocery';
 import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getErrorMessage } from '../shared/utils/errorMessage';
 import { getUserId } from '../shared/utils/userId';
 
@@ -18,6 +18,7 @@ interface GroceryListActions {
   removeItem: (productName: string) => Promise<void>;
   removeBoughtItems: () => Promise<void>;
   clearList: () => Promise<void>;
+  updateInventoryQuantity: (productName: string, quantity: number) => void;
   toggleChecked: (productName: string) => void;
 }
 
@@ -85,12 +86,12 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
   const removeBoughtItems = useCallback(async () => {
     setError(null);
     try {
-      const checkedNames = groups
+      const inStockNames = groups
         .flatMap((g) => g.items)
-        .filter((item) => item.checked)
+        .filter((item) => item.inventoryQuantity >= item.quantity || item.checked)
         .map((item) => item.name);
-      if (checkedNames.length === 0) return;
-      const data = await groceryListApi.removeBoughtItems(userId, checkedNames);
+      if (inStockNames.length === 0) return;
+      const data = await groceryListApi.removeBoughtItems(userId, inStockNames);
       setGroups(data);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -111,9 +112,35 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
       .catch(() => refresh());
   }, [userId, refresh]);
 
+  const inventoryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (inventoryDebounceRef.current) clearTimeout(inventoryDebounceRef.current);
+    };
+  }, []);
+
+  const updateInventoryQuantity = useCallback((productName: string, quantity: number) => {
+    const clamped = Math.max(0, quantity);
+    setGroups((prev) =>
+      prev.map((group) => ({
+        ...group,
+        items: group.items.map((item: GroceryItem) =>
+          item.name === productName ? { ...item, inventoryQuantity: clamped } : item,
+        ),
+      })),
+    );
+    if (inventoryDebounceRef.current) clearTimeout(inventoryDebounceRef.current);
+    inventoryDebounceRef.current = setTimeout(() => {
+      groceryListApi.updateInventoryQuantity(userId, productName, clamped)
+        .then(setGroups)
+        .catch(() => refresh());
+    }, 400);
+  }, [userId, refresh]);
+
   return (
     <GroceryListContext.Provider
-      value={{ groups, loading, error, userId, refresh, addItem, removeItem, removeBoughtItems, clearList, toggleChecked }}
+      value={{ groups, loading, error, userId, refresh, addItem, removeItem, removeBoughtItems, clearList, updateInventoryQuantity, toggleChecked }}
     >
       {children}
     </GroceryListContext.Provider>
