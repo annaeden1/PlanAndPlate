@@ -18,7 +18,6 @@ interface GroceryListActions {
   removeItem: (productName: string) => Promise<void>;
   removeBoughtItems: () => Promise<void>;
   clearList: () => Promise<void>;
-  toggleChecked: (productName: string) => void;
   updateInventoryQuantity: (productName: string, quantity: number) => void;
 }
 
@@ -98,20 +97,6 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [groups, userId]);
 
-  const toggleChecked = useCallback((productName: string) => {
-    setGroups((prev) =>
-      prev.map((group) => ({
-        ...group,
-        items: group.items.map((item: GroceryItem) =>
-          item.name === productName ? { ...item, checked: !item.checked } : item,
-        ),
-      })),
-    );
-    groceryListApi.toggleItem(userId, productName)
-      .then(setGroups)
-      .catch(() => refresh());
-  }, [userId, refresh]);
-
   const inventoryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -140,7 +125,7 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <GroceryListContext.Provider
-      value={{ groups, loading, error, userId, refresh, addItem, removeItem, removeBoughtItems, clearList, toggleChecked, updateInventoryQuantity }}
+      value={{ groups, loading, error, userId, refresh, addItem, removeItem, removeBoughtItems, clearList, updateInventoryQuantity }}
     >
       {children}
     </GroceryListContext.Provider>

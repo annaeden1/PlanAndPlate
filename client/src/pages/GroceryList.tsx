@@ -132,6 +132,7 @@ export const GroceryList = () => {
         onAdd={addItem}
       />
 
+      {/* FAB operates on the full list, not just filtered view — intentional */}
       {hasInStockItems && (
         <Fab
           variant="extended"
