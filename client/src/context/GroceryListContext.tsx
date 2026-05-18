@@ -86,12 +86,12 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
   const removeBoughtItems = useCallback(async () => {
     setError(null);
     try {
-      const checkedNames = groups
+      const inStockNames = groups
         .flatMap((g) => g.items)
-        .filter((item) => item.checked)
+        .filter((item) => item.inventoryQuantity >= item.quantity)
         .map((item) => item.name);
-      if (checkedNames.length === 0) return;
-      const data = await groceryListApi.removeBoughtItems(userId, checkedNames);
+      if (inStockNames.length === 0) return;
+      const data = await groceryListApi.removeBoughtItems(userId, inStockNames);
       setGroups(data);
     } catch (err) {
       setError(getErrorMessage(err));
