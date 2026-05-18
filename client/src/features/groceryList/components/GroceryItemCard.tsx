@@ -1,15 +1,17 @@
 import type { GroceryItem } from '@/features/groceryList/types/grocery';
+import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import { Box, Checkbox, Chip, IconButton, Paper, Stack, Typography } from '@mui/material';
+import RemoveIcon from '@mui/icons-material/Remove';
+import { Box, Button, Checkbox, Chip, IconButton, Paper, Stack, Typography } from '@mui/material';
 
 interface GroceryItemCardProps {
   item: GroceryItem;
   onDelete: (name: string) => void;
-  onUpdateInventory?: (name: string, quantity: number) => void; // Keeping optional if used elsewhere
-  onToggle: (name: string) => void;
+  onUpdateInventory: (name: string, quantity: number) => void;
+  onDone: (name: string) => void;
 }
 
-export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardProps) => {
+export const GroceryItemCard = ({ item, onDelete, onUpdateInventory, onDone }: GroceryItemCardProps) => {
   const isInStock = item.inventoryQuantity >= item.quantity;
   const buyAmount = Math.max(0, item.quantity - item.inventoryQuantity);
 
@@ -30,22 +32,29 @@ export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardPro
         backgroundColor: 'background.paper',
       }}
     >
-      {/* Checkbox */}
+      {/* Checkbox — read-only, driven by isInStock */}
       <Checkbox
-        checked={item.checked}
-        onChange={() => onToggle(item.name)}
+        checked={isInStock}
+        onChange={() => {}}
         sx={{
+          pointerEvents: 'none',
           color: 'divider',
-          '&.Mui-checked': {
-            color: 'primary.main',
-          },
+          '&.Mui-checked': { color: 'primary.main' },
         }}
       />
 
       {/* Item info */}
       <Stack flexGrow={1} spacing="0.5rem">
         <Stack direction="row" alignItems="center" spacing="0.5rem" flexWrap="wrap">
-          <Typography variant="body1" fontWeight={600} sx={{ textTransform: 'capitalize', textDecoration: item.checked ? 'line-through' : 'none', color: item.checked ? 'text.secondary' : 'text.primary' }}>
+          <Typography
+            variant="body1"
+            fontWeight={600}
+            sx={{
+              textTransform: 'capitalize',
+              textDecoration: isInStock ? 'line-through' : 'none',
+              color: isInStock ? 'text.secondary' : 'text.primary',
+            }}
+          >
             {item.name}
           </Typography>
           {isInStock && (
@@ -67,7 +76,7 @@ export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardPro
 
         {/* Need / Have row */}
         <Stack direction="row" alignItems="flex-end" spacing="1.5rem">
-          {/* Need column */}
+          {/* Need */}
           <Box>
             <Typography variant="caption" color="text.secondary" fontWeight={500}>
               Need
@@ -77,18 +86,35 @@ export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardPro
             </Typography>
           </Box>
 
-          {/* Have stepper -> Just display amount */}
+          {/* Have stepper */}
           <Box>
             <Typography variant="caption" color="text.secondary" fontWeight={500}>
               Have
             </Typography>
-            <Typography sx={{ pt: '0.1rem' }} variant="body2" fontWeight={600}>
-              {formatQty(item.inventoryQuantity)} {item.unit}
-            </Typography>
+            <Stack direction="row" alignItems="center" spacing="0.25rem" sx={{ pt: '0.1rem' }}>
+              <IconButton
+                size="small"
+                onClick={() => onUpdateInventory(item.name, item.inventoryQuantity - 1)}
+                disabled={item.inventoryQuantity === 0}
+                sx={{ p: '2px' }}
+              >
+                <RemoveIcon sx={{ fontSize: '0.9rem' }} />
+              </IconButton>
+              <Typography variant="body2" fontWeight={600} sx={{ minWidth: '2.5rem', textAlign: 'center' }}>
+                {formatQty(item.inventoryQuantity)} {item.unit}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={() => onUpdateInventory(item.name, item.inventoryQuantity + 1)}
+                sx={{ p: '2px' }}
+              >
+                <AddIcon sx={{ fontSize: '0.9rem' }} />
+              </IconButton>
+            </Stack>
           </Box>
 
-          {/* Buy badge */}
-          {buyAmount > 0 && (
+          {/* Buy badge (not in stock) OR Done button (in stock) */}
+          {!isInStock && buyAmount > 0 && (
             <Chip
               label={`Buy ${formatQty(buyAmount)} ${item.unit}`}
               size="small"
@@ -102,6 +128,25 @@ export const GroceryItemCard = ({ item, onDelete, onToggle }: GroceryItemCardPro
                 mb: '2px',
               }}
             />
+          )}
+          {isInStock && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="success"
+              onClick={() => onDone(item.name)}
+              sx={{
+                alignSelf: 'flex-end',
+                mb: '2px',
+                fontSize: '0.7rem',
+                height: '22px',
+                px: '0.5rem',
+                minWidth: 'unset',
+                textTransform: 'none',
+              }}
+            >
+              Done
+            </Button>
           )}
         </Stack>
       </Stack>
