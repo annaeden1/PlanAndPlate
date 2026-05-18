@@ -46,10 +46,7 @@ export const GroceryList = () => {
     };
   }, [groups]);
 
-  const hasInStockItems = useMemo(
-    () => groups.some((g) => g.items.some((item) => item.inventoryQuantity >= item.quantity)),
-    [groups],
-  );
+  const hasInStockItems = inStockItems > 0;
 
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem', pb: hasInStockItems ? '6rem' : '1.5rem' }}>
@@ -120,7 +117,7 @@ export const GroceryList = () => {
                     item={item}
                     onDelete={removeItem}
                     onUpdateInventory={updateInventoryQuantity}
-                    onDone={removeItem}
+                    onDone={removeItem} // same action as delete; both remove from DB
                   />
                 ))}
               </Stack>
