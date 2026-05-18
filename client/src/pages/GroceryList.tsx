@@ -22,7 +22,7 @@ import { useMemo, useState } from 'react';
 import { ProgressCard } from '../components/common/ProgressCard';
 
 export const GroceryList = () => {
-  const { groups, loading, error, removeItem, addItem, toggleChecked, removeBoughtItems } = useGroceryList();
+  const { groups, loading, error, removeItem, addItem, updateInventoryQuantity, removeBoughtItems } = useGroceryList();
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -46,12 +46,13 @@ export const GroceryList = () => {
     };
   }, [groups]);
 
-  const hasCheckedItems = useMemo(() => {
-    return groups.some((g) => g.items.some((item) => item.checked));
-  }, [groups]);
+  const hasInStockItems = useMemo(
+    () => groups.some((g) => g.items.some((item) => item.inventoryQuantity >= item.quantity)),
+    [groups],
+  );
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem', pb: hasCheckedItems ? '6rem' : '1.5rem' }}>
+    <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem', pb: hasInStockItems ? '6rem' : '1.5rem' }}>
       <Box sx={{ mb: '2rem' }}>
         <Typography variant="h4" fontWeight="bold">Grocery List</Typography>
         <Typography variant="subtitle1" color="text.secondary">Smart shopping made easy</Typography>
@@ -114,7 +115,13 @@ export const GroceryList = () => {
               </Typography>
               <Stack spacing="0.75rem">
                 {group.items.map((item: GroceryItem) => (
-                  <GroceryItemCard key={item.name} item={item} onDelete={removeItem} onToggle={toggleChecked} />
+                  <GroceryItemCard
+                    key={item.name}
+                    item={item}
+                    onDelete={removeItem}
+                    onUpdateInventory={updateInventoryQuantity}
+                    onDone={removeItem}
+                  />
                 ))}
               </Stack>
             </Box>
@@ -128,8 +135,7 @@ export const GroceryList = () => {
         onAdd={addItem}
       />
 
-      {/* Floating Finish Shopping Button */}
-      {hasCheckedItems && (
+      {hasInStockItems && (
         <Fab
           variant="extended"
           color="primary"
