@@ -22,7 +22,7 @@ import { useMemo, useState } from 'react';
 import { ProgressCard } from '../components/common/ProgressCard';
 
 export const GroceryList = () => {
-  const { groups, loading, error, removeItem, addItem, updateInventoryQuantity, removeBoughtItems } = useGroceryList();
+  const { groups, loading, error, removeItem, addItem, updateInventoryQuantity, removeBoughtItems, toggleChecked } = useGroceryList();
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -34,7 +34,7 @@ export const GroceryList = () => {
       .filter((g: GroceryItemGroup) => g.items.length > 0);
   }, [groups, searchQuery]);
 
-  const { totalItems, inStockItems, itemsToBuy, percentage } = useMemo(() => {
+  const { totalItems, inStockItems, itemsToBuy, percentage, hasInStockItems } = useMemo(() => {
     const allItems = groups.flatMap((g) => g.items);
     const total = allItems.length;
     const inStock = allItems.filter((item) => item.inventoryQuantity >= item.quantity).length;
@@ -43,10 +43,9 @@ export const GroceryList = () => {
       inStockItems: inStock,
       itemsToBuy: total - inStock,
       percentage: total === 0 ? 0 : (inStock / total) * 100,
+      hasInStockItems: allItems.some((item) => item.inventoryQuantity >= item.quantity || item.checked),
     };
   }, [groups]);
-
-  const hasInStockItems = inStockItems > 0;
 
   return (
     <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem', pb: hasInStockItems ? '6rem' : '1.5rem' }}>
@@ -118,6 +117,7 @@ export const GroceryList = () => {
                     onDelete={removeItem}
                     onUpdateInventory={updateInventoryQuantity}
                     onDone={removeItem} // same action as delete; both remove from DB
+                    onToggle={toggleChecked}
                   />
                 ))}
               </Stack>

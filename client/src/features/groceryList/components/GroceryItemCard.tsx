@@ -9,10 +9,12 @@ interface GroceryItemCardProps {
   onDelete: (name: string) => void;
   onUpdateInventory: (name: string, quantity: number) => void;
   onDone: (name: string) => void;
+  onToggle: (name: string) => void;
 }
 
-export const GroceryItemCard = ({ item, onDelete, onUpdateInventory, onDone }: GroceryItemCardProps) => {
+export const GroceryItemCard = ({ item, onDelete, onUpdateInventory, onDone, onToggle }: GroceryItemCardProps) => {
   const isInStock = item.inventoryQuantity >= item.quantity;
+  const isDone = isInStock || item.checked;
   const buyAmount = Math.max(0, item.quantity - item.inventoryQuantity);
 
   const formatQty = (n: number) =>
@@ -28,16 +30,14 @@ export const GroceryItemCard = ({ item, onDelete, onUpdateInventory, onDone }: G
         alignItems: 'center',
         gap: '0.75rem',
         transition: 'border-color 0.2s',
-        borderColor: isInStock ? 'success.main' : 'divider',
+        borderColor: isDone ? 'success.main' : 'divider',
         backgroundColor: 'background.paper',
       }}
     >
-      {/* Checkbox — read-only, driven by isInStock */}
       <Checkbox
-        checked={isInStock}
-        onChange={() => {}}
+        checked={isDone}
+        onChange={() => onToggle(item.name)}
         sx={{
-          pointerEvents: 'none',
           color: 'divider',
           '&.Mui-checked': { color: 'primary.main' },
         }}
@@ -51,15 +51,15 @@ export const GroceryItemCard = ({ item, onDelete, onUpdateInventory, onDone }: G
             fontWeight={600}
             sx={{
               textTransform: 'capitalize',
-              textDecoration: isInStock ? 'line-through' : 'none',
-              color: isInStock ? 'text.secondary' : 'text.primary',
+              textDecoration: isDone ? 'line-through' : 'none',
+              color: isDone ? 'text.secondary' : 'text.primary',
             }}
           >
             {item.name}
           </Typography>
-          {isInStock && (
+          {isDone && (
             <Chip
-              label="In Stock"
+              label={isInStock ? 'In Stock' : 'Done'}
               size="small"
               icon={<span style={{ fontSize: '0.75rem', marginLeft: '6px' }}>✓</span>}
               sx={{
@@ -114,7 +114,7 @@ export const GroceryItemCard = ({ item, onDelete, onUpdateInventory, onDone }: G
           </Box>
 
           {/* Buy badge (not in stock) OR Done button (in stock) */}
-          {!isInStock && buyAmount > 0 && (
+          {!isDone && buyAmount > 0 && (
             <Chip
               label={`Buy ${formatQty(buyAmount)} ${item.unit}`}
               size="small"
@@ -129,7 +129,7 @@ export const GroceryItemCard = ({ item, onDelete, onUpdateInventory, onDone }: G
               }}
             />
           )}
-          {isInStock && (
+          {isDone && (
             <Button
               size="small"
               variant="outlined"
