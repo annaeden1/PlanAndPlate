@@ -8,8 +8,14 @@ export const GroceryItemSchema = new Schema<GroceryItem>(
     quantity: { type: Number, required: true, min: 0 },
     unit: { type: String, required: true, trim: true, lowercase: true },
     inventoryQuantity: { type: Number, required: true, min: 0, default: 0 },
-    category: { type: String, required: true, enum: CATEGORIES, default: 'Other' },
+    category: {
+      type: String,
+      required: true,
+      enum: CATEGORIES,
+      default: 'Other',
+    },
     checked: { type: Boolean, required: true, default: false },
+    recipeCount: { type: Number, required: true, default: 0 },
   },
   { _id: false },
 );

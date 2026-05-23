@@ -25,6 +25,7 @@ export interface GroceryItem {
   inventoryQuantity: number;
   category: Category;
   checked: boolean;
+  recipeCount: number;
 }
 
 export interface GroceryItemGroup {
