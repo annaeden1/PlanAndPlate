@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import axios from 'axios';
 import * as openFoodFactsService from '../services/openFoodFactsService';
+import { checkPreferenceMatches } from '../services/preferenceMatchService';
 import {
-  checkPreferenceMatches,
-  type UserPreferences,
   type PreferenceMatch,
-} from '../services/preferenceMatchService';
+  type UserPreferences,
+} from '../utils/types/preferences';
 
 export const scanBarcode = async (req: Request, res: Response) => {
   const { userId } = req.params;
