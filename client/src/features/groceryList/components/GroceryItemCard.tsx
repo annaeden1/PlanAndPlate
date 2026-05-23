@@ -1,6 +1,14 @@
 import type { GroceryItem } from '@/features/groceryList/types/grocery';
 import CloseIcon from '@mui/icons-material/Close';
-import { Box, Checkbox, IconButton, Paper, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Checkbox,
+  Chip,
+  IconButton,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material';
 
 interface GroceryItemCardProps {
   item: GroceryItem;
@@ -8,7 +16,11 @@ interface GroceryItemCardProps {
   onDelete: (name: string) => void;
 }
 
-export const GroceryItemCard = ({ item, onToggleCheck, onDelete }: GroceryItemCardProps) => {
+export const GroceryItemCard = ({
+  item,
+  onToggleCheck,
+  onDelete,
+}: GroceryItemCardProps) => {
   return (
     <Paper
       variant="outlined"
@@ -43,9 +55,22 @@ export const GroceryItemCard = ({ item, onToggleCheck, onDelete }: GroceryItemCa
         >
           {item.name}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Need: {item.quantity} {item.unit}
-        </Typography>
+        <Stack direction="row" alignItems="center" spacing="0.75rem">
+          <Typography variant="body2" color="text.secondary">
+            Need: {item.quantity} {item.unit}
+          </Typography>
+          <Chip
+            label={
+              item.recipeCount !== 0
+                ? `Appears in ${item.recipeCount} recipe${item.recipeCount === 1 ? '' : 's'}`
+                : 'Manually Added'
+            }
+            size="small"
+            color="primary"
+            variant="outlined"
+            sx={{ height: '1.75rem', fontSize: '0.75rem' }}
+          />
+        </Stack>
       </Stack>
 
       <Box sx={{ display: 'flex', alignItems: 'center', ml: '1rem' }}>
