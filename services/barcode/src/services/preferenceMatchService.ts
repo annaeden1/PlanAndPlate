@@ -21,7 +21,16 @@ const ALLERGY_KEYWORDS: Record<string, string[]> = {
     'pecan',
     'macadamia',
   ],
-  dairy: ['dairy', 'milk', 'cheese', 'lactose', 'butter', 'cream', 'yogurt'],
+  dairy: [
+    'dairy',
+    'milk',
+    'milks',
+    'cheese',
+    'lactose',
+    'butter',
+    'cream',
+    'yogurt',
+  ],
   gluten: ['gluten', 'wheat', 'barley', 'rye', 'spelt', 'farro', 'kamut'],
   shellfish: [
     'shellfish',
@@ -290,7 +299,10 @@ const hasTagFragment = (
   );
 };
 
-const hasExactTag = (normalizedTags: string[], tagsToMatch: string[]): boolean => {
+const hasExactTag = (
+  normalizedTags: string[],
+  tagsToMatch: string[],
+): boolean => {
   return tagsToMatch.some((tagToMatch) =>
     normalizedTags.some((tag) => tag === tagToMatch.toLowerCase()),
   );
@@ -301,7 +313,9 @@ const hasUncertainDietTag = (
   dietTagRoots: string[],
 ): boolean => {
   return normalizedTags.some((tag) => {
-    const isRelatedToDiet = dietTagRoots.some((root) => tag.includes(root.toLowerCase()));
+    const isRelatedToDiet = dietTagRoots.some((root) =>
+      tag.includes(root.toLowerCase()),
+    );
     const isUncertain = tag.includes('unknown') || tag.includes('maybe');
     return isRelatedToDiet && isUncertain;
   });
