@@ -70,7 +70,8 @@ class MealPlannerController {
         return res.status(400).json({ error: "Invalid recipe ID" });
       }
 
-      const recipeDetails = await mealPlannerService.getRecipeDetails(recipeId);
+      const userId = (req as any).user?._id;
+      const recipeDetails = await mealPlannerService.getRecipeDetails(recipeId, userId);
 
       if (!recipeDetails) {
         return res.status(404).json({ error: "Recipe not found" });
@@ -80,6 +81,27 @@ class MealPlannerController {
     } catch (error) {
       console.error("Error fetching recipe details:", error);
       res.status(500).json({ error: "Failed to fetch recipe details" });
+    }
+  }
+
+  async toggleRecipeLike(req: Request, res: Response) {
+    try {
+      const { recipeId } = req.params;
+      const userId = (req as any).user?._id;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+
+      if (!recipeId || typeof recipeId !== "string" || recipeId.trim() === "") {
+        return res.status(400).json({ error: "Invalid recipe ID" });
+      }
+
+      const result = await mealPlannerService.toggleRecipeLike(userId, recipeId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error toggling recipe like:", error);
+      res.status(500).json({ error: "Failed to toggle recipe like" });
     }
   }
 }
