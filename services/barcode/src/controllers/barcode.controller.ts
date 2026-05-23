@@ -43,7 +43,6 @@ export const scanBarcode = async (req: Request, res: Response) => {
         preferencesResponse.data.userPreferences || {};
       preferenceMatches = checkPreferenceMatches(product, userPreferences);
     } catch (error) {
-      // If we can't get preferences, just skip the matching
       console.log('Could not fetch user preferences:', error);
     }
 

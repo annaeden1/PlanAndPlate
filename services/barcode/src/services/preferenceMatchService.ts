@@ -91,7 +91,6 @@ export const checkPreferenceMatches = (
 ): PreferenceMatch[] => {
   const matches: PreferenceMatch[] = [];
 
-  // Check allergies
   const allergies = preferences.allergies || [];
   for (const allergy of allergies) {
     const allergyStatus = checkAllergyInProduct(product, allergy);
@@ -101,7 +100,6 @@ export const checkPreferenceMatches = (
     });
   }
 
-  // Check diet
   const dietPreference = preferences.diet?.[0];
   if (isSupportedDiet(dietPreference)) {
     const dietStatus = checkDietCompatibility(product, dietPreference);
