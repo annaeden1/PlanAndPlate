@@ -31,8 +31,6 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
     if (map.has(key)) {
       const existing = map.get(key)!;
       existing.quantity += item.quantity;
-      existing.inventoryQuantity = existing.inventoryQuantity ?? 0;
-      existing.checked = existing.checked ?? false;
       existing.recipeCount = (existing.recipeCount ?? 0) + (item.recipeCount ?? 0);
     } else {
       map.set(key, {

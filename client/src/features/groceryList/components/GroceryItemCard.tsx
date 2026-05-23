@@ -48,7 +48,7 @@ export const GroceryItemCard = ({ item, onToggleCheck, onDelete }: GroceryItemCa
             Need: {item.quantity} {item.unit}
           </Typography>
           <Chip
-            label={`${item.recipeCount} recipe${item.recipeCount === 1 ? '' : 's'}`}
+            label={`Appears in ${item.recipeCount} recipe${item.recipeCount === 1 ? '' : 's'}`}
             size="small"
             color="primary"
             variant="outlined"
