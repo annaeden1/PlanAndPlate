@@ -66,7 +66,7 @@ export const addProduct = async (req: Request, res: Response): Promise<void> => 
       category: normalizeAisle(aisle ?? ''),
       inventoryQuantity: 0,
       checked: false,
-      recipeCount: 1,
+      recipeCount: 0,
     };
 
     const groups = await GroceryService.addProducts(userId, [newItem]);

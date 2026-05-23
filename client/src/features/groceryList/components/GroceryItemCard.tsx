@@ -1,6 +1,14 @@
 import type { GroceryItem } from '@/features/groceryList/types/grocery';
 import CloseIcon from '@mui/icons-material/Close';
-import { Box, Checkbox, Chip, IconButton, Paper, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Checkbox,
+  Chip,
+  IconButton,
+  Paper,
+  Stack,
+  Typography,
+} from '@mui/material';
 
 interface GroceryItemCardProps {
   item: GroceryItem;
@@ -8,7 +16,11 @@ interface GroceryItemCardProps {
   onDelete: (name: string) => void;
 }
 
-export const GroceryItemCard = ({ item, onToggleCheck, onDelete }: GroceryItemCardProps) => {
+export const GroceryItemCard = ({
+  item,
+  onToggleCheck,
+  onDelete,
+}: GroceryItemCardProps) => {
   return (
     <Paper
       variant="outlined"
@@ -48,7 +60,11 @@ export const GroceryItemCard = ({ item, onToggleCheck, onDelete }: GroceryItemCa
             Need: {item.quantity} {item.unit}
           </Typography>
           <Chip
-            label={`Appears in ${item.recipeCount} recipe${item.recipeCount === 1 ? '' : 's'}`}
+            label={
+              item.recipeCount !== 0
+                ? `Appears in ${item.recipeCount} recipe${item.recipeCount === 1 ? '' : 's'}`
+                : 'Manually Added'
+            }
             size="small"
             color="primary"
             variant="outlined"
