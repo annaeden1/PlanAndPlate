@@ -48,7 +48,7 @@ export const NutritionFactsCard = ({
 
               <LinearProgress
                 variant="determinate"
-                value={Math.min(item.percent * 5, 100)}
+                value={Math.min(Math.max(item.percent, 0), 100)}
                 sx={{
                   height: '0.375rem',
                   borderRadius: '0.25rem',
