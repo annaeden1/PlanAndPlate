@@ -64,6 +64,9 @@ const VEGAN_EXTRA_KEYWORDS = [
   'casein',
 ];
 
+const VEGAN_CLAIM_TAGS = ['vegan'];
+const VEGETARIAN_CLAIM_TAGS = ['vegetarian', 'vegetarien'];
+
 const DIET_LABELS: Record<SupportedDiet, string> = {
   vegan: 'Vegan Compatible',
   vegetarian: 'Vegetarian Compatible',
@@ -196,7 +199,11 @@ const checkVeganDiet = (productContext: ProductMatchContext): MatchStatus => {
     return 'mismatch';
   }
 
-  if (hasTagFragment(productContext.tags, ['vegan'])) {
+  if (hasUncertainDietTag(productContext.tags, ['vegan'])) {
+    return 'unknown';
+  }
+
+  if (hasExactTag(productContext.tags, VEGAN_CLAIM_TAGS)) {
     return 'match';
   }
 
@@ -229,7 +236,11 @@ const checkVegetarianVariantDiet = (
     return 'mismatch';
   }
 
-  if (hasTagFragment(productContext.tags, ['vegetarian'])) {
+  if (hasUncertainDietTag(productContext.tags, ['vegetarian', 'vegetarien'])) {
+    return 'unknown';
+  }
+
+  if (hasExactTag(productContext.tags, VEGETARIAN_CLAIM_TAGS)) {
     return 'match';
   }
 
@@ -277,6 +288,23 @@ const hasTagFragment = (
   return tagFragments.some((fragment) =>
     normalizedTags.some((tag) => tag.includes(fragment.toLowerCase())),
   );
+};
+
+const hasExactTag = (normalizedTags: string[], tagsToMatch: string[]): boolean => {
+  return tagsToMatch.some((tagToMatch) =>
+    normalizedTags.some((tag) => tag === tagToMatch.toLowerCase()),
+  );
+};
+
+const hasUncertainDietTag = (
+  normalizedTags: string[],
+  dietTagRoots: string[],
+): boolean => {
+  return normalizedTags.some((tag) => {
+    const isRelatedToDiet = dietTagRoots.some((root) => tag.includes(root.toLowerCase()));
+    const isUncertain = tag.includes('unknown') || tag.includes('maybe');
+    return isRelatedToDiet && isUncertain;
+  });
 };
 
 const hasFreeAllergenTagMatch = (
