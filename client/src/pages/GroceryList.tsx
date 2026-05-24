@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { ProgressCard } from '../components/common/ProgressCard';
+import { PageHeader } from '@/components/common/PageHeader';
 
 export const GroceryList = () => {
   const { groups, loading, error, toggleChecked, removeItem, removeBoughtItems, addItem } = useGroceryList();
@@ -44,11 +45,12 @@ export const GroceryList = () => {
   }, [groups]);
 
   return (
-    <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem' }}>
-      <Box sx={{ mb: '2rem' }}>
-        <Typography variant="h4" fontWeight="bold">Grocery List</Typography>
-        <Typography variant="subtitle1" color="text.secondary">Smart shopping made easy</Typography>
-      </Box>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: '3rem' }}>
+      <PageHeader 
+        title="Grocery List" 
+        subtitle="Smart shopping made easy"
+      />
+      <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem', mt: '-2rem' }}>
 
       {error && <Alert severity="error" sx={{ mb: '1.5rem' }}>{error}</Alert>}
 
@@ -129,6 +131,7 @@ export const GroceryList = () => {
         onClose={() => setDialogOpen(false)}
         onAdd={addItem}
       />
+      </Box>
     </Box>
   );
 };

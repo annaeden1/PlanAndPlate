@@ -9,7 +9,7 @@ import type { ApiMealPlan } from '@/features/mealPlanner/types/mealPlanner';
 import { mealPlannerApi } from "@/features/mealPlanner/api/mealPlanner";
 import { groceryListApi } from "@/features/groceryList/api/groceryList";
 import { getUserId } from "@/shared/utils/userId";
-
+import { PageHeader } from "@/components/common/PageHeader";
 interface MealPlannerProps { }
 
 export function MealPlanner({ }: MealPlannerProps) {
@@ -155,15 +155,11 @@ export function MealPlanner({ }: MealPlannerProps) {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>
-      <Box sx={{ maxWidth: 3000, mx: "auto", p: "1.5rem" }}>
-        <Box sx={{ mb: "2rem" }}>
-          <Typography variant="h4" fontWeight="bold">
-            Weekly Planner
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            Your personalized weekly menu
-          </Typography>
-        </Box>
+      <PageHeader 
+        title="Weekly Planner" 
+        subtitle="Your personalized weekly menu"
+      />
+      <Box sx={{ maxWidth: 3000, mx: "auto", p: "1.5rem", mt: "-2rem" }}>
 
         <WeeklyTimeline
           currentWeek={currentWeek}
