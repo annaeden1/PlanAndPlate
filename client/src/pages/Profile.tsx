@@ -26,7 +26,7 @@ export function Profile() {
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: '3rem' }}>
       <PageHeader title="Profile" />
 
-      <Box sx={{ px: '1.5rem', mt: '-2rem', mb: '1.5rem' }}>
+      <Box sx={{ px: { xs: '1rem', sm: '1.5rem' }, mt: '-2rem', mb: '1.5rem' }}>
         <Box sx={{ maxWidth: '80rem', mx: 'auto' }}>
           <Card elevation={3} sx={{ p: '1.5rem' }}>
             <ProfileHeader username={username} email={email} />
@@ -37,7 +37,7 @@ export function Profile() {
 
       <Box
         sx={{
-          px: '1.5rem',
+          px: { xs: '1rem', sm: '1.5rem' },
           display: 'flex',
           flexDirection: 'column',
           gap: '1.5rem',
@@ -52,8 +52,18 @@ export function Profile() {
             <Typography color="error">{error}</Typography>
           </Box>
         ) : (
-          <Box sx={{ maxWidth: '28rem', mx: 'auto', width: '100%' }}>
-            <Box>
+          <Box 
+            sx={{ 
+              maxWidth: '80rem', 
+              mx: 'auto', 
+              width: '100%',
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: '2rem',
+              alignItems: 'start'
+            }}
+          >
+            <Box sx={{ minWidth: 0 }}>
               <Typography variant="h4" sx={{ mb: '0.75rem', px: '0.25rem' }}>
                 Your Preferences
               </Typography>
@@ -82,7 +92,10 @@ export function Profile() {
               </Card>
             </Box>
 
-            <Box sx={{ mt: '1.5rem' }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="h4" sx={{ mb: '0.75rem', px: '0.25rem' }}>
+                Account Settings
+              </Typography>
               <Card>
                 <ActionRow
                   icon={<LogoutIcon />}

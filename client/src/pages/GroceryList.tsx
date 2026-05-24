@@ -50,18 +50,27 @@ export const GroceryList = () => {
         title="Grocery List" 
         subtitle="Smart shopping made easy"
       />
-      <Box sx={{ maxWidth: 600, mx: 'auto', p: '1.5rem', mt: '-2rem' }}>
-
-      {error && <Alert severity="error" sx={{ mb: '1.5rem' }}>{error}</Alert>}
-
-      <ProgressCard
-        title="Shopping Progress"
-        primaryText={`${checkedItems} of ${totalItems} items`}
-        chipLabel={`${itemsToBuy} to buy`}
-        progressValue={percentage}
-      />
-
-      <Box sx={{ mb: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <Box 
+        sx={{ 
+          maxWidth: '80rem', 
+          mx: 'auto', 
+          px: { xs: '1rem', sm: '1.5rem' },
+          py: '1.5rem',
+          mt: '-2rem',
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '350px 1fr' },
+          gap: '2rem',
+          alignItems: 'start'
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
+          <ProgressCard
+            title="Shopping Progress"
+            primaryText={`${checkedItems} of ${totalItems} items`}
+            chipLabel={`${itemsToBuy} to buy`}
+            progressValue={percentage}
+          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <TextField
           fullWidth
           size="small"
@@ -100,7 +109,10 @@ export const GroceryList = () => {
           </Button>
         )}
       </Box>
+        </Box>
 
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
+          {error && <Alert severity="error">{error}</Alert>}
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: '3rem' }}>
           <CircularProgress color="primary" />
@@ -125,13 +137,14 @@ export const GroceryList = () => {
           ))}
         </Stack>
       )}
+        </Box>
+      </Box>
 
       <AddItemDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onAdd={addItem}
       />
-      </Box>
     </Box>
   );
 };

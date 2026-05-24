@@ -159,7 +159,7 @@ export function MealPlanner({ }: MealPlannerProps) {
         title="Weekly Planner" 
         subtitle="Your personalized weekly menu"
       />
-      <Box sx={{ maxWidth: 3000, mx: "auto", p: "1.5rem", mt: "-2rem" }}>
+      <Box sx={{ maxWidth: 3000, mx: "auto", px: { xs: "1rem", sm: "1.5rem" }, py: "1.5rem", mt: "-2rem" }}>
 
         <WeeklyTimeline
           currentWeek={currentWeek}
@@ -170,7 +170,7 @@ export function MealPlanner({ }: MealPlannerProps) {
           weekRange={weekRange}
         />
 
-        <Box sx={{ px: "1.5rem", py: "1.5rem" }}>
+        <Box sx={{ px: { xs: "0", sm: "1.5rem" }, py: "1.5rem" }}>
           {loading ? (
             <Typography>Loading weekly plan...</Typography>
           ) : error ? (

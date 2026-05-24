@@ -52,11 +52,26 @@ export const HomePage = () => {
         subtitle="Ready for a healthy day? 🌱"
         action={<Avatar sx={{ width: "3rem", height: "3rem", bgcolor: "primary.main", fontSize: "1.5rem" }}>👋</Avatar>}
       />
-      <Stack spacing="1.5rem" sx={{ px: "1.5rem", mt: "-2rem", maxWidth: "80rem", mx: "auto" }}>
-        <TodaysProgressCard calorieProgress={calorieProgress} />
-        <GroceryListCard groceryStatus={groceryStatus} />
-        <TodaysMeals meals={meals} onToggleMeal={toggleMeal} />
-      </Stack>
+      <Box 
+        sx={{ 
+          px: { xs: "1rem", sm: "1.5rem" }, 
+          mt: "-2rem", 
+          maxWidth: "80rem", 
+          mx: "auto",
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+          gap: "1.5rem",
+          alignItems: "start"
+        }}
+      >
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "1.5rem", minWidth: 0 }}>
+          <TodaysProgressCard calorieProgress={calorieProgress} />
+          <GroceryListCard groceryStatus={groceryStatus} />
+        </Box>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "1.5rem", minWidth: 0 }}>
+          <TodaysMeals meals={meals} onToggleMeal={toggleMeal} />
+        </Box>
+      </Box>
     </Box>
   );
 };
