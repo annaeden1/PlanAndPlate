@@ -1,8 +1,10 @@
 import type { GroceryItem } from '@/features/groceryList/types/grocery';
-import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import RemoveIcon from '@mui/icons-material/Remove';
-import { Box, Button, Checkbox, Chip, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { Checkbox, IconButton, Paper, Stack } from '@mui/material';
+import { BuyOrDoneAction } from './groceryItemCard/BuyOrDoneAction';
+import { HaveStepper } from './groceryItemCard/HaveStepper';
+import { ItemNameHeader } from './groceryItemCard/ItemNameHeader';
+import { NeedDisplay } from './groceryItemCard/NeedDisplay';
 
 interface GroceryItemCardProps {
   item: GroceryItem;
@@ -12,13 +14,16 @@ interface GroceryItemCardProps {
   onToggle: (name: string) => void;
 }
 
-export const GroceryItemCard = ({ item, onDelete, onUpdateInventory, onDone, onToggle }: GroceryItemCardProps) => {
+export const GroceryItemCard = ({
+  item,
+  onDelete,
+  onUpdateInventory,
+  onDone,
+  onToggle,
+}: GroceryItemCardProps) => {
   const isInStock = item.inventoryQuantity >= item.quantity;
   const isDone = isInStock || item.checked;
   const buyAmount = Math.max(0, item.quantity - item.inventoryQuantity);
-
-  const formatQty = (n: number) =>
-    Number.isInteger(n) ? String(n) : n.toFixed(1);
 
   return (
     <Paper
@@ -43,115 +48,25 @@ export const GroceryItemCard = ({ item, onDelete, onUpdateInventory, onDone, onT
         }}
       />
 
-      {/* Item info */}
       <Stack flexGrow={1} spacing="0.5rem">
-        <Stack direction="row" alignItems="center" spacing="0.5rem" flexWrap="wrap">
-          <Typography
-            variant="body1"
-            fontWeight={600}
-            sx={{
-              textTransform: 'capitalize',
-              textDecoration: isDone ? 'line-through' : 'none',
-              color: isDone ? 'text.secondary' : 'text.primary',
-            }}
-          >
-            {item.name}
-          </Typography>
-          {isDone && (
-            <Chip
-              label={isInStock ? 'In Stock' : 'Done'}
-              size="small"
-              icon={<span style={{ fontSize: '0.75rem', marginLeft: '6px' }}>✓</span>}
-              sx={{
-                backgroundColor: 'rgba(62, 180, 137, 0.12)',
-                color: 'success.main',
-                fontWeight: 600,
-                fontSize: '0.7rem',
-                height: '20px',
-                '& .MuiChip-icon': { color: 'success.main' },
-              }}
-            />
-          )}
-        </Stack>
+        <ItemNameHeader name={item.name} isDone={isDone} isInStock={isInStock} />
 
-        {/* Need / Have row */}
         <Stack direction="row" alignItems="flex-end" spacing="1.5rem">
-          {/* Need */}
-          <Box>
-            <Typography variant="caption" color="text.secondary" fontWeight={500}>
-              Need
-            </Typography>
-            <Typography sx={{ pt: '0.1rem' }} variant="body2" fontWeight={600}>
-              {formatQty(item.quantity)} {item.unit}
-            </Typography>
-          </Box>
-
-          {/* Have stepper */}
-          <Box>
-            <Typography variant="caption" color="text.secondary" fontWeight={500}>
-              Have
-            </Typography>
-            <Stack direction="row" alignItems="center" spacing="0.25rem" sx={{ pt: '0.1rem' }}>
-              <IconButton
-                size="small"
-                onClick={() => onUpdateInventory(item.name, item.inventoryQuantity - 1)}
-                disabled={item.inventoryQuantity === 0}
-                sx={{ p: '2px' }}
-              >
-                <RemoveIcon sx={{ fontSize: '0.9rem' }} />
-              </IconButton>
-              <Typography variant="body2" fontWeight={600} sx={{ minWidth: '2.5rem', textAlign: 'center' }}>
-                {formatQty(item.inventoryQuantity)} {item.unit}
-              </Typography>
-              <IconButton
-                size="small"
-                onClick={() => onUpdateInventory(item.name, item.inventoryQuantity + 1)}
-                sx={{ p: '2px' }}
-              >
-                <AddIcon sx={{ fontSize: '0.9rem' }} />
-              </IconButton>
-            </Stack>
-          </Box>
-
-          {/* Buy badge (not in stock) OR Done button (in stock) */}
-          {!isDone && buyAmount > 0 && (
-            <Chip
-              label={`Buy ${formatQty(buyAmount)} ${item.unit}`}
-              size="small"
-              sx={{
-                backgroundColor: 'rgba(255, 143, 90, 0.12)',
-                color: 'warning.main',
-                fontWeight: 600,
-                fontSize: '0.7rem',
-                height: '22px',
-                alignSelf: 'flex-end',
-                mb: '2px',
-              }}
-            />
-          )}
-          {isDone && (
-            <Button
-              size="small"
-              variant="outlined"
-              color="success"
-              onClick={() => onDone(item.name)}
-              sx={{
-                alignSelf: 'flex-end',
-                mb: '2px',
-                fontSize: '0.7rem',
-                height: '22px',
-                px: '0.5rem',
-                minWidth: 'unset',
-                textTransform: 'none',
-              }}
-            >
-              Done
-            </Button>
-          )}
+          <NeedDisplay quantity={item.quantity} unit={item.unit} />
+          <HaveStepper
+            inventoryQuantity={item.inventoryQuantity}
+            unit={item.unit}
+            onUpdate={(next) => onUpdateInventory(item.name, next)}
+          />
+          <BuyOrDoneAction
+            isDone={isDone}
+            buyAmount={buyAmount}
+            unit={item.unit}
+            onDone={() => onDone(item.name)}
+          />
         </Stack>
       </Stack>
 
-      {/* Delete */}
       <IconButton
         size="small"
         onClick={() => onDelete(item.name)}
