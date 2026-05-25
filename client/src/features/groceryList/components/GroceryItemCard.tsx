@@ -1,26 +1,30 @@
 import type { GroceryItem } from '@/features/groceryList/types/grocery';
 import CloseIcon from '@mui/icons-material/Close';
-import {
-  Box,
-  Checkbox,
-  Chip,
-  IconButton,
-  Paper,
-  Stack,
-  Typography,
-} from '@mui/material';
+import { Checkbox, IconButton, Paper, Stack } from '@mui/material';
+import { BuyOrDoneAction } from './groceryItemCard/BuyOrDoneAction';
+import { HaveStepper } from './groceryItemCard/HaveStepper';
+import { ItemNameHeader } from './groceryItemCard/ItemNameHeader';
+import { NeedDisplay } from './groceryItemCard/NeedDisplay';
 
 interface GroceryItemCardProps {
   item: GroceryItem;
-  onToggleCheck: (name: string) => void;
   onDelete: (name: string) => void;
+  onUpdateInventory: (name: string, quantity: number) => void;
+  onDone: (name: string) => void;
+  onToggle: (name: string) => void;
 }
 
 export const GroceryItemCard = ({
   item,
-  onToggleCheck,
   onDelete,
+  onUpdateInventory,
+  onDone,
+  onToggle,
 }: GroceryItemCardProps) => {
+  const isInStock = item.inventoryQuantity >= item.quantity;
+  const isDone = isInStock || item.checked;
+  const buyAmount = Math.max(0, item.quantity - item.inventoryQuantity);
+
   return (
     <Paper
       variant="outlined"
@@ -29,59 +33,56 @@ export const GroceryItemCard = ({
         borderRadius: '1rem',
         display: 'flex',
         alignItems: 'center',
-        transition: 'all 0.2s',
-        backgroundColor: item.checked ? 'action.hover' : 'background.paper',
-        borderColor: item.checked ? 'success.main' : 'divider',
-        opacity: item.checked ? 0.7 : 1,
+        gap: '0.75rem',
+        transition: 'border-color 0.2s',
+        borderColor: isDone ? 'success.main' : 'divider',
+        backgroundColor: 'background.paper',
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', mr: '1rem' }}>
-        <Checkbox
-          checked={item.checked}
-          onChange={() => onToggleCheck(item.name)}
-          color="success"
-          sx={{ p: 0 }}
-        />
-      </Box>
+      <Checkbox
+        checked={isDone}
+        onChange={() => onToggle(item.name)}
+        sx={{
+          color: 'divider',
+          '&.Mui-checked': { color: 'primary.main' },
+        }}
+      />
 
-      <Stack direction="column" flexGrow={1} spacing="0.25rem">
-        <Typography
-          variant="body1"
-          fontWeight={500}
-          sx={{
-            textDecoration: item.checked ? 'line-through' : 'none',
-            color: item.checked ? 'text.secondary' : 'text.primary',
-          }}
-        >
-          {item.name}
-        </Typography>
-        <Stack direction="row" alignItems="center" spacing="0.75rem">
-          <Typography variant="body2" color="text.secondary">
-            Need: {item.quantity} {item.unit}
-          </Typography>
-          <Chip
-            label={
-              item.recipeCount !== 0
-                ? `Appears in ${item.recipeCount} recipe${item.recipeCount === 1 ? '' : 's'}`
-                : 'Manually Added'
-            }
-            size="small"
-            color="primary"
-            variant="outlined"
-            sx={{ height: '1.75rem', fontSize: '0.75rem' }}
+      <Stack flexGrow={1} spacing="0.5rem">
+        <ItemNameHeader
+          name={item.name}
+          isDone={isDone}
+          isInStock={isInStock}
+          recipeCount={item.recipeCount}
+        />
+
+        <Stack direction="row" alignItems="flex-end" spacing="1.5rem">
+          <NeedDisplay quantity={item.quantity} unit={item.unit} />
+          <HaveStepper
+            inventoryQuantity={item.inventoryQuantity}
+            unit={item.unit}
+            onUpdate={(next) => onUpdateInventory(item.name, next)}
+          />
+          <BuyOrDoneAction
+            isDone={isDone}
+            buyAmount={buyAmount}
+            unit={item.unit}
+            onDone={() => onDone(item.name)}
           />
         </Stack>
       </Stack>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', ml: '1rem' }}>
-        <IconButton
-          size="small"
-          onClick={() => onDelete(item.name)}
-          sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Box>
+      <IconButton
+        size="small"
+        onClick={() => onDelete(item.name)}
+        sx={{
+          alignSelf: 'flex-start',
+          color: 'text.secondary',
+          '&:hover': { color: 'error.main' },
+        }}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
     </Paper>
   );
 };

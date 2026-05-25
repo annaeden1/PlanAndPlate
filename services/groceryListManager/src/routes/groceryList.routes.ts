@@ -171,6 +171,45 @@ router.post('/users/:userId/recipes/:recipeId/ingredients', GroceryController.im
  *         description: Updated grocery list items
  */
 router.patch('/users/:userId/products/:productName/toggle', GroceryController.toggleItem);
+
+/**
+ * @swagger
+ * /grocerylist/users/{userId}/products/{productName}/inventory:
+ *   patch:
+ *     summary: Update the inventory (have) quantity of a specific product
+ *     tags: [GroceryList]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: productName
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [inventoryQuantity]
+ *             properties:
+ *               inventoryQuantity:
+ *                 type: number
+ *                 minimum: 0
+ *                 example: 2
+ *     responses:
+ *       200:
+ *         description: Updated grocery list grouped by category
+ *       400:
+ *         description: Invalid or missing inventoryQuantity
+ *       404:
+ *         description: Product or grocery list not found
+ */
+router.patch('/users/:userId/products/:productName/inventory', GroceryController.updateInventoryQuantity);
 router.delete('/users/:userId/products/bought', GroceryController.removeBoughtItems);
 router.delete('/users/:userId/products/:productName', GroceryController.removeProduct);
 

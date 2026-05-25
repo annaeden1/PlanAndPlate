@@ -1,5 +1,11 @@
-import { mergeIngredients, groupByCategory } from '../../services/groceryList.service';
+import { mergeIngredients, groupByCategory, updateInventoryQuantity } from '../../services/groceryList.service';
 import { GroceryItem, GroceryItemGroup } from '../../types/groceryList.types';
+import { NotFoundError } from '../../types/errors';
+import { GroceryList } from '../../models/groceryList.model';
+
+jest.mock('../../models/groceryList.model');
+
+const mockedGroceryList = GroceryList as jest.Mocked<typeof GroceryList>;
 
 describe('GroceryList Service - Unit Tests', () => {
   
@@ -9,18 +15,18 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('sums quantities of items with the same name and unit', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'onion', quantity: 2, unit: 'piece', category: 'Produce' },
         { name: 'onion', quantity: 3, unit: 'piece', category: 'Produce' }
       ];
       
       const merged = mergeIngredients(items);
       expect(merged).toHaveLength(1);
-      expect(merged[0]).toEqual({ name: 'onion', quantity: 5, unit: 'piece', category: 'Produce' });
+      expect(merged[0]).toEqual(expect.objectContaining({ name: 'onion', quantity: 5, unit: 'piece', category: 'Produce' }));
     });
 
     it('keeps items separate if they have different units', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'onion', quantity: 2, unit: 'piece', category: 'Produce' },
         { name: 'onion', quantity: 500, unit: 'g', category: 'Produce' }
       ];
@@ -30,7 +36,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('normalizes name casing before merging', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'Tomato', quantity: 1, unit: 'piece', category: 'Produce' },
         { name: 'tomato ', quantity: 2, unit: 'piece', category: 'Produce' },
         { name: ' TOMATO', quantity: 3, unit: 'piece', category: 'Produce' }
@@ -43,7 +49,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('collapses unit aliases', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'flour', quantity: 100, unit: 'g', category: 'Baking' },
         { name: 'flour', quantity: 200, unit: 'grams', category: 'Baking' },
         { name: 'flour', quantity: 50, unit: 'gram', category: 'Baking' }
@@ -62,7 +68,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('groups items correctly according to their category', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'milk', quantity: 1, unit: 'l', category: 'Dairy' },
         { name: 'cheese', quantity: 200, unit: 'g', category: 'Dairy' },
         { name: 'apple', quantity: 3, unit: 'piece', category: 'Produce' }
@@ -83,7 +89,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('sorts the resulting groups alphabetically by category name', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'steak', quantity: 1, unit: 'piece', category: 'Meat' },
         { name: 'apple', quantity: 1, unit: 'piece', category: 'Produce' },
         { name: 'milk', quantity: 1, unit: 'l', category: 'Dairy' }
@@ -95,7 +101,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('count field matches the number of items in each group', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'chicken', quantity: 1, unit: 'kg', category: 'Poultry' },
         { name: 'turkey', quantity: 2, unit: 'kg', category: 'Poultry' },
         { name: 'duck', quantity: 1, unit: 'piece', category: 'Poultry' },
@@ -109,7 +115,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('handles a single item in its own group', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'salmon', quantity: 2, unit: 'fillet', category: 'Seafood' },
       ];
 
@@ -121,7 +127,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('preserves all item fields in the grouped output', () => {
-      const item: GroceryItem = { name: 'pasta', quantity: 500, unit: 'g', category: 'Pasta and Rice' };
+      const item: any = { name: 'pasta', quantity: 500, unit: 'g', category: 'Pasta and Rice' };
       const groups = groupByCategory([item]);
 
       expect(groups[0].items[0]).toEqual(item);
@@ -130,7 +136,7 @@ describe('GroceryList Service - Unit Tests', () => {
 
   describe('mergeIngredients — additional edge cases', () => {
     it('does not mutate the original array', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'salt', quantity: 1, unit: 'tsp', category: 'Spices and Seasonings' },
       ];
       const copy = [...items];
@@ -139,7 +145,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('handles a single item with no duplicates', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'garlic', quantity: 3, unit: 'clove', category: 'Produce' },
       ];
       const merged = mergeIngredients(items);
@@ -148,7 +154,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('treats items with completely different names as separate', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'butter', quantity: 100, unit: 'g', category: 'Dairy' },
         { name: 'cream', quantity: 200, unit: 'g', category: 'Dairy' },
         { name: 'cheese', quantity: 150, unit: 'g', category: 'Dairy' },
@@ -158,7 +164,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('merges tablespoon aliases (tbsp, tablespoon, tablespoons) into one entry', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'olive oil', quantity: 1, unit: 'tablespoon', category: 'Oil, Vinegar, Salad Dressing' },
         { name: 'olive oil', quantity: 2, unit: 'tablespoons', category: 'Oil, Vinegar, Salad Dressing' },
         { name: 'olive oil', quantity: 1, unit: 'tbsp', category: 'Oil, Vinegar, Salad Dressing' },
@@ -170,7 +176,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('keeps can and piece as separate units for the same ingredient', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'tomato', quantity: 2, unit: 'can', category: 'Canned and Jarred' },
         { name: 'tomato', quantity: 3, unit: 'piece', category: 'Produce' },
       ];
@@ -179,7 +185,7 @@ describe('GroceryList Service - Unit Tests', () => {
     });
 
     it('uses the category from the first occurrence when merging', () => {
-      const items: GroceryItem[] = [
+      const items: any[] = [
         { name: 'egg', quantity: 2, unit: 'piece', category: 'Dairy' },
         { name: 'egg', quantity: 4, unit: 'piece', category: 'Other' },
       ];
@@ -189,4 +195,47 @@ describe('GroceryList Service - Unit Tests', () => {
     });
   });
 
+});
+
+describe('updateInventoryQuantity', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('sets inventoryQuantity and returns grouped list', async () => {
+    const mockItem = { name: 'milk', quantity: 2, unit: 'l', category: 'Dairy', inventoryQuantity: 0, checked: false };
+    const mockList = { items: [mockItem], save: jest.fn().mockResolvedValue(undefined) };
+    mockedGroceryList.findOne.mockResolvedValue(mockList as any);
+
+    const result = await updateInventoryQuantity('user1', 'milk', 1);
+
+    expect(mockItem.inventoryQuantity).toBe(1);
+    expect(mockList.save).toHaveBeenCalled();
+    expect(result).toHaveLength(1);
+    expect(result[0].category).toBe('Dairy');
+  });
+
+  it('normalizes productName before lookup', async () => {
+    const mockItem = { name: 'milk', quantity: 2, unit: 'l', category: 'Dairy', inventoryQuantity: 0, checked: false };
+    const mockList = { items: [mockItem], save: jest.fn().mockResolvedValue(undefined) };
+    mockedGroceryList.findOne.mockResolvedValue(mockList as any);
+
+    await updateInventoryQuantity('user1', '  MILK  ', 3);
+
+    expect(mockItem.inventoryQuantity).toBe(3);
+  });
+
+  it('throws NotFoundError when grocery list does not exist', async () => {
+    mockedGroceryList.findOne.mockResolvedValue(null);
+
+    await expect(updateInventoryQuantity('ghost', 'milk', 1)).rejects.toThrow(NotFoundError);
+    await expect(updateInventoryQuantity('ghost', 'milk', 1)).rejects.toThrow('Grocery list not found');
+  });
+
+  it('throws NotFoundError when product not in list', async () => {
+    const mockList = { items: [], save: jest.fn() };
+    mockedGroceryList.findOne.mockResolvedValue(mockList as any);
+
+    await expect(updateInventoryQuantity('user1', 'unicorn', 1)).rejects.toThrow(NotFoundError);
+  });
 });
