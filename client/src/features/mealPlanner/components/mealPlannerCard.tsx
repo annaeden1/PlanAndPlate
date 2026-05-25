@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -7,6 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { MealPlanItem } from "@/features/mealPlanner/types/mealPlanner";
+import platePicturePlaceholder from "@/assets/plate pic.jpg";
 
 interface PlannedMealCardProps {
   meal: MealPlanItem;
@@ -15,6 +17,11 @@ interface PlannedMealCardProps {
 }
 
 export function PlannedMealCard({ meal, onViewRecipe, onAddToList }: PlannedMealCardProps) {
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
   return (
     <Card
       sx={{
@@ -26,8 +33,9 @@ export function PlannedMealCard({ meal, onViewRecipe, onAddToList }: PlannedMeal
       <Box sx={{ position: "relative", height: "12rem" }}>
         <Box
           component="img"
-          src={meal.image}
+          src={!meal.image || imageError ? platePicturePlaceholder : meal.image}
           alt={meal.name}
+          onError={handleImageError}
           sx={{ width: "100%", height: "100%", objectFit: "cover" }}
         />
         <Chip

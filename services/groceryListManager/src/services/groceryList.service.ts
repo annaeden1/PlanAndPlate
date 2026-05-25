@@ -30,7 +30,9 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
     const key = `${normalizedName}::${item.unit}`;
 
     if (map.has(key)) {
-      map.get(key)!.quantity += item.quantity;
+      const existing = map.get(key)!;
+      existing.quantity += item.quantity;
+      existing.recipeCount = (existing.recipeCount ?? 0) + (item.recipeCount ?? 0);
     } else {
       map.set(key, {
         name: normalizedName,
@@ -39,6 +41,7 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
         category: item.category,
         inventoryQuantity: item.inventoryQuantity ?? 0,
         checked: item.checked ?? false,
+        recipeCount: item.recipeCount ?? 0,
       });
     }
   }
@@ -64,6 +67,7 @@ export const importFromRecipeDB = async (
     category: normalizeAisle(ing.aisle ?? ""),
     inventoryQuantity: 0,
     checked: false,
+    recipeCount: 1,
   }));
 };
 

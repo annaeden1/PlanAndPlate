@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Box, Card, Typography, Chip } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import type { Meal } from "@/features/home/types/home";
+import platePicturePlaceholder from "@/assets/plate pic.jpg";
 
 interface MealCardProps {
   meal: Meal;
@@ -9,6 +11,12 @@ interface MealCardProps {
 }
 
 export const MealCard = ({ meal, onToggle }: MealCardProps) => {
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
   return (
     <Card
       onClick={onToggle}
@@ -27,8 +35,9 @@ export const MealCard = ({ meal, onToggle }: MealCardProps) => {
     >
       <Box
         component="img"
-        src={meal.image}
+        src={!meal.image || imageError ? platePicturePlaceholder : meal.image}
         alt={meal.name}
+        onError={handleImageError}
         sx={{
           width: "4rem",
           height: "4rem",
@@ -73,3 +82,4 @@ export const MealCard = ({ meal, onToggle }: MealCardProps) => {
     </Card>
   );
 };
+

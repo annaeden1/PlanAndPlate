@@ -4,9 +4,10 @@ interface ItemNameHeaderProps {
   name: string;
   isDone: boolean;
   isInStock: boolean;
+  recipeCount: number;
 }
 
-export const ItemNameHeader = ({ name, isDone, isInStock }: ItemNameHeaderProps) => (
+export const ItemNameHeader = ({ name, isDone, isInStock, recipeCount }: ItemNameHeaderProps) => (
   <Stack direction="row" alignItems="center" spacing="0.5rem" flexWrap="wrap">
     <Typography
       variant="body1"
@@ -19,6 +20,19 @@ export const ItemNameHeader = ({ name, isDone, isInStock }: ItemNameHeaderProps)
     >
       {name}
     </Typography>
+
+    <Chip
+      label={
+        recipeCount !== 0
+          ? `Appears in ${recipeCount} recipe${recipeCount === 1 ? '' : 's'}`
+          : 'Manually Added'
+      }
+      size="small"
+      color="primary"
+      variant="outlined"
+      sx={{ height: '1.5rem', fontSize: '0.7rem' }}
+    />
+
     {isDone && (
       <Chip
         label={isInStock ? 'In Stock' : 'Done'}

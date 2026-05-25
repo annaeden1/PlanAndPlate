@@ -18,4 +18,7 @@ export const mealPlannerApi = {
 
   getRecipeDetails: (recipeId: string, token: string | null) =>
     api.get<ApiRecipe>(`/recipes/${recipeId}`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.data),
+
+  toggleRecipeLike: (recipeId: string, token: string | null) =>
+    api.patch<{ isLiked: boolean }>(`/recipes/${recipeId}/like`, {}, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.data),
 };

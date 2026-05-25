@@ -133,7 +133,7 @@ mealPlannerRouter.get(
  *         required: true
  *     responses:
  *       200:
- *         description: OK - Recipe details retrieved successfully
+ *         description: OK - Recipe details retrieved successfully (includes isLiked status)
  *       400:
  *         description: Bad Request - Invalid recipe ID
  *       404:
@@ -146,3 +146,31 @@ mealPlannerRouter.get(
   authMiddleware,
   MealPlannerController.getRecipeDetails,
 );
+
+/**
+ * @swagger
+ * /recipes/{recipeId}/like:
+ *   patch:
+ *     summary: Toggle the like status of a recipe for the logged-in user
+ *     tags: [MealPlanner]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK - Like status toggled
+ *       400:
+ *         description: Invalid recipe ID
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Failed to toggle recipe like
+ */
+mealPlannerRouter.patch(
+  "/recipes/:recipeId/like",
+  authMiddleware,
+  MealPlannerController.toggleRecipeLike,
+);

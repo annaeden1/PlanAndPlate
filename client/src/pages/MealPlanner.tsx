@@ -22,8 +22,8 @@ export function MealPlanner({ }: MealPlannerProps) {
   const [cachedWeekKey, setCachedWeekKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mealImages, setMealImages] = useState<{ [key: string]: string }>({});
-  const [loadingImages, setLoadingImages] = useState(false);
+  const spoonacularImageUrl = (recipeId: string | number, size = '312x231') =>
+    `https://spoonacular.com/recipeImages/${recipeId}-${size}.jpg`;
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -72,29 +72,30 @@ export function MealPlanner({ }: MealPlannerProps) {
       (day) => formatDayKey(day.date) === selectedDay,
     );
     if (dayRecord) {
-      selectedMeals.push(
+      const candidates = [
         {
           id: Number(dayRecord.breakfast.recipeId),
           name: dayRecord.breakfast.name,
           type: "Breakfast",
           calories: dayRecord.breakfast.calories,
-          image: mealImages[dayRecord.breakfast.recipeId] || "https://via.placeholder.com/400x300?text=Breakfast",
+          image: spoonacularImageUrl(dayRecord.breakfast.recipeId),
         },
         {
           id: Number(dayRecord.lunch.recipeId),
           name: dayRecord.lunch.name,
           type: "Lunch",
           calories: dayRecord.lunch.calories,
-          image: mealImages[dayRecord.lunch.recipeId] || "https://via.placeholder.com/400x300?text=Lunch",
+          image: spoonacularImageUrl(dayRecord.lunch.recipeId),
         },
         {
           id: Number(dayRecord.dinner.recipeId),
           name: dayRecord.dinner.name,
           type: "Dinner",
           calories: dayRecord.dinner.calories,
-          image: mealImages[dayRecord.dinner.recipeId] || "https://via.placeholder.com/400x300?text=Dinner",
+          image: spoonacularImageUrl(dayRecord.dinner.recipeId),
         },
-      );
+      ];
+      selectedMeals.push(...candidates.filter((m) => m.id && m.name));
     }
   }
 
@@ -150,45 +151,7 @@ export function MealPlanner({ }: MealPlannerProps) {
     fetchWeeklyPlan();
   }, [currentWeek]);
 
-  useEffect(() => {
-    const fetchMealImages = async () => {
-      if (!mealPlan) return;
 
-      setLoadingImages(true);
-      const dayRecord = mealPlan.days.find(
-        (day) => formatDayKey(day.date) === selectedDay,
-      );
-      if (!dayRecord) {
-        setLoadingImages(false);
-        return;
-      }
-
-      const meals = [dayRecord.breakfast, dayRecord.lunch, dayRecord.dinner];
-      const imagePromises = meals.map(async (meal) => {
-        if (meal.recipeId && meal.recipeId !== "") {
-          try {
-            const token = localStorage.getItem('access-token');
-            const recipe = await mealPlannerApi.getRecipeDetails(meal.recipeId.toString(), token);
-            return { id: meal.recipeId, image: recipe.image || "https://via.placeholder.com/400x300?text=No+Image" };
-          } catch (err) {
-            console.error('Error fetching image for meal', meal.recipeId, err);
-            return { id: meal.recipeId, image: "https://via.placeholder.com/400x300?text=No+Image" };
-          }
-        }
-        return { id: meal.recipeId, image: "https://via.placeholder.com/400x300?text=No+Recipe" };
-      });
-
-      const images = await Promise.all(imagePromises);
-      const imageMap: { [key: string]: string } = {};
-      images.forEach(img => {
-        imageMap[img.id] = img.image;
-      });
-      setMealImages(imageMap);
-      setLoadingImages(false);
-    };
-
-    fetchMealImages();
-  }, [mealPlan, selectedDay]);
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>
@@ -212,7 +175,7 @@ export function MealPlanner({ }: MealPlannerProps) {
         />
 
         <Box sx={{ px: "1.5rem", py: "1.5rem" }}>
-          {loading || loadingImages ? (
+          {loading ? (
             <Typography>Loading weekly plan...</Typography>
           ) : error ? (
             <Typography color="error">{error}</Typography>
@@ -235,7 +198,7 @@ export function MealPlanner({ }: MealPlannerProps) {
                   key={`${selectedDay}-${meal.type}`}
                   meal={meal}
                   onViewRecipe={(meal) =>
-                    navigate("/recipe", { state: { recipe: meal } })
+                    navigate(`/recipe/${meal.id}`)
                   }
                   onAddToList={handleAddToList}
                 />

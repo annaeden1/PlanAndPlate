@@ -49,7 +49,12 @@ export const GroceryItemCard = ({
       />
 
       <Stack flexGrow={1} spacing="0.5rem">
-        <ItemNameHeader name={item.name} isDone={isDone} isInStock={isInStock} />
+        <ItemNameHeader
+          name={item.name}
+          isDone={isDone}
+          isInStock={isInStock}
+          recipeCount={item.recipeCount}
+        />
 
         <Stack direction="row" alignItems="flex-end" spacing="1.5rem">
           <NeedDisplay quantity={item.quantity} unit={item.unit} />

@@ -31,7 +31,7 @@ export interface IRecipe {
 }
 
 const recipeSchema = new mongoose.Schema({
-  originRecipeId: { type: String, required: true }, // ID from Spoonacular or internal
+  originRecipeId: { type: String, required: true, unique: true }, // ID from Spoonacular or internal
   name: { type: String, required: true },
   image: { type: String },
   calories: { type: Number },
@@ -41,7 +41,6 @@ const recipeSchema = new mongoose.Schema({
   servings: { type: Number },
   readyInMinutes: { type: Number },
   diets: [{ type: String }],
-  isLiked: { type: Boolean, default: false },
   instructions: {
     steps: [{ type: String }],
     ingredients: [{

@@ -6,14 +6,14 @@
     "install-all": "npm install --prefix client && npm install --prefix services/barcode && npm install --prefix services/groceryListManager && npm install --prefix services/mealPlanner && npm install --prefix services/userManagement",
     "dev": "npx concurrently --prefix-colors \"auto\" --names \"CLIENT,BARCODE,GROCERY,MEAL,USER\" \"npm run dev --prefix client\" \"npm run dev --prefix services/barcode\" \"npm run dev --prefix services/groceryListManager\" \"npm run dev --prefix services/mealPlanner\" \"npm run dev --prefix services/userManagement\"",
     "start-all": "npm run dev",
-    "seed-mock": "ts-node scripts/seedMockData.ts"
+    "seed-mock": "ts-node --transpile-only --require ./scripts/patchMongoose.js scripts/seedMockData.ts"
   },
   "devDependencies": {
     "@types/dotenv": "^6.1.1",
     "@types/node": "^25.6.0",
     "concurrently": "^9.1.2",
     "dotenv": "^17.4.2",
-    "mongoose": "^9.4.1",
+    "mongoose": "^8.19.3",
     "ts-node": "^10.9.2"
   }
 }
