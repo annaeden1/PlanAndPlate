@@ -13,8 +13,9 @@ export const NavItem = ({ item, isActive, onClick }: NavItemProps) => {
   return (
     <Button
       onClick={() => onClick(item.path)}
-      startIcon={<Icon />}
       sx={{
+        minWidth: { xs: 'auto', md: '64px' },
+        p: { xs: '0.5rem', md: '0.5rem 1rem' },
         textTransform: 'none',
         fontWeight: 500,
         color: isActive ? 'primary.main' : 'text.secondary',
@@ -25,6 +26,7 @@ export const NavItem = ({ item, isActive, onClick }: NavItemProps) => {
         },
       }}
     >
+      <Icon sx={{ mr: { xs: 0, md: 1 } }} />
       <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
         {item.label}
       </Box>
