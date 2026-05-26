@@ -1,7 +1,17 @@
 import { groceryListApi } from '@/features/groceryList/api/groceryList';
-import type { GroceryItem, GroceryItemGroup } from '@/features/groceryList/types/grocery';
+import type {
+  GroceryItem,
+  GroceryItemGroup,
+} from '@/features/groceryList/types/grocery';
 import type { ReactNode } from 'react';
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { getErrorMessage } from '../shared/utils/errorMessage';
 import { getUserId } from '../shared/utils/userId';
 
@@ -14,7 +24,13 @@ interface GroceryListState {
 
 interface GroceryListActions {
   refresh: () => Promise<void>;
-  addItem: (item: { name: string; quantity: number; unit: string; aisle?: string }) => Promise<void>;
+  addItem: (item: {
+    name: string;
+    quantity: number;
+    unit: string;
+    aisle?: string;
+  }) => Promise<void>;
+  importRecipe: (recipeId: string, mealPlanId?: string) => Promise<void>;
   removeItem: (productName: string) => Promise<void>;
   removeBoughtItems: () => Promise<void>;
   clearList: () => Promise<void>;
@@ -22,7 +38,9 @@ interface GroceryListActions {
   toggleChecked: (productName: string) => void;
 }
 
-const GroceryListContext = createContext<(GroceryListState & GroceryListActions) | null>(null);
+const GroceryListContext = createContext<
+  (GroceryListState & GroceryListActions) | null
+>(null);
 
 export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
   const userId = getUserId() ?? '';
@@ -48,7 +66,12 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
   }, [refresh]);
 
   const addItem = useCallback(
-    async (item: { name: string; quantity: number; unit: string; aisle?: string }) => {
+    async (item: {
+      name: string;
+      quantity: number;
+      unit: string;
+      aisle?: string;
+    }) => {
       setError(null);
       try {
         const data = await groceryListApi.addProduct(userId, item);
@@ -83,12 +106,31 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [userId]);
 
+  const importRecipe = useCallback(
+    async (recipeId: string, mealPlanId?: string) => {
+      setError(null);
+      try {
+        const data = await groceryListApi.importRecipe(
+          userId,
+          recipeId,
+          mealPlanId,
+        );
+        setGroups(data);
+      } catch (err) {
+        setError(getErrorMessage(err));
+      }
+    },
+    [userId],
+  );
+
   const removeBoughtItems = useCallback(async () => {
     setError(null);
     try {
       const inStockNames = groups
         .flatMap((g) => g.items)
-        .filter((item) => item.inventoryQuantity >= item.quantity || item.checked)
+        .filter(
+          (item) => item.inventoryQuantity >= item.quantity || item.checked,
+        )
         .map((item) => item.name);
       if (inStockNames.length === 0) return;
       const data = await groceryListApi.removeBoughtItems(userId, inStockNames);
@@ -98,49 +140,78 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [groups, userId]);
 
-  const toggleChecked = useCallback((productName: string) => {
-    setGroups((prev) =>
-      prev.map((group) => ({
-        ...group,
-        items: group.items.map((item: GroceryItem) =>
-          item.name === productName ? { ...item, checked: !item.checked } : item,
-        ),
-      })),
-    );
-    groceryListApi.toggleItem(userId, productName)
-      .then(setGroups)
-      .catch(() => refresh());
-  }, [userId, refresh]);
+  const toggleChecked = useCallback(
+    (productName: string) => {
+      setGroups((prev) =>
+        prev.map((group) => ({
+          ...group,
+          items: group.items.map((item: GroceryItem) =>
+            item.name === productName
+              ? { ...item, checked: !item.checked }
+              : item,
+          ),
+        })),
+      );
+      groceryListApi
+        .toggleItem(userId, productName)
+        .then(setGroups)
+        .catch(() => refresh());
+    },
+    [userId, refresh],
+  );
 
-  const inventoryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inventoryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   useEffect(() => {
     return () => {
-      if (inventoryDebounceRef.current) clearTimeout(inventoryDebounceRef.current);
+      if (inventoryDebounceRef.current)
+        clearTimeout(inventoryDebounceRef.current);
     };
   }, []);
 
-  const updateInventoryQuantity = useCallback((productName: string, quantity: number) => {
-    const clamped = Math.max(0, quantity);
-    setGroups((prev) =>
-      prev.map((group) => ({
-        ...group,
-        items: group.items.map((item: GroceryItem) =>
-          item.name === productName ? { ...item, inventoryQuantity: clamped } : item,
-        ),
-      })),
-    );
-    if (inventoryDebounceRef.current) clearTimeout(inventoryDebounceRef.current);
-    inventoryDebounceRef.current = setTimeout(() => {
-      groceryListApi.updateInventoryQuantity(userId, productName, clamped)
-        .then(setGroups)
-        .catch(() => refresh());
-    }, 400);
-  }, [userId, refresh]);
+  const updateInventoryQuantity = useCallback(
+    (productName: string, quantity: number) => {
+      const clamped = Math.max(0, quantity);
+      setGroups((prev) =>
+        prev.map((group) => ({
+          ...group,
+          items: group.items.map((item: GroceryItem) =>
+            item.name === productName
+              ? { ...item, inventoryQuantity: clamped }
+              : item,
+          ),
+        })),
+      );
+      if (inventoryDebounceRef.current)
+        clearTimeout(inventoryDebounceRef.current);
+      inventoryDebounceRef.current = setTimeout(() => {
+        groceryListApi
+          .updateInventoryQuantity(userId, productName, clamped)
+          .then(setGroups)
+          .catch(() => refresh());
+      }, 400);
+    },
+    [userId, refresh],
+  );
 
   return (
     <GroceryListContext.Provider
-      value={{ groups, loading, error, userId, refresh, addItem, removeItem, removeBoughtItems, clearList, updateInventoryQuantity, toggleChecked }}
+      value={{
+        groups,
+        loading,
+        error,
+        userId,
+        refresh,
+        addItem,
+        importRecipe,
+        removeItem,
+        removeBoughtItems,
+        clearList,
+        updateInventoryQuantity,
+        toggleChecked,
+      }}
     >
       {children}
     </GroceryListContext.Provider>
@@ -149,6 +220,7 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
 
 export const useGroceryList = () => {
   const ctx = useContext(GroceryListContext);
-  if (!ctx) throw new Error('useGroceryList must be used inside GroceryListProvider');
+  if (!ctx)
+    throw new Error('useGroceryList must be used inside GroceryListProvider');
   return ctx;
 };

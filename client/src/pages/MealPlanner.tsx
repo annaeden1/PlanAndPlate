@@ -1,18 +1,21 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Box, Typography, Snackbar, Alert } from "@mui/material";
-import { WeeklyTimeline } from "@/features/mealPlanner/components/weeklyTimeLine";
-import { PlannedMealCard } from "@/features/mealPlanner/components/mealPlannerCard";
-import { MealPlannerEmptyState } from "@/features/mealPlanner/components/mealPlannerEmptyState";
-import { DAYS, type MealPlanItem } from "@/features/mealPlanner/types/mealPlanner";
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Box, Typography, Snackbar, Alert } from '@mui/material';
+import { WeeklyTimeline } from '@/features/mealPlanner/components/weeklyTimeLine';
+import { PlannedMealCard } from '@/features/mealPlanner/components/mealPlannerCard';
+import { MealPlannerEmptyState } from '@/features/mealPlanner/components/mealPlannerEmptyState';
+import {
+  DAYS,
+  type MealPlanItem,
+} from '@/features/mealPlanner/types/mealPlanner';
 import type { ApiMealPlan } from '@/features/mealPlanner/types/mealPlanner';
-import { mealPlannerApi } from "@/features/mealPlanner/api/mealPlanner";
-import { groceryListApi } from "@/features/groceryList/api/groceryList";
-import { getUserId } from "@/shared/utils/userId";
-import { PageHeader } from "@/components/common/PageHeader";
-interface MealPlannerProps { }
+import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
+import { useGroceryList } from '@/context/GroceryListContext';
+import { getUserId } from '@/shared/utils/userId';
+import { PageHeader } from '@/components/common/PageHeader';
+interface MealPlannerProps {}
 
-export function MealPlanner({ }: MealPlannerProps) {
+export function MealPlanner({}: MealPlannerProps) {
   const today = new Date();
   const todayName = DAYS[today.getDay()];
 
@@ -24,28 +27,44 @@ export function MealPlanner({ }: MealPlannerProps) {
   const [error, setError] = useState<string | null>(null);
   const spoonacularImageUrl = (recipeId: string | number, size = '312x231') =>
     `https://spoonacular.com/recipeImages/${recipeId}-${size}.jpg`;
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
     open: false,
     message: '',
     severity: 'success',
   });
   const navigate = useNavigate();
+  const { importRecipe } = useGroceryList();
 
   const formatDayKey = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", { weekday: "short" });
+    new Date(dateString).toLocaleDateString('en-US', { weekday: 'short' });
 
   const handleAddToList = async (meal: MealPlanItem) => {
     try {
-      const userId = getUserId() ?? "";
-      const mealPlanId = mealPlan?._id ?? "";
-      const recipeDetails = await mealPlannerApi.getRecipeDetails(meal.id.toString(), localStorage.getItem('access-token'));
-      const recipeIdForImport = recipeDetails._id || recipeDetails.originRecipeId || meal.id.toString();
+      const mealPlanId = mealPlan?._id ?? '';
+      const recipeDetails = await mealPlannerApi.getRecipeDetails(
+        meal.id.toString(),
+        localStorage.getItem('access-token'),
+      );
+      const recipeIdForImport =
+        recipeDetails._id || recipeDetails.originRecipeId || meal.id.toString();
 
-      await groceryListApi.importRecipe(userId, recipeIdForImport, mealPlanId);
-      setSnackbar({ open: true, message: 'Ingredients added to grocery list successfully!', severity: 'success' });
+      await importRecipe(recipeIdForImport, mealPlanId);
+      setSnackbar({
+        open: true,
+        message: 'Ingredients added to grocery list successfully!',
+        severity: 'success',
+      });
     } catch (err) {
       console.error('Error adding to grocery list:', err);
-      setSnackbar({ open: true, message: 'Failed to add ingredients to grocery list.', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: 'Failed to add ingredients to grocery list.',
+        severity: 'error',
+      });
     }
   };
 
@@ -61,7 +80,7 @@ export function MealPlanner({ }: MealPlannerProps) {
     saturday.setDate(sunday.getDate() + 6);
 
     const format = (d: Date) =>
-      d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
     return `${format(sunday)} - ${format(saturday)}`;
   })();
@@ -76,21 +95,21 @@ export function MealPlanner({ }: MealPlannerProps) {
         {
           id: Number(dayRecord.breakfast.recipeId),
           name: dayRecord.breakfast.name,
-          type: "Breakfast",
+          type: 'Breakfast',
           calories: dayRecord.breakfast.calories,
           image: spoonacularImageUrl(dayRecord.breakfast.recipeId),
         },
         {
           id: Number(dayRecord.lunch.recipeId),
           name: dayRecord.lunch.name,
-          type: "Lunch",
+          type: 'Lunch',
           calories: dayRecord.lunch.calories,
           image: spoonacularImageUrl(dayRecord.lunch.recipeId),
         },
         {
           id: Number(dayRecord.dinner.recipeId),
           name: dayRecord.dinner.name,
-          type: "Dinner",
+          type: 'Dinner',
           calories: dayRecord.dinner.calories,
           image: spoonacularImageUrl(dayRecord.dinner.recipeId),
         },
@@ -98,7 +117,6 @@ export function MealPlanner({ }: MealPlannerProps) {
       selectedMeals.push(...candidates.filter((m) => m.id && m.name));
     }
   }
-
 
   const fetchWeeklyPlan = async () => {
     setLoading(true);
@@ -108,8 +126,10 @@ export function MealPlanner({ }: MealPlannerProps) {
       const today = new Date();
       const dayIndex = DAYS.indexOf(selectedDay);
       const selectedDate = new Date(today);
-      selectedDate.setDate(today.getDate() + currentWeek * 7 + (dayIndex - today.getDay()));
-      const weekDate = selectedDate.toISOString().split("T")[0];
+      selectedDate.setDate(
+        today.getDate() + currentWeek * 7 + (dayIndex - today.getDay()),
+      );
+      const weekDate = selectedDate.toISOString().split('T')[0];
 
       // Cache key is based on currentWeek only - ensures same week doesn't re-fetch
       const weekKey = currentWeek.toString();
@@ -120,18 +140,30 @@ export function MealPlanner({ }: MealPlannerProps) {
         return;
       }
 
-      const userId = getUserId() ?? "";
+      const userId = getUserId() ?? '';
       const token = localStorage.getItem('access-token');
 
       try {
-        const data = await mealPlannerApi.getWeeklyPlan(userId, weekDate, token);
+        const data = await mealPlannerApi.getWeeklyPlan(
+          userId,
+          weekDate,
+          token,
+        );
         setMealPlan(data);
         setCachedWeekKey(weekKey);
       } catch (error: any) {
         if (error.response?.status === 404) {
-          console.log("No meal plan found, creating new weekly plan...");
-          const data = await mealPlannerApi.createWeeklyPlan(userId, weekDate, token);
-          setSnackbar({ open: true, message: 'New weekly meal plan created!', severity: 'success' });
+          console.log('No meal plan found, creating new weekly plan...');
+          const data = await mealPlannerApi.createWeeklyPlan(
+            userId,
+            weekDate,
+            token,
+          );
+          setSnackbar({
+            open: true,
+            message: 'New weekly meal plan created!',
+            severity: 'success',
+          });
           setMealPlan(data);
           setCachedWeekKey(weekKey);
         } else {
@@ -139,8 +171,8 @@ export function MealPlanner({ }: MealPlannerProps) {
         }
       }
     } catch (fetchError: any) {
-      console.error("Error loading meal plan:", fetchError);
-      setError("Accessing meal plan failed. Please try again later.");
+      console.error('Error loading meal plan:', fetchError);
+      setError('Accessing meal plan failed. Please try again later.');
       setMealPlan(null);
     } finally {
       setLoading(false);
@@ -151,16 +183,21 @@ export function MealPlanner({ }: MealPlannerProps) {
     fetchWeeklyPlan();
   }, [currentWeek]);
 
-
-
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>
-      <PageHeader 
-        title="Weekly Planner" 
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: '3rem' }}>
+      <PageHeader
+        title="Weekly Planner"
         subtitle="Your personalized weekly menu"
       />
-      <Box sx={{ maxWidth: 3000, mx: "auto", px: { xs: "1rem", sm: "1.5rem" }, py: "1.5rem", mt: "-2rem" }}>
-
+      <Box
+        sx={{
+          maxWidth: 3000,
+          mx: 'auto',
+          px: { xs: '1rem', sm: '1.5rem' },
+          py: '1.5rem',
+          mt: '-2rem',
+        }}
+      >
         <WeeklyTimeline
           currentWeek={currentWeek}
           onWeekChange={setCurrentWeek}
@@ -170,7 +207,7 @@ export function MealPlanner({ }: MealPlannerProps) {
           weekRange={weekRange}
         />
 
-        <Box sx={{ px: { xs: "0", sm: "1.5rem" }, py: "1.5rem" }}>
+        <Box sx={{ px: { xs: '0', sm: '1.5rem' }, py: '1.5rem' }}>
           {loading ? (
             <Typography>Loading weekly plan...</Typography>
           ) : error ? (
@@ -180,22 +217,20 @@ export function MealPlanner({ }: MealPlannerProps) {
           ) : (
             <Box
               sx={{
-                display: "grid",
+                display: 'grid',
                 gridTemplateColumns: {
-                  xs: "1fr",
-                  md: "repeat(2, 1fr)",
-                  lg: "repeat(3, 1fr)",
+                  xs: '1fr',
+                  md: 'repeat(2, 1fr)',
+                  lg: 'repeat(3, 1fr)',
                 },
-                gap: "1.5rem",
+                gap: '1.5rem',
               }}
             >
               {selectedMeals.map((meal) => (
                 <PlannedMealCard
                   key={`${selectedDay}-${meal.type}`}
                   meal={meal}
-                  onViewRecipe={(meal) =>
-                    navigate(`/recipe/${meal.id}`)
-                  }
+                  onViewRecipe={(meal) => navigate(`/recipe/${meal.id}`)}
                   onAddToList={handleAddToList}
                 />
               ))}
@@ -207,12 +242,12 @@ export function MealPlanner({ }: MealPlannerProps) {
         open={snackbar.open}
         autoHideDuration={4000}
         onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert
           onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
           severity={snackbar.severity}
-          sx={{ width: "100%" }}
+          sx={{ width: '100%' }}
         >
           {snackbar.message}
         </Alert>
