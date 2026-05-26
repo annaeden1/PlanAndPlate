@@ -12,9 +12,10 @@ type NutriGrade = (typeof VALID_GRADES)[number] | 'unknown';
 const normalizeNutriScore = (grade: string | undefined): NutriGrade => {
   if (!grade) return 'unknown';
   const normalized = grade.toLowerCase();
-  return VALID_GRADES.includes(normalized as any)
-    ? (normalized as NutriGrade)
-    : 'unknown';
+  if (VALID_GRADES.includes(normalized as (typeof VALID_GRADES)[number])) {
+    return normalized as NutriGrade;
+  }
+  return 'unknown';
 };
 
 interface ProductDetailsProps {
@@ -54,12 +55,7 @@ export const ProductDetails = ({
           <NutritionFactsCard nutritionFacts={mapNutritionFacts(product)} />
 
           <PreferenceMatchesCard
-            preferenceMatches={[
-              {
-                label: 'Matches your preferences',
-                match: product.matchesPreferences || false,
-              },
-            ]}
+            preferenceMatches={product.preferenceMatches || []}
           />
 
           <Box

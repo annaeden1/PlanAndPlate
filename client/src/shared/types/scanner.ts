@@ -6,7 +6,7 @@ export interface NutritionItem {
 
 export interface PreferenceMatch {
   label: string;
-  match: boolean;
+  status: 'match' | 'mismatch' | 'unknown';
 }
 
 export interface ProductData {
@@ -15,13 +15,16 @@ export interface ProductData {
   product_name?: string;
   brands?: string;
   quantity?: string;
-  matchesPreferences?: boolean;
+  preferenceMatches?: PreferenceMatch[];
   nutritionData?: {
     image_front_url?: string;
     product_name?: string;
     brands?: string;
     quantity?: string;
     ingredients_analysis_tags?: string[];
+    allergens_tags?: string[];
+    traces_tags?: string[];
+    labels_tags?: string[];
     nutriscore_grade?: 'a' | 'b' | 'c' | 'd' | 'e' | 'unknown';
     nutriments?: {
       'energy-kcal_100g'?: number;

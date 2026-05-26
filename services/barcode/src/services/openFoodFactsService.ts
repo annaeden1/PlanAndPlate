@@ -18,10 +18,13 @@ export const fetchProductByBarcode = async (
     'nutriments.salt_100g',
     'ingredients_text',
     'allergens',
+    'allergens_tags',
     'ingredients_analysis_tags',
     'traces',
+    'traces_tags',
     'categories',
     'labels',
+    'labels_tags',
     'nutriscore_grade',
   ].join(',');
 
