@@ -1,6 +1,7 @@
 import { GroceryList } from "../models/groceryList.model";
 import { Recipe } from "../models/recipe.model";
 import { Category, normalizeAisle } from "../types/categories";
+import { NotFoundError } from "../types/errors";
 import { GroceryItem, GroceryItemGroup } from "../types/groceryList.types";
 
 export const groupByCategory = (items: GroceryItem[]): GroceryItemGroup[] => {
@@ -29,7 +30,9 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
     const key = `${normalizedName}::${item.unit}`;
 
     if (map.has(key)) {
-      map.get(key)!.quantity += item.quantity;
+      const existing = map.get(key)!;
+      existing.quantity += item.quantity;
+      existing.recipeCount = (existing.recipeCount ?? 0) + (item.recipeCount ?? 0);
     } else {
       map.set(key, {
         name: normalizedName,
@@ -38,6 +41,7 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
         category: item.category,
         inventoryQuantity: item.inventoryQuantity ?? 0,
         checked: item.checked ?? false,
+        recipeCount: item.recipeCount ?? 0,
       });
     }
   }
@@ -63,6 +67,7 @@ export const importFromRecipeDB = async (
     category: normalizeAisle(ing.aisle ?? ""),
     inventoryQuantity: 0,
     checked: false,
+    recipeCount: 1,
   }));
 };
 
@@ -178,6 +183,23 @@ export const toggleItem = async (
   if (!item) throw new Error(`Product "${productName}" not found`);
 
   item.checked = !item.checked;
+  await list.save();
+  return groupByCategory(list.items);
+};
+
+export const updateInventoryQuantity = async (
+  userId: string,
+  productName: string,
+  inventoryQuantity: number,
+): Promise<GroceryItemGroup[]> => {
+  const normalizedName = productName.toLowerCase().trim();
+  const list = await GroceryList.findOne({ userId });
+  if (!list) throw new NotFoundError('Grocery list not found');
+
+  const item = list.items.find((i) => i.name === normalizedName);
+  if (!item) throw new NotFoundError(`Product "${productName}" not found`);
+
+  item.inventoryQuantity = inventoryQuantity;
   await list.save();
   return groupByCategory(list.items);
 };

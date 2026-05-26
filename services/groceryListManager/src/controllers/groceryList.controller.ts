@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import * as GroceryService from '../services/groceryList.service';
-import { GroceryItem } from '../types/groceryList.types';
 import { normalizeAisle } from '../types/categories';
+import { NotFoundError } from '../types/errors';
+import { GroceryItem } from '../types/groceryList.types';
 
 export const getAllProducts = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -66,6 +67,7 @@ export const addProduct = async (req: Request, res: Response): Promise<void> => 
       category: normalizeAisle(aisle ?? ''),
       inventoryQuantity: 0,
       checked: false,
+      recipeCount: 0,
     };
 
     const groups = await GroceryService.addProducts(userId, [newItem]);
@@ -121,6 +123,35 @@ export const toggleItem = async (req: Request, res: Response): Promise<void> => 
     res.status(200).json(groups);
   } catch (err) {
     res.status(500).json({ error: 'Failed to toggle item', details: String(err) });
+  }
+};
+
+export const updateInventoryQuantity = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { userId, productName } = req.params;
+    const { inventoryQuantity } = req.body as { inventoryQuantity: unknown };
+
+    if (typeof inventoryQuantity !== 'number' || isNaN(inventoryQuantity)) {
+      res.status(400).json({ error: 'inventoryQuantity is required and must be a number' });
+      return;
+    }
+    if (inventoryQuantity < 0) {
+      res.status(400).json({ error: 'inventoryQuantity cannot be negative' });
+      return;
+    }
+
+    const groups = await GroceryService.updateInventoryQuantity(
+      userId,
+      productName.toLowerCase().trim(),
+      inventoryQuantity,
+    );
+    res.status(200).json(groups);
+  } catch (err) {
+    if (err instanceof NotFoundError) {
+      res.status(404).json({ error: err.message });
+      return;
+    }
+    res.status(500).json({ error: 'Failed to update inventory quantity' });
   }
 };
 

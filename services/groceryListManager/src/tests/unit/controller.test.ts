@@ -3,7 +3,8 @@ import * as GroceryController from '../../controllers/groceryList.controller';
 import * as GroceryService from '../../services/groceryList.service';
 import * as CategoriesConfig from '../../types/categories';
 import { Category } from '../../types/categories';
-import { GroceryItemGroup } from '../../types/groceryList.types';
+import { GroceryItem, GroceryItemGroup } from '../../types/groceryList.types';
+import { NotFoundError } from '../../types/errors';
 
 jest.mock('../../services/groceryList.service');
 jest.mock('../../types/categories');
@@ -27,7 +28,7 @@ describe('GroceryList Controller - Unit Tests', () => {
   describe('getAllProducts', () => {
     it('returns grouped list (200)', async () => {
       const mockGroups: GroceryItemGroup[] = [
-        { category: 'Produce' as Category, count: 1, items: [{ name: 'apple', quantity: 1, unit: 'piece', category: 'Produce' as Category }] },
+        { category: 'Produce' as Category, count: 1, items: [{ name: 'apple', quantity: 1, unit: 'piece', category: 'Produce' as Category, inventoryQuantity: 0, checked: false, recipeCount: 0 }] },
       ];
       mockedService.getGroceryList.mockResolvedValue(mockGroups);
 
@@ -55,10 +56,10 @@ describe('GroceryList Controller - Unit Tests', () => {
 
   describe('searchProducts', () => {
     it('returns flat list (200) when q query is provided', async () => {
-      const mockItems = [{ name: 'apple', quantity: 1, unit: 'piece', category: 'Produce' as Category }];
+      const mockItems: GroceryItem[] = [{ name: 'apple', quantity: 1, unit: 'piece', category: 'Produce' as Category, inventoryQuantity: 0, checked: false, recipeCount: 0 }];
       mockedService.searchProducts.mockResolvedValue(mockItems);
 
-      const req = { params: { userId: 'user1' }, query: { q: 'app' } } as unknown as Request;
+      const req = { params: { userId: 'user1' }, query: { name: 'app' } } as unknown as Request;
       const res = mockRes();
 
       await GroceryController.searchProducts(req, res);
@@ -80,7 +81,7 @@ describe('GroceryList Controller - Unit Tests', () => {
     it('returns 500 when service throws', async () => {
       mockedService.searchProducts.mockRejectedValue(new Error('DB error'));
 
-      const req = { params: { userId: 'user1' }, query: { q: 'app' } } as unknown as Request;
+      const req = { params: { userId: 'user1' }, query: { name: 'app' } } as unknown as Request;
       const res = mockRes();
 
       await GroceryController.searchProducts(req, res);
@@ -91,7 +92,7 @@ describe('GroceryList Controller - Unit Tests', () => {
 
   describe('getProduct', () => {
     it('returns product (200) when found', async () => {
-      const mockItem = { name: 'milk', quantity: 2, unit: 'l', category: 'Dairy' as Category };
+      const mockItem: GroceryItem = { name: 'milk', quantity: 2, unit: 'l', category: 'Dairy' as Category, inventoryQuantity: 0, checked: false, recipeCount: 0 };
       mockedService.getProduct.mockResolvedValue(mockItem);
 
       const req = { params: { userId: 'user1', productName: 'milk' } } as unknown as Request;
@@ -159,7 +160,7 @@ describe('GroceryList Controller - Unit Tests', () => {
     });
 
     it('normalizes name/unit to lowercase and adds product (201)', async () => {
-      const mockGroups: GroceryItemGroup[] = [{ category: 'Dairy' as Category, count: 1, items: [{ name: 'milk', quantity: 2, unit: 'l', category: 'Dairy' as Category }] }];
+      const mockGroups: GroceryItemGroup[] = [{ category: 'Dairy' as Category, count: 1, items: [{ name: 'milk', quantity: 2, unit: 'l', category: 'Dairy' as Category, inventoryQuantity: 0, checked: false, recipeCount: 0 }] }];
       mockedService.addProducts.mockResolvedValue(mockGroups);
       mockedCategories.normalizeAisle.mockReturnValue('Dairy');
 
@@ -172,7 +173,7 @@ describe('GroceryList Controller - Unit Tests', () => {
       await GroceryController.addProduct(req, res);
 
       expect(mockedService.addProducts).toHaveBeenCalledWith('user1', [
-        { name: 'milk', quantity: 2, unit: 'l', category: 'Dairy' },
+        { name: 'milk', quantity: 2, unit: 'l', category: 'Dairy', inventoryQuantity: 0, checked: false, recipeCount: 0 },
       ]);
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith(mockGroups);
@@ -210,7 +211,7 @@ describe('GroceryList Controller - Unit Tests', () => {
   describe('importRecipeIngredients', () => {
     it('imports ingredients and returns 201', async () => {
       const mockGroups: GroceryItemGroup[] = [
-        { category: 'Produce' as Category, count: 1, items: [{ name: 'basil', quantity: 2, unit: 'leaf', category: 'Produce' as Category }] },
+        { category: 'Produce' as Category, count: 1, items: [{ name: 'basil', quantity: 2, unit: 'leaf', category: 'Produce' as Category, inventoryQuantity: 0, checked: false, recipeCount: 0 }] },
       ];
       mockedService.importRecipeIngredients.mockResolvedValue(mockGroups);
 
@@ -259,7 +260,7 @@ describe('GroceryList Controller - Unit Tests', () => {
   describe('removeProduct', () => {
     it('removes product and returns 200 with updated list', async () => {
       const mockGroups: GroceryItemGroup[] = [
-        { category: 'Dairy' as Category, count: 1, items: [{ name: 'cheese', quantity: 1, unit: 'block', category: 'Dairy' as Category }] },
+        { category: 'Dairy' as Category, count: 1, items: [{ name: 'cheese', quantity: 1, unit: 'block', category: 'Dairy' as Category, inventoryQuantity: 0, checked: false, recipeCount: 0 }] },
       ];
       mockedService.removeProduct.mockResolvedValue(mockGroups);
 
@@ -308,6 +309,86 @@ describe('GroceryList Controller - Unit Tests', () => {
       await GroceryController.clearGroceryList(req, res);
 
       expect(res.status).toHaveBeenCalledWith(500);
+    });
+  });
+
+  describe('updateInventoryQuantity', () => {
+    it('returns 200 with updated groups on success', async () => {
+      const mockGroups: GroceryItemGroup[] = [
+        { category: 'Dairy' as Category, count: 1, items: [{ name: 'milk', quantity: 2, unit: 'l', category: 'Dairy' as Category, inventoryQuantity: 1, checked: false, recipeCount: 0 }] },
+      ];
+      mockedService.updateInventoryQuantity.mockResolvedValue(mockGroups);
+
+      const req = { params: { userId: 'user1', productName: 'milk' }, body: { inventoryQuantity: 1 } } as unknown as Request;
+      const res = mockRes();
+
+      await GroceryController.updateInventoryQuantity(req, res);
+
+      expect(mockedService.updateInventoryQuantity).toHaveBeenCalledWith('user1', 'milk', 1);
+      expect(res.status).toHaveBeenCalledWith(200);
+      expect(res.json).toHaveBeenCalledWith(mockGroups);
+    });
+
+    it('returns 400 when inventoryQuantity is missing', async () => {
+      const req = { params: { userId: 'user1', productName: 'milk' }, body: {} } as unknown as Request;
+      const res = mockRes();
+
+      await GroceryController.updateInventoryQuantity(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(mockedService.updateInventoryQuantity).not.toHaveBeenCalled();
+    });
+
+    it('returns 400 when inventoryQuantity is a string', async () => {
+      const req = { params: { userId: 'user1', productName: 'milk' }, body: { inventoryQuantity: 'two' } } as unknown as Request;
+      const res = mockRes();
+
+      await GroceryController.updateInventoryQuantity(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    it('returns 400 when inventoryQuantity is negative', async () => {
+      const req = { params: { userId: 'user1', productName: 'milk' }, body: { inventoryQuantity: -1 } } as unknown as Request;
+      const res = mockRes();
+
+      await GroceryController.updateInventoryQuantity(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(mockedService.updateInventoryQuantity).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 when service throws NotFoundError', async () => {
+      mockedService.updateInventoryQuantity.mockRejectedValue(new NotFoundError('Product "unicorn" not found'));
+
+      const req = { params: { userId: 'user1', productName: 'unicorn' }, body: { inventoryQuantity: 1 } } as unknown as Request;
+      const res = mockRes();
+
+      await GroceryController.updateInventoryQuantity(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+    });
+
+    it('returns 500 when service throws generic error', async () => {
+      mockedService.updateInventoryQuantity.mockRejectedValue(new Error('DB error'));
+
+      const req = { params: { userId: 'user1', productName: 'milk' }, body: { inventoryQuantity: 1 } } as unknown as Request;
+      const res = mockRes();
+
+      await GroceryController.updateInventoryQuantity(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+    });
+
+    it('normalizes productName to lowercase before calling service', async () => {
+      mockedService.updateInventoryQuantity.mockResolvedValue([]);
+
+      const req = { params: { userId: 'user1', productName: 'MILK' }, body: { inventoryQuantity: 2 } } as unknown as Request;
+      const res = mockRes();
+
+      await GroceryController.updateInventoryQuantity(req, res);
+
+      expect(mockedService.updateInventoryQuantity).toHaveBeenCalledWith('user1', 'milk', 2);
     });
   });
 });
