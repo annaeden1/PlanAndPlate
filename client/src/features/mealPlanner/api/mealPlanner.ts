@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { ApiMealPlan, ApiMealPlanDay, ApiRecipe } from '@/features/mealPlanner/types/mealPlanner';
+import type { ApiMealPlan, ApiMealPlanDay, ApiRecipe, RecipeSuggestion } from '@/features/mealPlanner/types/mealPlanner';
 
 const api = axios.create({
   baseURL: '/mealPlanner',
@@ -21,4 +21,29 @@ export const mealPlannerApi = {
 
   toggleRecipeLike: (recipeId: string, token: string | null) =>
     api.patch<{ isLiked: boolean }>(`/recipes/${recipeId}/like`, {}, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.data),
+
+  getSuggestions: (
+    userId: string,
+    recipeId: string,
+    mealType: string,
+    token: string | null,
+    limit = 6,
+  ) =>
+    api
+      .get<RecipeSuggestion[]>(`/users/${userId}/recipes/${recipeId}/suggestions`, {
+        params: { mealType, limit },
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((r) => r.data),
+
+  replaceMeal: (
+    userId: string,
+    body: { date: string; mealType: string; newRecipeId: string },
+    token: string | null,
+  ) =>
+    api
+      .patch<ApiMealPlanDay>(`/users/${userId}/meal-plans/day/meal`, body, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((r) => r.data),
 };
