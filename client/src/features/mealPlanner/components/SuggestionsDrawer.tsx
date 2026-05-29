@@ -43,7 +43,7 @@ export function SuggestionsDrawer({
               {s.image && (
                 <CardMedia component="img" image={s.image} sx={{ width: 96 }} />
               )}
-              <CardContent sx={{ flex: 1 }}>
+              <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', pb: '0.5rem !important' }}>
                 <Typography variant="subtitle1">{s.name}</Typography>
                 <Typography variant="body2" color="text.secondary">
                   {Math.round(s.calories ?? 0)} kcal
@@ -52,12 +52,12 @@ export function SuggestionsDrawer({
                 {s.why && (
                   <Typography variant="caption" color="primary">{s.why}</Typography>
                 )}
-                <Box sx={{ display: 'flex', gap: '0.25rem', mt: '0.25rem', ml: '-0.25rem' }}>
+                <Box sx={{ display: 'flex', gap: '0.25rem', mt: 'auto', pt: '0.5rem', ml: '-0.4rem' }}>
                   <Button
                     size="small"
                     variant="text"
                     color="primary"
-                    sx={{ fontSize: '0.72rem', px: '0.4rem', minWidth: 0 }}
+                    sx={{ fontSize: '0.8rem', px: '0.5rem', minWidth: 0 }}
                     onClick={() => onUse(s)}
                   >
                     Replace
@@ -65,7 +65,7 @@ export function SuggestionsDrawer({
                   <Button
                     size="small"
                     variant="text"
-                    sx={{ fontSize: '0.72rem', px: '0.4rem', minWidth: 0, color: 'text.secondary' }}
+                    sx={{ fontSize: '0.8rem', px: '0.5rem', minWidth: 0, color: 'text.secondary' }}
                     onClick={() => onAdd(s)}
                   >
                     + Add to plan
