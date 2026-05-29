@@ -11,19 +11,11 @@ export interface MealPlan {
   meals: MealPlanItem[];
 }
 
-export interface MealSlot {
-  recipeId: string;
-  name: string;
-  calories: number;
-}
-
 export interface ApiMealPlanDay {
   date: string;
-  breakfast: MealSlot;
-  morningSnack?: MealSlot;
-  lunch: MealSlot;
-  afternoonSnack?: MealSlot;
-  dinner: MealSlot;
+  breakfast: { recipeId: string; name: string; calories: number };
+  lunch: { recipeId: string; name: string; calories: number };
+  dinner: { recipeId: string; name: string; calories: number };
 }
 
 export interface ApiMealPlan {

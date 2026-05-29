@@ -156,13 +156,11 @@ class MealPlannerService {
       nutritionSummary: {
         calories:
           sourceNutrients.calories ||
-          (days as unknown as IMealPlanDay[]).reduce(
+          days.reduce(
             (sum, day) =>
               sum +
               (day.breakfast?.calories || 0) +
-              (day.morningSnack?.calories || 0) +
               (day.lunch?.calories || 0) +
-              (day.afternoonSnack?.calories || 0) +
               (day.dinner?.calories || 0),
             0,
           ),
@@ -241,9 +239,7 @@ class MealPlannerService {
       (sum, d) =>
         sum +
         (d.breakfast?.calories || 0) +
-        (d.morningSnack?.calories || 0) +
         (d.lunch?.calories || 0) +
-        (d.afternoonSnack?.calories || 0) +
         (d.dinner?.calories || 0),
       0,
     );
