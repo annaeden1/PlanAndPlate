@@ -96,12 +96,26 @@ class RecommendationService {
 
     // 6. Embed candidates (cache to Recipe) and rank.
     const candidates = await this.embedCandidates(results, provider);
-    return rankCandidates({
+    const ranked = rankCandidates({
       candidates,
       centroid: profile.centroid,
       excludeIds: [recipeId, ...likedIds],
       limit,
     });
+
+    // 7. Optional LLM "why this fits you" line on the top shortlist.
+    if (provider.explain && ranked.length) {
+      const top = ranked.slice(0, 5);
+      const reasons = await provider.explain(
+        profile.cuisines,
+        top.map((r) => ({ originRecipeId: r.originRecipeId, name: r.name })),
+      );
+      for (const r of ranked) {
+        (r as any).why = reasons[r.originRecipeId];
+      }
+    }
+
+    return ranked;
   }
 
   private async loadAllergies(userId: string, token?: string): Promise<string> {

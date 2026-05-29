@@ -3,6 +3,11 @@ export interface AiProvider {
   // Returns one embedding vector per input text, in order.
   // Returns [] (per text) when embeddings are unavailable.
   embed(texts: string[]): Promise<number[][]>;
+  // Optional: map each candidate id to a one-line "why this fits you" reason.
+  explain?(
+    profileCuisines: string[],
+    candidates: { originRecipeId: string; name: string }[],
+  ): Promise<Record<string, string>>;
 }
 
 // Used when no AI key is configured. Produces no embeddings,
