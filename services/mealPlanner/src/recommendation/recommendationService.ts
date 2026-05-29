@@ -188,19 +188,28 @@ class RecommendationService {
     results: SpoonacularSearchResult[],
     provider: ReturnType<typeof getAiProvider>,
   ): Promise<RankCandidate[]> {
-    const texts = results.map((r) =>
-      buildEmbeddingText({
-        name: r.title,
-        cuisines: r.cuisines,
-        dishTypes: r.dishTypes,
-        diets: r.diets,
-      }),
+    // Load any embeddings already cached in mongo (second+ call for same candidates).
+    const cached = await Promise.all(
+      results.map((r) => Recipe.findOne({ originRecipeId: String(r.id) }, { embedding: 1 })),
     );
-    const vectors = await provider.embed(texts);
+
+    const needEmbed = results.filter((_, i) => !cached[i]?.embedding?.length);
+    const fresh = needEmbed.length
+      ? await provider.embed(
+          needEmbed.map((r) =>
+            buildEmbeddingText({ name: r.title, cuisines: r.cuisines, dishTypes: r.dishTypes, diets: r.diets }),
+          ),
+        )
+      : [];
+
+    let freshIdx = 0;
+    const vectors = results.map((_, i) =>
+      cached[i]?.embedding?.length ? cached[i]!.embedding! : (fresh[freshIdx++] ?? []),
+    );
 
     return Promise.all(
       results.map(async (r, i) => {
-        const embedding = vectors[i] ?? [];
+        const embedding = vectors[i];
         // Cache lightweight fields + embedding so future calls are cheaper.
         await Recipe.updateOne(
           { originRecipeId: String(r.id) },

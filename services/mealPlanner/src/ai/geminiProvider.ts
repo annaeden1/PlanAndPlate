@@ -13,21 +13,21 @@ export class GeminiProvider implements AiProvider {
   }
 
   async embed(texts: string[]): Promise<number[][]> {
-    const results: number[][] = [];
-    for (const text of texts) {
-      try {
-        const res = await this.ai.models.embedContent({
-          model: EMBED_MODEL,
-          contents: text,
-          config: { taskType: "SEMANTIC_SIMILARITY" },
-        });
-        results.push(res.embeddings?.[0]?.values ?? []);
-      } catch (err) {
-        console.error("Gemini embed failed for text:", err);
-        results.push([]);
-      }
-    }
-    return results;
+    return Promise.all(
+      texts.map(async (text) => {
+        try {
+          const res = await this.ai.models.embedContent({
+            model: EMBED_MODEL,
+            contents: text,
+            config: { taskType: "SEMANTIC_SIMILARITY" },
+          });
+          return res.embeddings?.[0]?.values ?? [];
+        } catch (err) {
+          console.error("Gemini embed failed for text:", err);
+          return [];
+        }
+      }),
+    );
   }
 
   async explain(

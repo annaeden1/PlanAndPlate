@@ -43,8 +43,15 @@ export async function buildTasteProfile(args: BuildArgs): Promise<TasteProfile> 
   const { likedRecipes, currentRecipe, prefs, provider } = args;
 
   if (likedRecipes.length >= MIN_LIKES) {
-    const texts = likedRecipes.map(buildEmbeddingText);
-    const vectors = (await provider.embed(texts)).filter((v) => v.length > 0);
+    // Reuse stored embeddings; only call the AI for recipes that don't have one yet.
+    const needEmbed = likedRecipes.filter((r) => !r.embedding?.length);
+    const fresh = needEmbed.length
+      ? await provider.embed(needEmbed.map(buildEmbeddingText))
+      : [];
+    let freshIdx = 0;
+    const vectors = likedRecipes
+      .map((r) => (r.embedding?.length ? r.embedding : (fresh[freshIdx++] ?? [])))
+      .filter((v) => v.length > 0);
     return {
       centroid: meanVector(vectors),
       cuisines: topCuisines(likedRecipes),
