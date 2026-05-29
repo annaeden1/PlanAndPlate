@@ -9,7 +9,9 @@ export interface IMealPlanMeal {
 export interface IMealPlanDay {
   date: Date;
   breakfast: IMealPlanMeal;
+  morningSnack?: IMealPlanMeal;
   lunch: IMealPlanMeal;
+  afternoonSnack?: IMealPlanMeal;
   dinner: IMealPlanMeal;
 }
 
@@ -32,7 +34,9 @@ const mealPlanSchema = new mongoose.Schema({
   days: [{
     date: { type: Date, required: true },
     breakfast: { recipeId: String, name: String, calories: Number },
+    morningSnack: { recipeId: String, name: String, calories: Number },
     lunch: { recipeId: String, name: String, calories: Number },
+    afternoonSnack: { recipeId: String, name: String, calories: Number },
     dinner: { recipeId: String, name: String, calories: Number },
   }],
   nutritionSummary: {

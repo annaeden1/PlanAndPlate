@@ -37,6 +37,10 @@ function mealTypeToSpoonacular(mealType?: string): string | undefined {
     case "lunch":
     case "dinner":
       return "main course";
+    case "morningsnack":
+    case "afternoonsnack":
+    case "snack":
+      return "snack";
     default:
       return undefined;
   }

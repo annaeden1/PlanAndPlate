@@ -8,8 +8,16 @@ import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import type { ApiMealPlan } from '@/features/mealPlanner/types/mealPlanner';
 import { getUserId } from '@/shared/utils/userId';
 
-const MEAL_TYPES = ['breakfast', 'lunch', 'dinner'] as const;
+const MEAL_TYPES = ['breakfast', 'morningSnack', 'lunch', 'afternoonSnack', 'dinner'] as const;
 type MealType = (typeof MEAL_TYPES)[number];
+
+const MEAL_TYPE_LABELS: Record<MealType, string> = {
+  breakfast: 'Breakfast',
+  morningSnack: 'Morning snack',
+  lunch: 'Lunch',
+  afternoonSnack: 'Afternoon snack',
+  dinner: 'Dinner',
+};
 
 interface AddToPlanDialogProps {
   open: boolean;
@@ -59,8 +67,8 @@ export function AddToPlanDialog({ open, recipeName, onClose, onSelect }: AddToPl
               <TableRow>
                 <TableCell>Day</TableCell>
                 {MEAL_TYPES.map((m) => (
-                  <TableCell key={m} align="center" sx={{ textTransform: 'capitalize' }}>
-                    {m}
+                  <TableCell key={m} align="center" sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                    {MEAL_TYPE_LABELS[m]}
                   </TableCell>
                 ))}
               </TableRow>

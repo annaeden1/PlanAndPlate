@@ -52,12 +52,24 @@ export function SuggestionsDrawer({
                 {s.why && (
                   <Typography variant="caption" color="primary">{s.why}</Typography>
                 )}
-                <Box sx={{ display: 'flex', gap: '0.5rem', mt: '0.5rem' }}>
-                  <Button size="small" variant="contained" onClick={() => onUse(s)}>
+                <Box sx={{ display: 'flex', gap: '0.25rem', mt: '0.5rem' }}>
+                  <Button
+                    size="small"
+                    variant="text"
+                    color="primary"
+                    sx={{ px: '0.5rem', minWidth: 0, fontSize: '0.72rem' }}
+                    onClick={() => onUse(s)}
+                  >
                     Replace
                   </Button>
-                  <Button size="small" variant="outlined" onClick={() => onAdd(s)}>
-                    Add to plan
+                  <Button
+                    size="small"
+                    variant="text"
+                    color="inherit"
+                    sx={{ px: '0.5rem', minWidth: 0, fontSize: '0.72rem', color: 'text.secondary' }}
+                    onClick={() => onAdd(s)}
+                  >
+                    + Add to plan
                   </Button>
                 </Box>
               </CardContent>
