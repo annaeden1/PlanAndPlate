@@ -9,10 +9,26 @@ import {
   SpoonacularSearchResult,
 } from "../services/spoonacularService.service";
 import mealPlannerService from "../services/mealPlannerService";
-import { buildTasteProfile, TasteRecipe } from "./tasteProfile";
+import { buildTasteProfile, TasteRecipe, MIN_LIKES } from "./tasteProfile";
 import { buildEmbeddingText } from "./embeddingText";
 import { rankCandidates, RankCandidate, RankedSuggestion } from "./ranker";
 import { nutritionTargets, NutritionTargets } from "./nutritionTargets";
+
+// Returns true when a liked recipe is relevant for the requested slot.
+// Breakfast likes shouldn't shape a lunch centroid and vice-versa.
+// Recipes with unknown dishTypes are kept (benefit of the doubt).
+function matchesMealSlot(recipe: TasteRecipe, mealType?: string): boolean {
+  const types = (recipe.dishTypes ?? []).map((t) => t.toLowerCase());
+  if (!types.length) return true;
+  const slot = (mealType || "").toLowerCase();
+  if (slot === "breakfast") {
+    return types.some((t) => t.includes("breakfast") || t.includes("morning"));
+  }
+  // lunch / dinner: exclude breakfast and sweet/dessert dishes
+  return !types.some(
+    (t) => t.includes("breakfast") || t.includes("dessert") || t.includes("sweet"),
+  );
+}
 
 function mealTypeToSpoonacular(mealType?: string): string | undefined {
   switch ((mealType || "").toLowerCase()) {
@@ -83,9 +99,13 @@ class RecommendationService {
 
     const allergies = await this.loadAllergies(userId, token);
 
-    // 4. Taste profile.
+    // 4. Taste profile — use only likes that match the target meal slot so
+    //    breakfast-only likes don't skew a lunch/dinner centroid.
+    //    Fall back to all likes when too few slot-matched ones exist (MIN_LIKES).
+    const slotLikes = likedRecipes.filter((r) => matchesMealSlot(r, mealType));
+    const profileLikes = slotLikes.length >= MIN_LIKES ? slotLikes : likedRecipes;
     const profile = await buildTasteProfile({
-      likedRecipes,
+      likedRecipes: profileLikes,
       currentRecipe,
       prefs,
       provider,
