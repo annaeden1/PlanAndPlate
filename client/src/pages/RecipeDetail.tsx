@@ -5,6 +5,7 @@ import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import { useGroceryList } from '@/context/GroceryListContext';
 import type { ApiRecipe, RecipeSuggestion } from '@/features/mealPlanner/types/mealPlanner';
 import { SuggestionsDrawer } from '@/features/mealPlanner/components/SuggestionsDrawer';
+import { AddToPlanDialog } from '@/features/mealPlanner/components/AddToPlanDialog';
 import { getUserId } from '@/shared/utils/userId';
 
 import { RecipeHero } from '@/features/mealPlanner/components/RecipeHero';
@@ -38,6 +39,8 @@ export function RecipeDetail({}: RecipeDetailProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<RecipeSuggestion[]>([]);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [pendingAddSuggestion, setPendingAddSuggestion] = useState<RecipeSuggestion | null>(null);
 
   const handleOpenSuggestions = async () => {
     setDrawerOpen(true);
@@ -72,6 +75,32 @@ export function RecipeDetail({}: RecipeDetailProps) {
     } catch (err) {
       console.error('Failed to replace meal:', err);
       setSnackbar({ open: true, message: 'Failed to replace meal.', severity: 'error' });
+    }
+  };
+
+  const handleAddSuggestion = (s: RecipeSuggestion) => {
+    setPendingAddSuggestion(s);
+    setAddDialogOpen(true);
+  };
+
+  const handleAddToPlanSelect = async (targetDate: string, targetMealType: string) => {
+    if (!pendingAddSuggestion) return;
+    setAddDialogOpen(false);
+    const token = localStorage.getItem('access-token');
+    const userId = getUserId() ?? '';
+    try {
+      await mealPlannerApi.replaceMeal(
+        userId,
+        { date: targetDate, mealType: targetMealType, newRecipeId: pendingAddSuggestion.originRecipeId },
+        token,
+      );
+      setDrawerOpen(false);
+      navigate(`/recipe/${pendingAddSuggestion.originRecipeId}?date=${targetDate}&mealType=${targetMealType}`);
+    } catch (err) {
+      console.error('Failed to add meal:', err);
+      setSnackbar({ open: true, message: 'Failed to add meal to plan.', severity: 'error' });
+    } finally {
+      setPendingAddSuggestion(null);
     }
   };
 
@@ -229,7 +258,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
                   sx={{ height: '3rem', borderRadius: '0.625rem' }}
                   onClick={handleOpenSuggestions}
                 >
-                  Suggested for you
+                  New Recipe Suggestions for you
                 </Button>
               </Box>
             </Box>
@@ -258,6 +287,14 @@ export function RecipeDetail({}: RecipeDetailProps) {
         suggestions={suggestions}
         onClose={() => setDrawerOpen(false)}
         onUse={handleUseSuggestion}
+        onAdd={handleAddSuggestion}
+      />
+
+      <AddToPlanDialog
+        open={addDialogOpen}
+        recipeName={pendingAddSuggestion?.name ?? ''}
+        onClose={() => { setAddDialogOpen(false); setPendingAddSuggestion(null); }}
+        onSelect={handleAddToPlanSelect}
       />
     </Box>
   );

@@ -10,10 +10,11 @@ interface SuggestionsDrawerProps {
   suggestions: RecipeSuggestion[];
   onClose: () => void;
   onUse: (s: RecipeSuggestion) => void;
+  onAdd: (s: RecipeSuggestion) => void;
 }
 
 export function SuggestionsDrawer({
-  open, loading, suggestions, onClose, onUse,
+  open, loading, suggestions, onClose, onUse, onAdd,
 }: SuggestionsDrawerProps) {
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
@@ -51,9 +52,14 @@ export function SuggestionsDrawer({
                 {s.why && (
                   <Typography variant="caption" color="primary">{s.why}</Typography>
                 )}
-                <Button size="small" sx={{ mt: '0.5rem' }} onClick={() => onUse(s)}>
-                  Use this
-                </Button>
+                <Box sx={{ display: 'flex', gap: '0.5rem', mt: '0.5rem' }}>
+                  <Button size="small" variant="contained" onClick={() => onUse(s)}>
+                    Replace
+                  </Button>
+                  <Button size="small" variant="outlined" onClick={() => onAdd(s)}>
+                    Add to plan
+                  </Button>
+                </Box>
               </CardContent>
             </Card>
           ))}
