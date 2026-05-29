@@ -6,3 +6,4 @@ jest-localstorage.json*
 .ls-tmp*
 *.log
 CLAUDE.md
+.claude/
