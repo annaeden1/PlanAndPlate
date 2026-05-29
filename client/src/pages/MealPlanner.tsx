@@ -230,7 +230,15 @@ export function MealPlanner({}: MealPlannerProps) {
                 <PlannedMealCard
                   key={`${selectedDay}-${meal.type}`}
                   meal={meal}
-                  onViewRecipe={(meal) => navigate(`/recipe/${meal.id}`)}
+                  onViewRecipe={(meal) =>
+                    navigate(
+                      `/recipe/${meal.id}?date=${
+                        mealPlan?.days.find(
+                          (d) => formatDayKey(d.date) === selectedDay,
+                        )?.date ?? ''
+                      }&mealType=${meal.type.toLowerCase()}`,
+                    )
+                  }
                   onAddToList={handleAddToList}
                 />
               ))}
