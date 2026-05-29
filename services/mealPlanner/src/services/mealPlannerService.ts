@@ -252,12 +252,15 @@ class MealPlannerService {
     const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
     let recipeData;
 
-    if (existingRecipe) {
+    const isComplete = existingRecipe &&
+      (existingRecipe.instructions?.steps?.length ?? 0) > 0;
+
+    if (isComplete) {
       recipeData = existingRecipe;
     } else {
       const recipeDetails = await getSpoonacularRecipe(recipeId);
 
-      recipeData = new Recipe({
+      const fullFields = {
         originRecipeId: recipeDetails.id || recipeId,
         name: recipeDetails.title,
         image: recipeDetails.image,
@@ -295,8 +298,17 @@ class MealPlannerService {
             aisle: ing.aisle,
           })),
         },
-      });
-      await recipeData.save();
+      };
+
+      if (existingRecipe) {
+        // Partial cache hit (embedded candidate) — fill in missing full details.
+        Object.assign(existingRecipe, fullFields);
+        await existingRecipe.save();
+        recipeData = existingRecipe;
+      } else {
+        recipeData = new Recipe(fullFields);
+        await recipeData.save();
+      }
     }
 
     let isLiked = false;
