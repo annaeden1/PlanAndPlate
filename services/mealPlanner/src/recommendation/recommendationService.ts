@@ -3,12 +3,16 @@ import axios from "axios";
 import { Recipe } from "../models/recipeModel";
 import { UserFavorites } from "../models/userFavoritesModel";
 import { getAiProvider } from "../ai/aiProvider";
-import { searchRecipes, SpoonacularSearchResult } from "../services/spoonacularService.service";
+import {
+  searchRecipes,
+  SpoonacularSearchParams,
+  SpoonacularSearchResult,
+} from "../services/spoonacularService.service";
 import mealPlannerService from "../services/mealPlannerService";
 import { buildTasteProfile, TasteRecipe } from "./tasteProfile";
 import { buildEmbeddingText } from "./embeddingText";
 import { rankCandidates, RankCandidate, RankedSuggestion } from "./ranker";
-import { nutritionTargets } from "./nutritionTargets";
+import { nutritionTargets, NutritionTargets } from "./nutritionTargets";
 
 function mealTypeToSpoonacular(mealType?: string): string | undefined {
   switch ((mealType || "").toLowerCase()) {
@@ -90,13 +94,12 @@ class RecommendationService {
     // 5. Candidate search — goal-aware: stay in the calorie scale of the
     //    meal being replaced, and bias toward protein for muscle gain.
     const targets = nutritionTargets(profile.healthGoal, currentRecipe.calories);
-    const results = await searchRecipes({
+    const results = await this.searchWithFallback({
       cuisines: profile.cuisines,
       diet: profile.diet,
       intolerances: allergies,
       type: mealTypeToSpoonacular(mealType),
-      number: 12,
-      ...targets,
+      targets,
     });
 
     // 6. Embed candidates (cache to Recipe) and rank.
@@ -134,6 +137,34 @@ class RecommendationService {
     } catch {
       return "";
     }
+  }
+
+  // Runs the candidate search from most to least personalized, returning the
+  // first non-empty result set. Allergies are never relaxed (safety); the
+  // calorie/protein band and cuisine/type filters are dropped progressively
+  // so the user still gets useful suggestions instead of an empty drawer.
+  private async searchWithFallback(args: {
+    cuisines: string[];
+    diet?: string;
+    intolerances: string;
+    type?: string;
+    targets: NutritionTargets;
+  }): Promise<SpoonacularSearchResult[]> {
+    const { cuisines, diet, intolerances, type, targets } = args;
+    const base = { intolerances, number: 12 };
+
+    const attempts: SpoonacularSearchParams[] = [
+      { ...base, cuisines, diet, type, ...targets }, // full personalization
+      { ...base, cuisines, diet, type }, // drop calorie/protein band
+      { ...base, diet, type }, // drop cuisines
+      { ...base, diet }, // drop meal type
+    ];
+
+    for (const params of attempts) {
+      const results = await searchRecipes(params);
+      if (results.length) return results;
+    }
+    return [];
   }
 
   private async embedCandidates(

@@ -18,8 +18,8 @@ export function SuggestionsDrawer({
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
       <Box sx={{ width: { xs: '100vw', sm: 420 }, p: '1.5rem' }}>
-        <Typography variant="h6" sx={{ mb: '1rem' }}>
-          Suggested for you
+        <Typography variant="h6" sx={{ mt: '3rem' }}>
+          New Recipe Suggestions for you
         </Typography>
 
         {loading && (
@@ -30,7 +30,9 @@ export function SuggestionsDrawer({
 
         {!loading && suggestions.length === 0 && (
           <Typography color="text.secondary">
-            No matches yet — like a few more recipes and try again.
+            No suggestions right now — we couldn't find recipes matching your
+            preferences for this meal. Try again later or adjust your dietary
+            settings.
           </Typography>
         )}
 
