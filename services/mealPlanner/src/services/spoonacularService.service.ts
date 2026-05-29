@@ -39,6 +39,9 @@ export interface SpoonacularSearchParams {
   intolerances?: string;
   type?: string; // breakfast | main course | ...
   number?: number;
+  minCalories?: number;
+  maxCalories?: number;
+  minProtein?: number;
 }
 
 export interface SpoonacularSearchResult {
@@ -69,6 +72,9 @@ export const searchRecipes = async (
   if (params.diet) query.set("diet", params.diet);
   if (params.intolerances) query.set("intolerances", params.intolerances);
   if (params.type) query.set("type", params.type);
+  if (params.minCalories != null) query.set("minCalories", String(params.minCalories));
+  if (params.maxCalories != null) query.set("maxCalories", String(params.maxCalories));
+  if (params.minProtein != null) query.set("minProtein", String(params.minProtein));
 
   const url = `https://api.spoonacular.com/recipes/complexSearch?${query.toString()}`;
   const response = await axios.get(url);

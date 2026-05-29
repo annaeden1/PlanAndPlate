@@ -8,6 +8,7 @@ import mealPlannerService from "../services/mealPlannerService";
 import { buildTasteProfile, TasteRecipe } from "./tasteProfile";
 import { buildEmbeddingText } from "./embeddingText";
 import { rankCandidates, RankCandidate, RankedSuggestion } from "./ranker";
+import { nutritionTargets } from "./nutritionTargets";
 
 function mealTypeToSpoonacular(mealType?: string): string | undefined {
   switch ((mealType || "").toLowerCase()) {
@@ -35,6 +36,7 @@ async function loadTasteRecipe(recipeId: string): Promise<TasteRecipe | null> {
     diets: doc.diets,
     ingredients: doc.instructions?.ingredients?.map((i) => ({ name: i.name })) ?? [],
     embedding: doc.embedding,
+    calories: doc.calories,
   };
 }
 
@@ -85,13 +87,16 @@ class RecommendationService {
       provider,
     });
 
-    // 5. Candidate search.
+    // 5. Candidate search — goal-aware: stay in the calorie scale of the
+    //    meal being replaced, and bias toward protein for muscle gain.
+    const targets = nutritionTargets(profile.healthGoal, currentRecipe.calories);
     const results = await searchRecipes({
       cuisines: profile.cuisines,
       diet: profile.diet,
       intolerances: allergies,
       type: mealTypeToSpoonacular(mealType),
       number: 12,
+      ...targets,
     });
 
     // 6. Embed candidates (cache to Recipe) and rank.

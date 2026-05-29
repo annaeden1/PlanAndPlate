@@ -11,6 +11,7 @@ export interface TasteRecipe {
   diets?: string[];
   ingredients?: { name: string }[];
   embedding?: number[];
+  calories?: number;
 }
 
 export interface TasteProfile {
