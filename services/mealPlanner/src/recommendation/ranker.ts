@@ -16,6 +16,7 @@ export interface RankedSuggestion {
   calories?: number;
   readyInMinutes?: number;
   score: number;
+  why?: string;
 }
 
 interface RankArgs {

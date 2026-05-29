@@ -254,4 +254,4 @@ mealPlannerRouter.patch(
   "/users/:userId/meal-plans/day/meal",
   authMiddleware,
   MealPlannerController.replaceMeal,
-);
+);

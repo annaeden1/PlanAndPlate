@@ -81,23 +81,8 @@ class RecommendationService {
     await mealPlannerService.getRecipeDetails(recipeId, userId);
     const currentRecipe = (await loadTasteRecipe(recipeId)) ?? { name: "" };
 
-    // 3. User preferences.
-    let prefs: { diet?: string; healthGoal?: string } = {};
-    try {
-      const res = await axios.get(
-        `${process.env.USER_MANAGMENT_URL}/userManagement/${userId}/preferences`,
-        { headers: { Authorization: token } },
-      );
-      const p = res.data.userPreferences ?? {};
-      prefs = {
-        diet: Array.isArray(p.diet) ? p.diet[0] : p.diet,
-        healthGoal: p.healthGoal,
-      };
-    } catch (err) {
-      console.error("Failed to load user preferences for suggestions:", err);
-    }
-
-    const allergies = await this.loadAllergies(userId, token);
+    // 3. User preferences (single fetch — diet, goal and allergies together).
+    const { prefs, allergies } = await this.loadPreferences(userId, token);
 
     // 4. Taste profile — use only likes that match the target meal slot so
     //    breakfast-only likes don't skew a lunch/dinner centroid.
@@ -139,23 +124,35 @@ class RecommendationService {
         top.map((r) => ({ originRecipeId: r.originRecipeId, name: r.name })),
       );
       for (const r of ranked) {
-        (r as any).why = reasons[r.originRecipeId];
+        r.why = reasons[r.originRecipeId];
       }
     }
 
     return ranked;
   }
 
-  private async loadAllergies(userId: string, token?: string): Promise<string> {
+  // One call to user-management covers diet, health goal and allergies.
+  private async loadPreferences(
+    userId: string,
+    token?: string,
+  ): Promise<{ prefs: { diet?: string; healthGoal?: string }; allergies: string }> {
     try {
       const res = await axios.get(
         `${process.env.USER_MANAGMENT_URL}/userManagement/${userId}/preferences`,
         { headers: { Authorization: token } },
       );
-      const a = res.data.userPreferences?.allergies;
-      return Array.isArray(a) ? a.join(",") : a || "";
-    } catch {
-      return "";
+      const p = res.data.userPreferences ?? {};
+      const a = p.allergies;
+      return {
+        prefs: {
+          diet: Array.isArray(p.diet) ? p.diet[0] : p.diet,
+          healthGoal: p.healthGoal,
+        },
+        allergies: Array.isArray(a) ? a.join(",") : a || "",
+      };
+    } catch (err) {
+      console.error("Failed to load user preferences for suggestions:", err);
+      return { prefs: {}, allergies: "" };
     }
   }
 

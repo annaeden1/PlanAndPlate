@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "../utils/types/auth";
 import mealPlannerService from "../services/mealPlannerService";
 
 class MealPlannerController {
@@ -105,7 +106,7 @@ class MealPlannerController {
     }
   }
 
-  async replaceMeal(req: Request, res: Response) {
+  async replaceMeal(req: AuthRequest, res: Response) {
     try {
       const { userId } = req.params;
       const { date, mealType, newRecipeId } = req.body;
@@ -115,8 +116,14 @@ class MealPlannerController {
           .status(400)
           .json({ error: "userId, date, mealType and newRecipeId are required" });
       }
+      if (req.user?._id !== userId) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
       if (!["breakfast", "lunch", "dinner"].includes(mealType)) {
         return res.status(400).json({ error: "Invalid mealType" });
+      }
+      if (Number.isNaN(new Date(date).getTime())) {
+        return res.status(400).json({ error: "Invalid date" });
       }
 
       const updatedDay = await mealPlannerService.replaceMeal(
