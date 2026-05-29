@@ -104,6 +104,36 @@ class MealPlannerController {
       res.status(500).json({ error: "Failed to toggle recipe like" });
     }
   }
+
+  async replaceMeal(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      const { date, mealType, newRecipeId } = req.body;
+
+      if (!userId || !date || !mealType || !newRecipeId) {
+        return res
+          .status(400)
+          .json({ error: "userId, date, mealType and newRecipeId are required" });
+      }
+      if (!["breakfast", "lunch", "dinner"].includes(mealType)) {
+        return res.status(400).json({ error: "Invalid mealType" });
+      }
+
+      const updatedDay = await mealPlannerService.replaceMeal(
+        userId,
+        date,
+        mealType,
+        String(newRecipeId),
+      );
+      if (!updatedDay) {
+        return res.status(404).json({ error: "Meal plan or day not found" });
+      }
+      res.json(updatedDay);
+    } catch (error) {
+      console.error("Error replacing meal:", error);
+      res.status(500).json({ error: "Failed to replace meal" });
+    }
+  }
 }
 
 export default new MealPlannerController();

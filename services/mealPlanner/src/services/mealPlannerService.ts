@@ -1,5 +1,5 @@
 import axios from "axios";
-import { MealPlan, IMealPlan } from "../models/mealPlanModel";
+import { MealPlan, IMealPlan, IMealPlanDay } from "../models/mealPlanModel";
 import { Recipe, IRecipe } from "../models/recipeModel";
 import { UserFavorites } from "../models/userFavoritesModel";
 import {
@@ -202,6 +202,52 @@ class MealPlannerService {
     return dailyPlan.days[0];
   }
 
+  async replaceMeal(
+    userId: string,
+    date: string,
+    mealType: "breakfast" | "lunch" | "dinner",
+    newRecipeId: string,
+  ): Promise<IMealPlanDay | null> {
+    const recipe = await this.getRecipeDetails(newRecipeId, userId);
+    if (!recipe) return null;
+
+    const day = new Date(date);
+    const dayStart = new Date(day);
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setUTCDate(dayStart.getUTCDate() + 1);
+
+    const plan = await MealPlan.findOne({
+      userId,
+      "days.date": { $gte: dayStart, $lt: dayEnd },
+    });
+    if (!plan) return null;
+
+    const targetDay = plan.days.find((d) => {
+      const dd = new Date(d.date);
+      return dd >= dayStart && dd < dayEnd;
+    });
+    if (!targetDay) return null;
+
+    targetDay[mealType] = {
+      recipeId: String(newRecipeId),
+      name: recipe.name,
+      calories: recipe.calories ?? 0,
+    };
+
+    plan.nutritionSummary.calories = plan.days.reduce(
+      (sum, d) =>
+        sum +
+        (d.breakfast?.calories || 0) +
+        (d.lunch?.calories || 0) +
+        (d.dinner?.calories || 0),
+      0,
+    );
+
+    await plan.save();
+    return targetDay;
+  }
+
   async getRecipeDetails(recipeId: string, userId?: string): Promise<IRecipe & any> {
     const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
     let recipeData;
@@ -233,6 +279,8 @@ class MealPlannerService {
         servings: recipeDetails.servings,
         readyInMinutes: recipeDetails.readyInMinutes,
         diets: recipeDetails.diets,
+        cuisines: recipeDetails.cuisines,
+        dishTypes: recipeDetails.dishTypes,
         instructions: {
           steps:
             recipeDetails.analyzedInstructions[0]?.steps.map(

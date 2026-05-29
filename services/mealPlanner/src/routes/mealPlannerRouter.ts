@@ -1,5 +1,6 @@
 import express from "express";
 import MealPlannerController from "../controllers/mealPlannerController";
+import RecommendationController from "../recommendation/recommendationController";
 import authMiddleware from "../middlewares/auth.middleware";
 
 export const mealPlannerRouter = express.Router();
@@ -173,4 +174,84 @@ mealPlannerRouter.patch(
   "/recipes/:recipeId/like",
   authMiddleware,
   MealPlannerController.toggleRecipeLike,
+);
+
+/**
+ * @swagger
+ * /users/{userId}/recipes/{recipeId}/suggestions:
+ *   get:
+ *     summary: Get personalized recipe suggestions to replace a recipe
+ *     tags: [MealPlanner]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *       - in: path
+ *         name: recipeId
+ *         schema:
+ *           type: string
+ *         required: true
+ *       - in: query
+ *         name: mealType
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: OK - Ranked suggestions
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Failed to get suggestions
+ */
+mealPlannerRouter.get(
+  "/users/:userId/recipes/:recipeId/suggestions",
+  authMiddleware,
+  RecommendationController.getSuggestions,
+);
+
+/**
+ * @swagger
+ * /users/{userId}/meal-plans/day/meal:
+ *   patch:
+ *     summary: Replace a meal slot in a day with a new recipe
+ *     tags: [MealPlanner]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               date:
+ *                 type: string
+ *               mealType:
+ *                 type: string
+ *               newRecipeId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OK - Updated day
+ *       400:
+ *         description: Bad Request - Invalid input
+ *       404:
+ *         description: Not Found - Plan or day not found
+ *       500:
+ *         description: Failed to replace meal
+ */
+mealPlannerRouter.patch(
+  "/users/:userId/meal-plans/day/meal",
+  authMiddleware,
+  MealPlannerController.replaceMeal,
 );
