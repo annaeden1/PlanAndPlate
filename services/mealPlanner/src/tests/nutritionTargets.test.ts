@@ -1,4 +1,3 @@
-// services/mealPlanner/src/tests/nutritionTargets.test.ts
 import { nutritionTargets } from "../recommendation/nutritionTargets";
 
 describe("nutritionTargets", () => {

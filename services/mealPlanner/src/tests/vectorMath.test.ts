@@ -1,4 +1,3 @@
-// services/mealPlanner/src/tests/vectorMath.test.ts
 import { cosineSimilarity, meanVector } from "../recommendation/vectorMath";
 
 describe("cosineSimilarity", () => {

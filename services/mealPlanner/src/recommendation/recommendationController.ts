@@ -1,4 +1,3 @@
-// services/mealPlanner/src/recommendation/recommendationController.ts
 import { Response } from "express";
 import { AuthRequest } from "../utils/types/auth";
 import recommendationService from "./recommendationService";

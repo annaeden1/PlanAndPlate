@@ -1,4 +1,3 @@
-// services/mealPlanner/src/recommendation/recommendationService.ts
 import axios from "axios";
 import { Recipe } from "../models/recipeModel";
 import { UserFavorites } from "../models/userFavoritesModel";
@@ -14,9 +13,6 @@ import { buildEmbeddingText } from "./embeddingText";
 import { rankCandidates, RankCandidate, RankedSuggestion } from "./ranker";
 import { nutritionTargets, NutritionTargets } from "./nutritionTargets";
 
-// Returns true when a liked recipe is relevant for the requested slot.
-// Breakfast likes shouldn't shape a lunch centroid and vice-versa.
-// Recipes with unknown dishTypes are kept (benefit of the doubt).
 function matchesMealSlot(recipe: TasteRecipe, mealType?: string): boolean {
   const types = (recipe.dishTypes ?? []).map((t) => t.toLowerCase());
   if (!types.length) return true;
@@ -24,7 +20,6 @@ function matchesMealSlot(recipe: TasteRecipe, mealType?: string): boolean {
   if (slot === "breakfast") {
     return types.some((t) => t.includes("breakfast") || t.includes("morning"));
   }
-  // lunch / dinner: exclude breakfast and sweet/dessert dishes
   return !types.some(
     (t) => t.includes("breakfast") || t.includes("dessert") || t.includes("sweet"),
   );
@@ -70,23 +65,17 @@ class RecommendationService {
   ): Promise<RankedSuggestion[]> {
     const provider = getAiProvider();
 
-    // 1. Liked recipes (from cache; ones we have details for).
     const favs = await UserFavorites.findOne({ userId });
     const likedIds = favs?.likedRecipeIds ?? [];
     const likedRecipes = (
       await Promise.all(likedIds.map((id) => loadTasteRecipe(id)))
     ).filter((r): r is TasteRecipe => r !== null);
 
-    // 2. Current recipe (ensure it is cached so we know its cuisines).
     await mealPlannerService.getRecipeDetails(recipeId, userId);
     const currentRecipe = (await loadTasteRecipe(recipeId)) ?? { name: "" };
 
-    // 3. User preferences (single fetch — diet, goal and allergies together).
     const { prefs, allergies } = await this.loadPreferences(userId, token);
 
-    // 4. Taste profile — use only likes that match the target meal slot so
-    //    breakfast-only likes don't skew a lunch/dinner centroid.
-    //    Fall back to all likes when too few slot-matched ones exist (MIN_LIKES).
     const slotLikes = likedRecipes.filter((r) => matchesMealSlot(r, mealType));
     const profileLikes = slotLikes.length >= MIN_LIKES ? slotLikes : likedRecipes;
     const profile = await buildTasteProfile({
@@ -96,8 +85,6 @@ class RecommendationService {
       provider,
     });
 
-    // 5. Candidate search — goal-aware: stay in the calorie scale of the
-    //    meal being replaced, and bias toward protein for muscle gain.
     const targets = nutritionTargets(profile.healthGoal, currentRecipe.calories);
     const results = await this.searchWithFallback({
       cuisines: profile.cuisines,
@@ -107,7 +94,6 @@ class RecommendationService {
       targets,
     });
 
-    // 6. Embed candidates (cache to Recipe) and rank.
     const candidates = await this.embedCandidates(results, provider);
     const ranked = rankCandidates({
       candidates,
@@ -116,7 +102,6 @@ class RecommendationService {
       limit,
     });
 
-    // 7. Optional LLM "why this fits you" line on the top shortlist.
     if (provider.explain && ranked.length) {
       const top = ranked.slice(0, 5);
       const reasons = await provider.explain(
@@ -131,7 +116,6 @@ class RecommendationService {
     return ranked;
   }
 
-  // One call to user-management covers diet, health goal and allergies.
   private async loadPreferences(
     userId: string,
     token?: string,
@@ -156,10 +140,6 @@ class RecommendationService {
     }
   }
 
-  // Runs the candidate search from most to least personalized, returning the
-  // first non-empty result set. Allergies are never relaxed (safety); the
-  // calorie/protein band and cuisine/type filters are dropped progressively
-  // so the user still gets useful suggestions instead of an empty drawer.
   private async searchWithFallback(args: {
     cuisines: string[];
     diet?: string;
@@ -171,10 +151,10 @@ class RecommendationService {
     const base = { intolerances, number: 12 };
 
     const attempts: SpoonacularSearchParams[] = [
-      { ...base, cuisines, diet, type, ...targets }, // full personalization
-      { ...base, cuisines, diet, type }, // drop calorie/protein band
-      { ...base, diet, type }, // drop cuisines
-      { ...base, diet }, // drop meal type
+      { ...base, cuisines, diet, type, ...targets },
+      { ...base, cuisines, diet, type },
+      { ...base, diet, type },
+      { ...base, diet },
     ];
 
     for (const params of attempts) {
@@ -188,7 +168,6 @@ class RecommendationService {
     results: SpoonacularSearchResult[],
     provider: ReturnType<typeof getAiProvider>,
   ): Promise<RankCandidate[]> {
-    // Load any embeddings already cached in mongo (second+ call for same candidates).
     const cached = await Promise.all(
       results.map((r) => Recipe.findOne({ originRecipeId: String(r.id) }, { embedding: 1 })),
     );
@@ -210,7 +189,6 @@ class RecommendationService {
     return Promise.all(
       results.map(async (r, i) => {
         const embedding = vectors[i];
-        // Cache lightweight fields + embedding so future calls are cheaper.
         await Recipe.updateOne(
           { originRecipeId: String(r.id) },
           {

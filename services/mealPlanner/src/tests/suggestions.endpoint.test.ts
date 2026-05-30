@@ -1,8 +1,6 @@
-// services/mealPlanner/src/tests/suggestions.endpoint.test.ts
 import express from "express";
 import request from "supertest";
 
-// Mock auth to inject a fixed user.
 jest.mock("../middlewares/auth.middleware", () => ({
   __esModule: true,
   default: (req: any, _res: any, next: any) => {
@@ -11,7 +9,6 @@ jest.mock("../middlewares/auth.middleware", () => ({
   },
 }));
 
-// Mock the service so the route is tested in isolation.
 jest.mock("../recommendation/recommendationService", () => ({
   __esModule: true,
   default: {

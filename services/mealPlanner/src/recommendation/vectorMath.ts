@@ -1,4 +1,3 @@
-// services/mealPlanner/src/recommendation/vectorMath.ts
 export function cosineSimilarity(a: number[], b: number[]): number {
   if (!a.length || !b.length || a.length !== b.length) return 0;
   let dot = 0;

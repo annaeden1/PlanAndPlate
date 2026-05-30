@@ -1,4 +1,3 @@
-// services/mealPlanner/src/recommendation/embeddingText.ts
 export interface EmbeddingInput {
   name: string;
   cuisines?: string[];

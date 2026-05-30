@@ -1,4 +1,3 @@
-// services/mealPlanner/src/tests/replaceMeal.service.test.ts
 jest.mock("../models/mealPlanModel", () => ({
   __esModule: true,
   MealPlan: { findOne: jest.fn() },

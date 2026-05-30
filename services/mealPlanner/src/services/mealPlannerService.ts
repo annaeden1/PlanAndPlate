@@ -16,7 +16,6 @@ class MealPlannerService {
     date?: string,
     token?: string,
   ): Promise<IMealPlan & any> {
-    // Calculate week start (Sunday) from the provided date or current date
     const refDate = date ? new Date(date) : new Date();
     const weekStart = new Date(refDate);
     weekStart.setDate(refDate.getDate() - refDate.getDay());
@@ -41,7 +40,6 @@ class MealPlannerService {
       allergyExcludeString,
     );
 
-    // Collect all recipe IDs to fetch nutrition
     const allRecipeIds: number[] = [];
     Object.values(weeklyPlanFromAPI.week).forEach((day: any) => {
       if (day.meals) {
@@ -51,7 +49,6 @@ class MealPlannerService {
       }
     });
 
-    // Check DB first; collect IDs not yet saved
     const caloriesMap: { [key: number]: number } = {};
     const missingIds: number[] = [];
 
@@ -66,7 +63,6 @@ class MealPlannerService {
       }),
     );
 
-    // Single bulk request for all recipes not in DB
     if (missingIds.length > 0) {
       const bulkResults = await getRecipeDetailsBulk(missingIds.join(","));
       bulkResults.forEach((recipe: any) => {
@@ -77,7 +73,6 @@ class MealPlannerService {
       });
     }
 
-    // Map meals to Sunday-Saturday dates
     const daysOfWeek = [
       "sunday",
       "monday",

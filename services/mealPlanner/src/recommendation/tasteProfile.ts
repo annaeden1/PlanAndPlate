@@ -43,7 +43,6 @@ export async function buildTasteProfile(args: BuildArgs): Promise<TasteProfile> 
   const { likedRecipes, currentRecipe, prefs, provider } = args;
 
   if (likedRecipes.length >= MIN_LIKES) {
-    // Reuse stored embeddings; only call the AI for recipes that don't have one yet.
     const needEmbed = likedRecipes.filter((r) => !r.embedding?.length);
     const fresh = needEmbed.length
       ? await provider.embed(needEmbed.map(buildEmbeddingText))

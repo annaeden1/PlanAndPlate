@@ -1,4 +1,3 @@
-// services/mealPlanner/src/ai/geminiProvider.ts
 import { GoogleGenAI } from "@google/genai";
 import { AiProvider } from "./aiProvider";
 

@@ -1,4 +1,3 @@
-// services/mealPlanner/src/tests/recommendationService.test.ts
 import axios from "axios";
 
 jest.mock("axios");
@@ -55,7 +54,6 @@ const candidate = (id: number, title: string) => ({
 beforeEach(() => {
   jest.clearAllMocks();
 
-  // 3 liked recipes (>= MIN_LIKES) so the taste profile uses likes.
   (UserFavorites.findOne as jest.Mock).mockResolvedValue({
     likedRecipeIds: ["1", "2", "3"],
   });
@@ -64,7 +62,7 @@ beforeEach(() => {
     "1": tasteDoc(["Thai"]),
     "2": tasteDoc(["Thai", "Asian"]),
     "3": tasteDoc(["Japanese"]),
-    "99": tasteDoc(["Italian"], 600), // current recipe being replaced
+    "99": tasteDoc(["Italian"], 600),
   };
   (Recipe.findOne as jest.Mock).mockImplementation(({ originRecipeId }) =>
     Promise.resolve(docs[originRecipeId] ?? null),
@@ -93,10 +91,10 @@ afterAll(() => __setAiProvider(null));
 describe("recommendationService.getSuggestions", () => {
   it("excludes the current and liked recipes, ranks the rest, and attaches reasons", async () => {
     (searchRecipes as jest.Mock)
-      .mockResolvedValueOnce([]) // full personalization → empty, forces fallback
+      .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
-        candidate(99, "Current"), // excluded (recipe being replaced)
-        candidate(1, "Liked"), // excluded (already liked)
+        candidate(99, "Current"),
+        candidate(1, "Liked"),
         candidate(4, "New A"),
         candidate(5, "New B"),
       ]);
@@ -115,9 +113,9 @@ describe("recommendationService.getSuggestions", () => {
 
   it("relaxes the search progressively until it finds candidates", async () => {
     (searchRecipes as jest.Mock)
-      .mockResolvedValueOnce([]) // full personalization
-      .mockResolvedValueOnce([]) // drop calorie/protein band
-      .mockResolvedValueOnce([candidate(4, "New A")]); // drop cuisines → hit
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([candidate(4, "New A")]);
 
     const result = await recommendationService.getSuggestions(
       "user-1",

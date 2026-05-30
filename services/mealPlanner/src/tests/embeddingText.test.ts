@@ -1,4 +1,3 @@
-// services/mealPlanner/src/tests/embeddingText.test.ts
 import { buildEmbeddingText, EmbeddingInput } from "../recommendation/embeddingText";
 
 describe("buildEmbeddingText", () => {
