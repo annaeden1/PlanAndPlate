@@ -29,7 +29,6 @@ export interface IRecipe {
   cuisines?: string[];
   dishTypes?: string[];
   embedding?: number[];
-  isLiked?: boolean;
   instructions?: IRecipeInstructions;
 }
 

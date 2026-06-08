@@ -51,8 +51,18 @@ export async function buildTasteProfile(args: BuildArgs): Promise<TasteProfile> 
     const vectors = likedRecipes
       .map((r) => (r.embedding?.length ? r.embedding : (fresh[freshIdx++] ?? [])))
       .filter((v) => v.length > 0);
+    const likedCentroid = meanVector(vectors);
+
+    const currentVec = currentRecipe.embedding?.length
+      ? currentRecipe.embedding
+      : (await provider.embed([buildEmbeddingText(currentRecipe)]))[0] ?? [];
+
+    const centroid = currentVec.length
+      ? likedCentroid.map((v, i) => v * 0.7 + (currentVec[i] ?? 0) * 0.3)
+      : likedCentroid;
+
     return {
-      centroid: meanVector(vectors),
+      centroid,
       cuisines: topCuisines(likedRecipes),
       diet: prefs.diet,
       healthGoal: prefs.healthGoal,

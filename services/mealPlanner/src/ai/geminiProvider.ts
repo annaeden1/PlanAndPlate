@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { AiProvider } from "./aiProvider";
+import { AiProvider, ExplainProfile } from "./aiProvider";
 
 const EMBED_MODEL = "gemini-embedding-001"; // text-only, 3072-dim
 const TEXT_MODEL = "gemini-2.0-flash";
@@ -30,12 +30,17 @@ export class GeminiProvider implements AiProvider {
   }
 
   async explain(
-    profileCuisines: string[],
+    profile: ExplainProfile,
     candidates: { originRecipeId: string; name: string }[],
   ): Promise<Record<string, string>> {
+    const parts: string[] = [];
+    parts.push(`A user enjoys ${profile.cuisines.join(", ") || "varied"} cuisine.`);
+    if (profile.diet) parts.push(`They follow a ${profile.diet} diet.`);
+    if (profile.healthGoal) parts.push(`Their health goal is: ${profile.healthGoal}.`);
+    if (profile.allergies) parts.push(`They are allergic to: ${profile.allergies}.`);
     const prompt =
-      `A user enjoys ${profileCuisines.join(", ") || "varied"} food. ` +
-      `For each recipe below, write a short (max 12 words) reason it fits them. ` +
+      parts.join(" ") +
+      ` For each recipe below, write a short (max 12 words) reason it fits them. ` +
       `Return JSON object mapping id to reason.\n` +
       candidates.map((c) => `${c.originRecipeId}: ${c.name}`).join("\n");
     try {

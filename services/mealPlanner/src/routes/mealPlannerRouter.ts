@@ -245,6 +245,8 @@ mealPlannerRouter.get(
  *         description: OK - Updated day
  *       400:
  *         description: Bad Request - Invalid input
+ *       403:
+ *         description: Forbidden - userId does not match authenticated user
  *       404:
  *         description: Not Found - Plan or day not found
  *       500:

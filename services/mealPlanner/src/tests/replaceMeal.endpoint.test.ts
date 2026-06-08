@@ -43,11 +43,32 @@ describe("PATCH /mealPlanner/users/:userId/meal-plans/day/meal", () => {
     );
   });
 
-  it("rejects an invalid mealType with 400", async () => {
+  it("returns 400 when required fields are missing", async () => {
+    const res = await request(app)
+      .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
+      .send({ mealType: "dinner" }); // missing date and newRecipeId
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for an invalid mealType", async () => {
     const res = await request(app)
       .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
       .send({ date: "2026-05-31", mealType: "brunch", newRecipeId: "222" });
     expect(res.status).toBe(400);
+  });
+
+  it("returns 400 for an invalid date", async () => {
+    const res = await request(app)
+      .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
+      .send({ date: "not-a-date", mealType: "dinner", newRecipeId: "222" });
+    expect(res.status).toBe(400);
+  });
+
+  it("returns 403 when userId does not match the authenticated user", async () => {
+    const res = await request(app)
+      .patch("/mealPlanner/users/other-user/meal-plans/day/meal")
+      .send({ date: "2026-05-31", mealType: "dinner", newRecipeId: "222" });
+    expect(res.status).toBe(403);
   });
 
   it("returns 404 when the plan/day is missing", async () => {
@@ -55,5 +76,13 @@ describe("PATCH /mealPlanner/users/:userId/meal-plans/day/meal", () => {
       .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
       .send({ date: "2026-05-31", mealType: "lunch", newRecipeId: "222" });
     expect(res.status).toBe(404);
+  });
+
+  it("returns 500 when the service throws", async () => {
+    (mealPlannerService.replaceMeal as jest.Mock).mockRejectedValueOnce(new Error("DB error"));
+    const res = await request(app)
+      .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
+      .send({ date: "2026-05-31", mealType: "dinner", newRecipeId: "222" });
+    expect(res.status).toBe(500);
   });
 });

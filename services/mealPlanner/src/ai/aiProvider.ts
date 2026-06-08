@@ -1,7 +1,14 @@
+export interface ExplainProfile {
+  cuisines: string[];
+  diet?: string;
+  healthGoal?: string;
+  allergies?: string;
+}
+
 export interface AiProvider {
   embed(texts: string[]): Promise<number[][]>;
   explain?(
-    profileCuisines: string[],
+    profile: ExplainProfile,
     candidates: { originRecipeId: string; name: string }[],
   ): Promise<Record<string, string>>;
 }

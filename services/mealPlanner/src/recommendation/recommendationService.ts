@@ -43,16 +43,34 @@ function caloriesOf(result: SpoonacularSearchResult): number {
 
 async function loadTasteRecipe(recipeId: string): Promise<TasteRecipe | null> {
   const doc = await Recipe.findOne({ originRecipeId: recipeId });
-  if (!doc) return null;
-  return {
-    name: doc.name,
-    cuisines: doc.cuisines,
-    dishTypes: doc.dishTypes,
-    diets: doc.diets,
-    ingredients: doc.instructions?.ingredients?.map((i) => ({ name: i.name })) ?? [],
-    embedding: doc.embedding,
-    calories: doc.calories,
-  };
+  if (doc) {
+    return {
+      name: doc.name,
+      cuisines: doc.cuisines,
+      dishTypes: doc.dishTypes,
+      diets: doc.diets,
+      ingredients: doc.instructions?.ingredients?.map((i) => ({ name: i.name })) ?? [],
+      embedding: doc.embedding,
+      calories: doc.calories,
+    };
+  }
+
+  // Fallback: fetch from Spoonacular and cache locally so future lookups hit the DB.
+  try {
+    const fetched = await mealPlannerService.getRecipeDetails(recipeId);
+    if (!fetched) return null;
+    return {
+      name: fetched.name,
+      cuisines: fetched.cuisines,
+      dishTypes: fetched.dishTypes,
+      diets: fetched.diets,
+      ingredients: fetched.instructions?.ingredients?.map((i: { name: string }) => ({ name: i.name })) ?? [],
+      embedding: fetched.embedding,
+      calories: fetched.calories,
+    };
+  } catch {
+    return null;
+  }
 }
 
 class RecommendationService {
@@ -105,7 +123,12 @@ class RecommendationService {
     if (provider.explain && ranked.length) {
       const top = ranked.slice(0, 5);
       const reasons = await provider.explain(
-        profile.cuisines,
+        {
+          cuisines: profile.cuisines,
+          diet: profile.diet,
+          healthGoal: profile.healthGoal,
+          allergies,
+        },
         top.map((r) => ({ originRecipeId: r.originRecipeId, name: r.name })),
       );
       for (const r of ranked) {
