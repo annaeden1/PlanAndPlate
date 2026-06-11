@@ -20,7 +20,25 @@ export const useAuth = () => {
         const response = await userManagementApi.verify(token);
 
         if (response) {
-          setAuthState('loggedIn');
+          const userId = getUserId();
+          if (userId) {
+            try {
+              const prefsResponse = await userManagementApi.getPreferences(userId, token);
+              const prefs = prefsResponse?.userPreferences;
+              
+              const hasCompletedOnboarding = prefs && (prefs.healthGoal !== undefined || (prefs.diet && prefs.diet.length > 0) || (prefs.allergies && prefs.allergies.length > 0) || prefs.weeklyBudget !== undefined);
+              
+              if (hasCompletedOnboarding) {
+                setAuthState('loggedIn');
+              } else {
+                setAuthState('preferences');
+              }
+            } catch (err) {
+              setAuthState('loggedIn');
+            }
+          } else {
+            setAuthState('loggedIn');
+          }
         } else {
           localStorage.removeItem('access-token');
           localStorage.removeItem('refresh-token');
