@@ -16,15 +16,15 @@ export const RecipeNutritionStats = ({ recipe }: RecipeNutritionStatsProps) => (
         </Box>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", pb: "0.75rem", borderBottom: 1, borderColor: "divider" }}>
           <Typography color="text.secondary">Protein</Typography>
-          <Typography fontWeight={600}>{recipe.protein}g</Typography>
+          <Typography fontWeight={600}>{Math.round(recipe.protein || 0)}g</Typography>
         </Box>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", pb: "0.75rem", borderBottom: 1, borderColor: "divider" }}>
           <Typography color="text.secondary">Fat</Typography>
-          <Typography fontWeight={600}>{recipe.fat}g</Typography>
+          <Typography fontWeight={600}>{Math.round(recipe.fat || 0)}g</Typography>
         </Box>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography color="text.secondary">Carbs</Typography>
-          <Typography fontWeight={600}>{recipe.carbs}g</Typography>
+          <Typography fontWeight={600}>{Math.round(recipe.carbs || 0)}g</Typography>
         </Box>
       </Box>
     </Card>
