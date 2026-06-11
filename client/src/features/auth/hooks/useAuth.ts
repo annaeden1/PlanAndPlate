@@ -26,8 +26,6 @@ export const useAuth = () => {
               const prefsResponse = await userManagementApi.getPreferences(userId, token);
               const prefs = prefsResponse?.userPreferences;
               
-              // If healthGoal is explicitly set (even as an empty string), or diet/allergies have been modified,
-              // we consider the user to have completed onboarding.
               const hasCompletedOnboarding = prefs && (prefs.healthGoal !== undefined || (prefs.diet && prefs.diet.length > 0) || (prefs.allergies && prefs.allergies.length > 0) || prefs.weeklyBudget !== undefined);
               
               if (hasCompletedOnboarding) {
