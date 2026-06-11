@@ -4,6 +4,7 @@ import {
   GroceryListCard,
   TodaysMeals,
   TodaysProgressCard,
+  LikedRecipes,
 } from "@/features/home/components";
 import type { CalorieProgress, GroceryListStatus, Meal } from "@/features/home/types/home";
 import { Stack, Box, Avatar } from "@mui/material";
@@ -70,6 +71,7 @@ export const HomePage = () => {
         </Box>
         <Box sx={{ display: "flex", flexDirection: "column", gap: "1.5rem", minWidth: 0 }}>
           <TodaysMeals meals={meals} onToggleMeal={toggleMeal} />
+          <LikedRecipes />
         </Box>
       </Box>
     </Box>

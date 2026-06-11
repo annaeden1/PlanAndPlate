@@ -104,6 +104,21 @@ class MealPlannerController {
       res.status(500).json({ error: "Failed to toggle recipe like" });
     }
   }
+
+  async getLikedRecipes(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      if (!userId || typeof userId !== "string" || userId.trim() === "") {
+        return res.status(400).json({ error: "Invalid input data: userId is required" });
+      }
+
+      const recipes = await mealPlannerService.getLikedRecipes(userId);
+      res.json(recipes);
+    } catch (error) {
+      console.error("Error fetching liked recipes:", error);
+      res.status(500).json({ error: "Failed to fetch liked recipes" });
+    }
+  }
 }
 
 export default new MealPlannerController();
