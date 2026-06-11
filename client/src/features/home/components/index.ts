@@ -4,3 +4,4 @@ export * from "./MealCard";
 export * from "./TodaysMeals";
 export * from "./TodaysProgressCard";
 export * from "./LikedRecipes";
+export * from "./LikedRecipeCard";
