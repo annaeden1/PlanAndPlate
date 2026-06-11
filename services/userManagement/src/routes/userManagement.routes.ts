@@ -2,6 +2,7 @@ import { Router } from 'express';
 import {
   getAccountData,
   getPreferences,
+  updateAccountData,
   updatePassword,
   updatePreferences,
 } from '../controllers/userManagement.controller';
@@ -13,6 +14,20 @@ userManagementRouter.patch('/:userId/password', authMiddleware, updatePassword);
 
 userManagementRouter.get('/:userId/account', authMiddleware, getAccountData);
 
-userManagementRouter.get('/:userId/preferences', authMiddleware, getPreferences);
+userManagementRouter.patch(
+  '/:userId/account',
+  authMiddleware,
+  updateAccountData,
+);
 
-userManagementRouter.patch('/:userId/preferences', authMiddleware, updatePreferences);
+userManagementRouter.get(
+  '/:userId/preferences',
+  authMiddleware,
+  getPreferences,
+);
+
+userManagementRouter.patch(
+  '/:userId/preferences',
+  authMiddleware,
+  updatePreferences,
+);

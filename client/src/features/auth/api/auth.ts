@@ -25,6 +25,28 @@ export const userManagementApi = {
       })
       .then((r) => r.data),
 
+  updateAccountData: (
+    userId: string,
+    accountData: { name: string },
+    token: string | null,
+  ) =>
+    api
+      .patch(`/userManagement/${userId}/account`, accountData, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((r) => r.data),
+
+  updatePassword: (
+    userId: string,
+    payload: { oldPassword: string; newPassword: string },
+    token: string | null,
+  ) =>
+    api
+      .patch(`/userManagement/${userId}/password`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((r) => r.data),
+
   getPreferences: (userId: string, token: string | null) =>
     api
       .get(`/userManagement/${userId}/preferences`, {
