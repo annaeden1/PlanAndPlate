@@ -3,10 +3,13 @@ import { Box, Button } from '@mui/material';
 import { useState } from 'react';
 import type {
   Allergies,
+  BodyStats,
   DietaryPreferences,
   OnboardingData,
 } from '@/shared';
+import { ActivityStep } from '@/features/preferences/components/ActivityStep';
 import { AllergiesStep } from '@/features/preferences/components/AllergiesStep';
+import { BodyStatsStep } from '@/features/preferences/components/BodyStatsStep';
 import { BudgetStep } from '@/features/preferences/components/BudgetStep';
 import { DietaryStep } from '@/features/preferences/components/DietaryStep';
 import { GoalsStep } from '@/features/preferences/components/GoalsStep';
@@ -20,15 +23,26 @@ interface PreferencesProps {
   onComplete: (data: OnboardingData) => void;
 }
 
+const isBodyStatsComplete = (s: Partial<BodyStats>): s is BodyStats =>
+  !!s.weightKg &&
+  s.weightKg > 0 &&
+  !!s.heightCm &&
+  s.heightCm > 0 &&
+  !!s.age &&
+  s.age >= 13 &&
+  s.age <= 100 &&
+  (s.gender === 'male' || s.gender === 'female');
+
 export function Preferences({ onComplete }: PreferencesProps) {
   const [step, setStep] = useState(1);
   const [preferences, setPreferences] =
     useState<DietaryPreferences>(dietaryInitialState);
   const [allergies, setAllergies] = useState<Allergies>(allergiesInitialState);
+  const [bodyStats, setBodyStats] = useState<Partial<BodyStats>>({});
   const [goal, setGoal] = useState('');
   const [budget, setBudget] = useState('');
 
-  const totalSteps = 4;
+  const totalSteps = 6;
 
   const handlePreferenceChange = (selectedKey: keyof DietaryPreferences) => {
     const defaultPreferences: DietaryPreferences = dietaryInitialState;
@@ -48,6 +62,15 @@ export function Preferences({ onComplete }: PreferencesProps) {
     setAllergies((prev: Allergies) => ({ ...prev, [key]: value }));
   };
 
+  const handleBodyStatsChange = (patch: Partial<BodyStats>) => {
+    setBodyStats((prev) => ({ ...prev, ...patch }));
+  };
+
+  // Gate "Continue" on the steps that need valid input before calorie calc.
+  const canContinue =
+    (step !== 3 || isBodyStatsComplete(bodyStats)) &&
+    (step !== 4 || !!bodyStats.activityLevel);
+
   const handleNext = () => {
     if (step < totalSteps) {
       setStep(step + 1);
@@ -65,6 +88,10 @@ export function Preferences({ onComplete }: PreferencesProps) {
           allergies: selectedAllergies,
           healthGoal: goal,
           weeklyBudget: parseFloat(budget) || undefined,
+          bodyStats:
+            isBodyStatsComplete(bodyStats) && bodyStats.activityLevel
+              ? (bodyStats as BodyStats)
+              : undefined,
         },
       };
 
@@ -100,9 +127,26 @@ export function Preferences({ onComplete }: PreferencesProps) {
             />
           )}
 
-          {step === 3 && <GoalsStep goal={goal} onChange={setGoal} />}
+          {step === 3 && (
+            <BodyStatsStep value={bodyStats} onChange={handleBodyStatsChange} />
+          )}
 
-          {step === 4 && <BudgetStep budget={budget} onChange={setBudget} />}
+          {step === 4 && (
+            <ActivityStep
+              activityLevel={bodyStats.activityLevel ?? ''}
+              onChange={(activityLevel) =>
+                handleBodyStatsChange({
+                  activityLevel: activityLevel as BodyStats['activityLevel'],
+                })
+              }
+            />
+          )}
+
+          {step === 5 && (
+            <GoalsStep goal={goal} onChange={setGoal} stats={bodyStats} />
+          )}
+
+          {step === 6 && <BudgetStep budget={budget} onChange={setBudget} />}
         </Box>
       </Box>
 
@@ -138,6 +182,7 @@ export function Preferences({ onComplete }: PreferencesProps) {
             variant="contained"
             fullWidth={step === 1}
             size="large"
+            disabled={!canContinue}
             onClick={handleNext}
             endIcon={<ChevronRightIcon />}
             sx={{

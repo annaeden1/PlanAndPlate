@@ -6,6 +6,7 @@ export const initialProfileState: UserProfile = {
   preferences: [],
   goal: 'Loading...',
   budget: 'Loading...',
+  healthGoalId: '',
   loading: true,
   error: null,
 };

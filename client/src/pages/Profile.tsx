@@ -1,19 +1,38 @@
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import LocalDiningIcon from '@mui/icons-material/LocalDining';
 import LockIcon from '@mui/icons-material/Lock';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import { Box, Card, Typography } from '@mui/material';
+import { useState } from 'react';
+import { calcTargets } from '@/shared';
 import { ActionRow } from '@/components/common/ActionRow';
 import { PageHeader } from '@/components/common/PageHeader';
+import { BodyGoalEditor } from '@/features/profile/components/BodyGoalEditor';
 import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
 import { StatCards } from '@/features/profile/components/StatCards';
 import { useUserProfile } from '@/features/profile/hooks/useUserProfile';
 
 export function Profile() {
-  const { username, email, preferences, goal, budget, loading, error } =
-    useUserProfile();
+  const {
+    username,
+    email,
+    preferences,
+    goal,
+    budget,
+    bodyStats,
+    healthGoalId,
+    loading,
+    error,
+  } = useUserProfile();
+  const [editorOpen, setEditorOpen] = useState(false);
+
+  const targets = calcTargets(bodyStats, healthGoalId);
+  const bodyGoalSubtitle = targets
+    ? `${targets.targetCalories.toLocaleString()} kcal/day · ${targets.proteinGramsPerDay}g protein`
+    : 'Set your body stats to get a calorie target';
 
   // TODO: Implement sign out server logic
   const handleSignOut = () => {
@@ -82,6 +101,15 @@ export function Profile() {
                   topDivider
                 />
                 <ActionRow
+                  icon={<FitnessCenterIcon />}
+                  iconColor="primary.main"
+                  iconBgColor="rgba(62, 180, 137, 0.1)"
+                  title="Body & Goal"
+                  subtitle={bodyGoalSubtitle}
+                  onClick={() => setEditorOpen(true)}
+                  topDivider
+                />
+                <ActionRow
                   icon={<AttachMoneyIcon />}
                   iconColor="#fbbf24"
                   iconBgColor="rgba(251, 191, 36, 0.1)"
@@ -130,6 +158,15 @@ export function Profile() {
           </Box>
         )}
       </Box>
+
+      {editorOpen && (
+        <BodyGoalEditor
+          open
+          onClose={() => setEditorOpen(false)}
+          initialStats={bodyStats}
+          initialGoal={healthGoalId}
+        />
+      )}
     </Box>
   );
 }

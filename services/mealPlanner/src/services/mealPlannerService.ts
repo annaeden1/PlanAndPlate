@@ -9,6 +9,7 @@ import {
 } from "./spoonacularService.service";
 import { normalizeUnit } from "../utils/types/units";
 import { nutrients } from "../utils/types/spoonacularTypes";
+import { calcTargets } from "../utils/calorieCalculator";
 
 class MealPlannerService {
   async createWeeklyPlan(
@@ -36,9 +37,17 @@ class MealPlannerService {
       ? userPreferences.data.userPreferences.diet[0] || ""
       : userPreferences.data.userPreferences.diet || "";
 
+    // Goal-driven calorie target. Returns null when body stats are incomplete,
+    // so legacy users without bodyStats keep the previous (untargeted) behavior.
+    const targets = calcTargets(
+      userPreferences.data.userPreferences.bodyStats,
+      userPreferences.data.userPreferences.healthGoal,
+    );
+
     const weeklyPlanFromAPI = await generateMealPlan(
       diet,
       allergyExcludeString,
+      targets?.targetCalories,
     );
 
     // Collect all recipe IDs to fetch nutrition

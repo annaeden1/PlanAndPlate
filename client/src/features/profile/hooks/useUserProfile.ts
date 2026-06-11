@@ -71,6 +71,8 @@ export const useUserProfile = (): UserProfile => {
           preferences: activePrefs,
           goal,
           budget,
+          bodyStats: userPreferences.bodyStats,
+          healthGoalId: userPreferences.healthGoal || '',
           loading: false,
           error: null,
         });
