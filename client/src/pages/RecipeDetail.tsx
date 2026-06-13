@@ -52,13 +52,12 @@ export function RecipeDetail({}: RecipeDetailProps) {
 
   const handleToggleLike = async () => {
     if (!recipe) return;
-    const token = localStorage.getItem('access-token');
     const id = recipe.originRecipeId || recipeId || '';
 
     setRecipe((prev) => (prev ? { ...prev, isLiked: !prev.isLiked } : prev));
 
     try {
-      const result = await mealPlannerApi.toggleRecipeLike(id, token);
+      const result = await mealPlannerApi.toggleRecipeLike(id);
       setRecipe((prev) => (prev ? { ...prev, isLiked: result.isLiked } : prev));
     } catch (err) {
       console.error('Failed to toggle like:', err);
@@ -74,13 +73,12 @@ export function RecipeDetail({}: RecipeDetailProps) {
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        const token = localStorage.getItem('access-token');
         if (!recipeId) {
           setError('No recipe ID provided');
           setLoading(false);
           return;
         }
-        const data = await mealPlannerApi.getRecipeDetails(recipeId, token);
+        const data = await mealPlannerApi.getRecipeDetails(recipeId);
         setRecipe(data);
       } catch (err) {
         console.error('Error fetching recipe:', err);
@@ -124,7 +122,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
         <>
           <RecipeHero
             recipe={recipe}
-            onBack={() => navigate('/planner')}
+            onBack={() => navigate(-1)}
             onToggleLike={handleToggleLike}
           />
 

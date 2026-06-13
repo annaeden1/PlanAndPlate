@@ -6,6 +6,7 @@ import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import type { ApiRecipe } from "@/features/mealPlanner/types/mealPlanner";
+import platePicturePlaceholder from "@/assets/plate pic.jpg";
 
 interface RecipeHeroProps {
   recipe: ApiRecipe;
@@ -17,7 +18,7 @@ export const RecipeHero = ({ recipe, onBack, onToggleLike }: RecipeHeroProps) =>
   <Box sx={{ position: "relative", height: "25rem", bgcolor: "grey.100" }}>
     <Box
       component="img"
-      src={recipe.image}
+      src={recipe.image || platePicturePlaceholder}
       alt={recipe.name}
       sx={{ width: "100%", height: "100%", objectFit: "cover" }}
     />
@@ -56,10 +57,10 @@ export const RecipeHero = ({ recipe, onBack, onToggleLike }: RecipeHeroProps) =>
           <Typography variant="h1" sx={{ fontSize: "3rem", mb: "1rem" }}>
             {recipe.name}
           </Typography>
-          <IconButton 
+          <IconButton
             onClick={onToggleLike}
-            sx={{ 
-              bgcolor: "rgba(255,255,255,0.8)", 
+            sx={{
+              bgcolor: "rgba(255,255,255,0.8)",
               "&:hover": { bgcolor: "background.paper" },
               mt: "0.5rem"
             }}

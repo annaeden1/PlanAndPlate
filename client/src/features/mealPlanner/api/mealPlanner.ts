@@ -6,19 +6,31 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access-token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 export const mealPlannerApi = {
-  getWeeklyPlan: (userId: string, date: string, token: string | null) =>
-    api.get<ApiMealPlan>(`/users/${userId}/meal-plans`, { params: { date } , headers: { Authorization: `Bearer ${token}` } }).then((r) => r.data),
+  getWeeklyPlan: (userId: string, date: string) =>
+    api.get<ApiMealPlan>(`/users/${userId}/meal-plans`, { params: { date } }).then((r) => r.data),
 
-  getDailyPlan: (userId: string, date: string, token: string | null) =>
-    api.get<ApiMealPlanDay>(`/users/${userId}/meal-plans/day`, { params: { date } , headers: { Authorization: `Bearer ${token}` } }).then((r) => r.data),
+  getDailyPlan: (userId: string, date: string) =>
+    api.get<ApiMealPlanDay>(`/users/${userId}/meal-plans/day`, { params: { date } }).then((r) => r.data),
 
-  createWeeklyPlan: (userId: string, date?: string, token: string | null = null) =>
-    api.post<ApiMealPlan>(`/users/${userId}/meal-plans/weekly`, {}, { params: { date } , headers: { Authorization: `Bearer ${token}` } }).then((r) => r.data),
+  createWeeklyPlan: (userId: string, date?: string) =>
+    api.post<ApiMealPlan>(`/users/${userId}/meal-plans/weekly`, {}, { params: { date } }).then((r) => r.data),
 
-  getRecipeDetails: (recipeId: string, token: string | null) =>
-    api.get<ApiRecipe>(`/recipes/${recipeId}`, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.data),
+  getRecipeDetails: (recipeId: string) =>
+    api.get<ApiRecipe>(`/recipes/${recipeId}`).then((r) => r.data),
 
-  toggleRecipeLike: (recipeId: string, token: string | null) =>
-    api.patch<{ isLiked: boolean }>(`/recipes/${recipeId}/like`, {}, { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.data),
+  createManualRecipe: (payload: any) =>
+    api.post<ApiRecipe>(`/recipes`, payload).then((r) => r.data),
+
+  getManualRecipes: () =>
+    api.get<ApiRecipe[]>(`/recipes/manual`).then((r) => r.data),
+
+  toggleRecipeLike: (recipeId: string) =>
+    api.patch<{ isLiked: boolean }>(`/recipes/${recipeId}/like`, {}).then((r) => r.data),
 };

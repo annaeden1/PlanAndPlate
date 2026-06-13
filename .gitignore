@@ -5,3 +5,4 @@ coverage/
 jest-localstorage.json*
 *.log
 CLAUDE.md
+/services/mealPlanner/public/photos/

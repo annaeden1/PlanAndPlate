@@ -34,13 +34,12 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const userId = getUserId();
-    const token = localStorage.getItem('access-token');
     if (!userId) { setLoading(false); return; }
 
     const today = new Date().toISOString().split('T')[0];
 
     mealPlannerApi
-      .getDailyPlan(userId, today, token)
+      .getDailyPlan(userId, today)
       .then((day) => {
         const mapped: Meal[] = (['breakfast', 'lunch', 'dinner'] as const).map((type) => ({
           id: day[type].recipeId,
