@@ -4,8 +4,13 @@ import {
   GroceryListCard,
   TodaysMeals,
   TodaysProgressCard,
+  LikedRecipes,
 } from "@/features/home/components";
-import type { CalorieProgress, GroceryListStatus, Meal } from "@/features/home/types/home";
+import type {
+  CalorieProgress,
+  GroceryListStatus,
+  Meal,
+} from "@/features/home/types/home";
 import { Stack, Box, Avatar } from "@mui/material";
 import { useMemo } from "react";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -47,30 +52,62 @@ export const HomePage = () => {
 
   return (
     <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>
-      <PageHeader 
-        title={getGreeting()} 
+      <PageHeader
+        title={getGreeting()}
         subtitle="Ready for a healthy day? 🌱"
-        action={<Avatar sx={{ width: "3rem", height: "3rem", bgcolor: "primary.main", fontSize: "1.5rem" }}>👋</Avatar>}
+        action={
+          <Avatar
+            sx={{
+              width: "3rem",
+              height: "3rem",
+              bgcolor: "primary.main",
+              fontSize: "1.5rem",
+            }}
+          >
+            👋
+          </Avatar>
+        }
       />
-      <Box 
-        sx={{ 
-          px: { xs: "1rem", sm: "1.5rem" }, 
-          mt: "-2rem", 
-          maxWidth: "80rem", 
+      <Box
+        sx={{
+          px: { xs: "1rem", sm: "1.5rem" },
+          mt: "-2rem",
+          maxWidth: "80rem",
           mx: "auto",
-          display: "grid",
-          gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
-          gap: "1.5rem",
-          alignItems: "start"
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "1.5rem", minWidth: 0 }}>
-          <TodaysProgressCard calorieProgress={calorieProgress} />
-          <GroceryListCard groceryStatus={groceryStatus} />
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+            gap: "1.5rem",
+            alignItems: "start",
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              minWidth: 0,
+            }}
+          >
+            <TodaysProgressCard calorieProgress={calorieProgress} />
+            <GroceryListCard groceryStatus={groceryStatus} />
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "1.5rem",
+              minWidth: 0,
+            }}
+          >
+            <TodaysMeals meals={meals} onToggleMeal={toggleMeal} />
+          </Box>
         </Box>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "1.5rem", minWidth: 0 }}>
-          <TodaysMeals meals={meals} onToggleMeal={toggleMeal} />
-        </Box>
+        <LikedRecipes />
       </Box>
     </Box>
   );
