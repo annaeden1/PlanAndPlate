@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { mealPlannerApi } from "@/features/mealPlanner/api/mealPlanner";
 import { getUserId } from "@/shared/utils/userId";
@@ -9,6 +9,15 @@ import { LikedRecipeCard } from "./LikedRecipeCard";
 export const LikedRecipes = () => {
   const [recipes, setRecipes] = useState<ApiRecipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [canScroll, setCanScroll] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const checkScroll = () => {
+    if (containerRef.current) {
+      const { scrollWidth, clientWidth } = containerRef.current;
+      setCanScroll(scrollWidth > clientWidth);
+    }
+  };
 
   useEffect(() => {
     const userId = getUserId();
@@ -23,6 +32,17 @@ export const LikedRecipes = () => {
       .catch((err) => console.error("Error fetching liked recipes:", err))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!loading && recipes.length > 0) {
+      const timer = setTimeout(checkScroll, 100);
+      window.addEventListener("resize", checkScroll);
+      return () => {
+        clearTimeout(timer);
+        window.removeEventListener("resize", checkScroll);
+      };
+    }
+  }, [recipes, loading]);
 
   if (loading) {
     return (
@@ -43,7 +63,7 @@ export const LikedRecipes = () => {
             Your Favorites
           </Typography>
         </Box>
-        {recipes.length > 3 && (
+        {canScroll && (
           <Typography variant="caption" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: "0.25rem", userSelect: "none" }}>
             Scroll for more &rarr;
           </Typography>
@@ -51,6 +71,7 @@ export const LikedRecipes = () => {
       </Box>
 
       <Box
+        ref={containerRef}
         sx={{
           display: "flex",
           gap: "1rem",
