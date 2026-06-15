@@ -27,7 +27,8 @@ export const LikedRecipes = () => {
       return;
     }
 
-    mealPlannerApi.getLikedRecipes(userId, token)
+    mealPlannerApi
+      .getLikedRecipes(userId, token)
       .then((data) => setRecipes(data))
       .catch((err) => console.error("Error fetching liked recipes:", err))
       .finally(() => setLoading(false));
@@ -46,7 +47,7 @@ export const LikedRecipes = () => {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+      <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
         <CircularProgress size={24} />
       </Box>
     );
@@ -56,7 +57,14 @@ export const LikedRecipes = () => {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: "1rem" }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          mb: "1rem",
+        }}
+      >
         <Box sx={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <FavoriteIcon sx={{ color: "error.main", fontSize: "1.5rem" }} />
           <Typography variant="h6" fontWeight={700}>
@@ -64,7 +72,16 @@ export const LikedRecipes = () => {
           </Typography>
         </Box>
         {canScroll && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: "flex", alignItems: "center", gap: "0.25rem", userSelect: "none" }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.25rem",
+              userSelect: "none",
+            }}
+          >
             Scroll for more &rarr;
           </Typography>
         )}
@@ -78,9 +95,8 @@ export const LikedRecipes = () => {
           overflowX: "auto",
           pb: "0.75rem",
           pt: "0.25rem",
-          mx: "-0.5rem", // allow shadow to not be clipped on edges
+          mx: "-0.5rem",
           px: "0.5rem",
-          // Premium subtle scrollbar
           "&::-webkit-scrollbar": {
             height: "0.375rem",
           },
