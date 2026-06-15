@@ -90,7 +90,6 @@ export const HomePage = () => {
             sx={{
               display: "flex",
               flexDirection: "column",
-              // gap: "1rem",
               minWidth: 0,
             }}
           >
