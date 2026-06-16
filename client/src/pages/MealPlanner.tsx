@@ -144,11 +144,7 @@ export function MealPlanner({ }: MealPlannerProps) {
       try {
         const data = await mealPlannerApi.getWeeklyPlan(
           userId,
-<<<<<<< HEAD
           weekDate,
-=======
-          weekDate
->>>>>>> 5f88cae5ab53bd85d9bbf61c01ad08aada3d7801
         );
         setMealPlan(data);
         setCachedWeekKey(weekKey);
