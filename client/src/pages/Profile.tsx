@@ -2,38 +2,18 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import LocalDiningIcon from '@mui/icons-material/LocalDining';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import LockIcon from '@mui/icons-material/Lock';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
-import {
-  Box,
-  Button,
-  Card,
-  Checkbox,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  InputLabel,
-  ListItemText,
-  MenuItem,
-  OutlinedInput,
-  Select,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, Card, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { ActionRow } from '@/components/common/ActionRow';
 import { PageHeader } from '@/components/common/PageHeader';
+import { EditAccountDialog } from '@/features/profile/components/EditAccountDialog';
+import { EditPreferencesDialog } from '@/features/profile/components/EditPreferencesDialog';
 import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
 import { StatCards } from '@/features/profile/components/StatCards';
 import { useUserProfile } from '@/features/profile/hooks/useUserProfile';
-import {
-  allergiesOptions,
-  dietaryOptions,
-  goalsOptions,
-} from '@/features/preferences/utils/preferencesOptions';
+import { allergiesOptions } from '@/features/preferences/utils/preferencesOptions';
 
 export function Profile() {
   const {
@@ -123,6 +103,10 @@ export function Profile() {
     setAccountEditError(null);
     setCurrentPasswordError(null);
 
+    const trimmedUsername = editedUsername.trim();
+    const usernameChanged = trimmedUsername !== username.trim();
+    const passwordChangeRequested = Boolean(oldPassword && newPassword);
+
     if ((oldPassword && !newPassword) || (!oldPassword && newPassword)) {
       setAccountEditError(
         'To change password, fill both current and new password.',
@@ -130,7 +114,7 @@ export function Profile() {
       return;
     }
 
-    if (oldPassword && newPassword) {
+    if (passwordChangeRequested) {
       const passwordResult = await updatePassword({
         oldPassword,
         newPassword,
@@ -144,8 +128,13 @@ export function Profile() {
       }
     }
 
+    if (!usernameChanged) {
+      setIsAccountEditOpen(false);
+      return;
+    }
+
     const result = await updateAccount({
-      username: editedUsername.trim(),
+      username: trimmedUsername,
     });
 
     if (!result.success) {
@@ -183,7 +172,6 @@ export function Profile() {
     setIsPreferencesEditOpen(false);
   };
 
-  // TODO: Implement sign out server logic
   const handleSignOut = () => {
     localStorage.removeItem('access-token');
     localStorage.removeItem('refresh-token');
@@ -302,251 +290,49 @@ export function Profile() {
                   topDivider
                   hideChevron
                 />
-                <ActionRow
-                  icon={<PersonIcon />}
-                  iconColor="text.primary"
-                  iconBgColor="grey.100"
-                  title="Reset Onboarding"
-                  subtitle="See the welcome flow again"
-                  onClick={() => {}}
-                  topDivider
-                  hideChevron
-                />
-                <ActionRow
-                  icon={<LockIcon />}
-                  iconColor="text.primary"
-                  iconBgColor="grey.100"
-                  title="Settings"
-                  subtitle="Manage your account settings"
-                  onClick={() => () => {}}
-                  topDivider
-                />
               </Card>
             </Box>
           </Box>
         )}
       </Box>
 
-      <Dialog
+      <EditAccountDialog
         open={isAccountEditOpen}
+        saving={saving}
+        editedUsername={editedUsername}
+        oldPassword={oldPassword}
+        newPassword={newPassword}
+        accountEditError={accountEditError}
+        currentPasswordError={currentPasswordError}
+        canSaveProfile={canSaveProfile}
         onClose={() => !saving && setIsAccountEditOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Edit Account</DialogTitle>
-        <DialogContent
-          sx={{
-            display: 'grid',
-            gap: '1rem',
-            pt: '1rem !important',
-            pb: '0.5rem',
-          }}
-        >
-          <TextField
-            label="Username"
-            value={editedUsername}
-            onChange={(event) => setEditedUsername(event.target.value)}
-            fullWidth
-            required
-            margin="dense"
-          />
+        onUsernameChange={setEditedUsername}
+        onOldPasswordChange={(value) => {
+          setOldPassword(value);
+          if (currentPasswordError) {
+            setCurrentPasswordError(null);
+          }
+        }}
+        onNewPasswordChange={setNewPassword}
+        onSave={handleSaveAccount}
+      />
 
-          <TextField
-            label="Current Password"
-            type="password"
-            value={oldPassword}
-            onChange={(event) => {
-              setOldPassword(event.target.value);
-              if (currentPasswordError) {
-                setCurrentPasswordError(null);
-              }
-            }}
-            fullWidth
-            margin="dense"
-            error={Boolean(currentPasswordError)}
-            helperText={currentPasswordError || ''}
-          />
-
-          <TextField
-            label="New Password"
-            type="password"
-            value={newPassword}
-            onChange={(event) => setNewPassword(event.target.value)}
-            fullWidth
-            margin="dense"
-          />
-
-          {accountEditError && (
-            <Typography color="error">{accountEditError}</Typography>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ px: '1.5rem', pb: '1rem' }}>
-          <Button onClick={() => setIsAccountEditOpen(false)} disabled={saving}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSaveAccount}
-            disabled={!canSaveProfile}
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog
+      <EditPreferencesDialog
         open={isPreferencesEditOpen}
+        saving={saving}
+        editedDiet={editedDiet}
+        editedAllergies={editedAllergies}
+        editedGoal={editedGoal}
+        editedBudget={editedBudget}
+        preferencesEditError={preferencesEditError}
+        canSavePreferences={canSavePreferences}
         onClose={() => !saving && setIsPreferencesEditOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>Edit Preferences</DialogTitle>
-        <DialogContent
-          sx={{
-            display: 'grid',
-            gap: '1rem',
-            pt: '1rem !important',
-            pb: '0.5rem',
-            minWidth: 0,
-            overflowX: 'hidden',
-          }}
-        >
-          <FormControl fullWidth sx={{ minWidth: 0 }}>
-            <InputLabel id="diet-select-label">Diets</InputLabel>
-            <Select
-              labelId="diet-select-label"
-              multiple
-              value={editedDiet}
-              onChange={(event) =>
-                setEditedDiet(event.target.value as string[])
-              }
-              input={<OutlinedInput label="Diets" />}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    maxHeight: 320,
-                    width: 'min(28rem, calc(100vw - 2rem))',
-                  },
-                },
-              }}
-              renderValue={(selected) =>
-                selected
-                  .map(
-                    (value) =>
-                      dietaryOptions.find((option) => option.id === value)
-                        ?.label || value,
-                  )
-                  .join(', ')
-              }
-              sx={{
-                minWidth: 0,
-                '& .MuiSelect-select': {
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                },
-              }}
-            >
-              {dietaryOptions.map((option) => (
-                <MenuItem key={option.id} value={option.id}>
-                  <Checkbox checked={editedDiet.includes(option.id)} />
-                  <ListItemText primary={option.label} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl fullWidth sx={{ minWidth: 0 }}>
-            <InputLabel id="allergies-select-label">Allergies</InputLabel>
-            <Select
-              labelId="allergies-select-label"
-              multiple
-              value={editedAllergies}
-              onChange={(event) =>
-                setEditedAllergies(event.target.value as string[])
-              }
-              input={<OutlinedInput label="Allergies" />}
-              MenuProps={{
-                PaperProps: {
-                  sx: {
-                    maxHeight: 320,
-                    width: 'min(28rem, calc(100vw - 2rem))',
-                  },
-                },
-              }}
-              renderValue={(selected) =>
-                selected
-                  .map(
-                    (value) =>
-                      allergiesOptions.find((option) => option.id === value)
-                        ?.label || value,
-                  )
-                  .join(', ')
-              }
-              sx={{
-                minWidth: 0,
-                '& .MuiSelect-select': {
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                },
-              }}
-            >
-              {allergiesOptions.map((option) => (
-                <MenuItem key={option.id} value={option.id}>
-                  <Checkbox checked={editedAllergies.includes(option.id)} />
-                  <ListItemText primary={option.label} />
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <FormControl fullWidth>
-            <InputLabel id="goal-select-label">Health Goal</InputLabel>
-            <Select
-              labelId="goal-select-label"
-              value={editedGoal}
-              label="Health Goal"
-              onChange={(event) => setEditedGoal(event.target.value)}
-            >
-              <MenuItem value="">Not set</MenuItem>
-              {goalsOptions.map((option) => (
-                <MenuItem key={option.id} value={option.id}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <TextField
-            label="Weekly Budget"
-            value={editedBudget}
-            onChange={(event) => setEditedBudget(event.target.value)}
-            type="number"
-            fullWidth
-            placeholder="e.g. 120"
-          />
-
-          {preferencesEditError && (
-            <Typography color="error">{preferencesEditError}</Typography>
-          )}
-        </DialogContent>
-        <DialogActions sx={{ px: '1.5rem', pb: '1rem' }}>
-          <Button
-            onClick={() => setIsPreferencesEditOpen(false)}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            onClick={handleSavePreferences}
-            disabled={!canSavePreferences}
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onDietChange={setEditedDiet}
+        onAllergiesChange={setEditedAllergies}
+        onGoalChange={setEditedGoal}
+        onBudgetChange={setEditedBudget}
+        onSave={handleSavePreferences}
+      />
     </Box>
   );
 }

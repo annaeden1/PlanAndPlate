@@ -1,26 +1,30 @@
 import axios from 'axios';
 import type { OnboardingData } from '@/shared';
 
-const api = axios.create({
+const managementApi = axios.create({
   baseURL: '/userManagement',
+  headers: { 'Content-Type': 'application/json' },
+});
+
+const authApi = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
 export const userManagementApi = {
   verify: (token: string | null) =>
-    api
+    authApi
       .get(`/auth/verify`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.data),
 
   signin: (formData: any) =>
-    api.post(`/auth/signin`, formData).then((r) => r.data),
+    authApi.post(`/auth/signin`, formData).then((r) => r.data),
 
   signup: (formData: any) =>
-    api.post(`/auth/signup`, formData).then((r) => r.data),
+    authApi.post(`/auth/signup`, formData).then((r) => r.data),
 
   getAccountData: (userId: string, token: string | null) =>
-    api
-      .get(`/userManagement/${userId}/account`, {
+    managementApi
+      .get(`/${userId}/account`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => r.data),
@@ -30,8 +34,8 @@ export const userManagementApi = {
     accountData: { name: string },
     token: string | null,
   ) =>
-    api
-      .patch(`/userManagement/${userId}/account`, accountData, {
+    managementApi
+      .patch(`/${userId}/account`, accountData, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => r.data),
@@ -41,15 +45,15 @@ export const userManagementApi = {
     payload: { oldPassword: string; newPassword: string },
     token: string | null,
   ) =>
-    api
-      .patch(`/userManagement/${userId}/password`, payload, {
+    managementApi
+      .patch(`/${userId}/password`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => r.data),
 
   getPreferences: (userId: string, token: string | null) =>
-    api
-      .get(`/userManagement/${userId}/preferences`, {
+    managementApi
+      .get(`/${userId}/preferences`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => r.data),
@@ -59,8 +63,8 @@ export const userManagementApi = {
     preferences: OnboardingData,
     token: string | null,
   ) =>
-    api
-      .patch(`/userManagement/${userId}/preferences`, preferences, {
+    managementApi
+      .patch(`/${userId}/preferences`, preferences, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => r.data),

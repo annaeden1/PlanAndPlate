@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { findUserByFilter, saveUser } from '../dal/authentication.repository';
 import { hashPassword } from '../utils/password';
 import { findUserAndUpdateFields } from '../dal/userManagement.repository';
+import type { UserUpdatePayload } from '../types/userManagement.types';
 
 export const updatePassword = async (req: Request, res: Response) => {
   const userId = req.params.userId;
@@ -120,10 +121,10 @@ export const updatePreferences = async (req: Request, res: Response) => {
   const { preferences } = req.body;
 
   try {
-    const updatePayload: Record<string, unknown> = {};
+    const updatePayload: UserUpdatePayload = {};
 
     for (const [key, value] of Object.entries(preferences)) {
-      updatePayload[`preferences.${key}`] = value;
+      updatePayload[`preferences.${key}`] = value as UserUpdatePayload[string];
     }
 
     const updatedUser = await findUserAndUpdateFields(userId, updatePayload);

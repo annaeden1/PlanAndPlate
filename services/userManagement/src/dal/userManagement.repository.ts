@@ -1,8 +1,9 @@
 import { user } from '../model/userModel';
+import type { UserUpdatePayload } from '../types/userManagement.types';
 
 export const findUserAndUpdateFields = async (
   userId: string,
-  updatePayload: Record<string, unknown>,
+  updatePayload: UserUpdatePayload,
 ) => {
   return await user.findByIdAndUpdate(
     userId,
