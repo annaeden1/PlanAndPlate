@@ -4,6 +4,7 @@ import express, { Express } from 'express';
 import mongoose from 'mongoose';
 import cors from "cors";
 import { mealPlannerRouter } from './routes/mealPlannerRouter';
+import fileRouter from './routes/fileRouter';
 
 dotenv.config();
 
@@ -14,6 +15,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use('/mealPlanner', mealPlannerRouter);
+
+app.use('/public/photos', express.static('public/photos'));
+app.use('/file', fileRouter);
 
 export const initApp = (): Promise<Express> => {
   const promise = new Promise<Express>((resolve, reject) => {

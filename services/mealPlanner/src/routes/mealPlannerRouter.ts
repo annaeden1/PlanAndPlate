@@ -1,6 +1,6 @@
-import express from "express";
-import MealPlannerController from "../controllers/mealPlannerController";
-import authMiddleware from "../middlewares/auth.middleware";
+import express from 'express';
+import MealPlannerController from '../controllers/mealPlannerController';
+import authMiddleware from '../middlewares/auth.middleware';
 
 export const mealPlannerRouter = express.Router();
 
@@ -47,7 +47,7 @@ export const mealPlannerRouter = express.Router();
  *         description: Internal Server Error - Server error while creating meal plan
  **/
 mealPlannerRouter.post(
-  "/users/:userId/meal-plans/weekly",
+  '/users/:userId/meal-plans/weekly',
   authMiddleware,
   MealPlannerController.createWeeklyPlan,
 );
@@ -80,7 +80,7 @@ mealPlannerRouter.post(
  *         description: Internal Server Error - Server error while retrieving meal plan
  **/
 mealPlannerRouter.get(
-  "/users/:userId/meal-plans",
+  '/users/:userId/meal-plans',
   authMiddleware,
   MealPlannerController.getWeeklyPlan,
 );
@@ -114,13 +114,97 @@ mealPlannerRouter.get(
  *         description: Internal Server Error - Server error while retrieving meal plan
  **/
 mealPlannerRouter.get(
-  "/users/:userId/meal-plans/day",
+  '/users/:userId/meal-plans/day',
   authMiddleware,
   MealPlannerController.getDailyPlan,
 );
 
 /**
  * @swagger
+ * /recipes:
+ *   post:
+ *     summary: Create a new manual recipe and save it to the recipe collection
+ *     tags: [MealPlanner]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *               servings:
+ *                 type: number
+ *               readyInMinutes:
+ *                 type: number
+ *               diets:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               instructions:
+ *                 type: object
+ *                 properties:
+ *                   steps:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   ingredients:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: number
+ *                         name:
+ *                           type: string
+ *                         image:
+ *                           type: string
+ *                         amount:
+ *                           type: number
+ *                         unit:
+ *                           type: string
+ *                         aisle:
+ *                           type: string
+ *     responses:
+ *       201:
+ *         description: Created - Manual recipe created successfully
+ *       400:
+ *         description: Bad Request - Invalid recipe payload
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal Server Error - Failed to create manual recipe
+ **/
+mealPlannerRouter.post(
+  '/recipes',
+  authMiddleware,
+  MealPlannerController.createManualRecipe,
+);
+
+/**
+ * @swagger
+ * /recipes/manual:
+ *   get:
+ *     summary: Get all manual recipes created by the logged-in user
+ *     tags: [MealPlanner]
+ *     responses:
+ *       200:
+ *         description: OK - Manual recipes retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal Server Error - Failed to retrieve manual recipes
+ **/
+mealPlannerRouter.get(
+  '/recipes/manual',
+  authMiddleware,
+  MealPlannerController.getManualRecipes,
+);
+
+/**
  * /recipes/{recipeId}:
  *   get:
  *     summary: Get the details of a recipe by its ID from API
@@ -142,7 +226,7 @@ mealPlannerRouter.get(
  *         description: Internal Server Error - Server error while retrieving recipe details
  **/
 mealPlannerRouter.get(
-  "/recipes/:recipeId",
+  '/recipes/:recipeId',
   authMiddleware,
   MealPlannerController.getRecipeDetails,
 );
@@ -170,7 +254,7 @@ mealPlannerRouter.get(
  *         description: Failed to toggle recipe like
  */
 mealPlannerRouter.patch(
-  "/recipes/:recipeId/like",
+  '/recipes/:recipeId/like',
   authMiddleware,
   MealPlannerController.toggleRecipeLike,
 );
@@ -199,4 +283,4 @@ mealPlannerRouter.get(
   "/users/:userId/favorites",
   authMiddleware,
   MealPlannerController.getLikedRecipes,
-);
+);
