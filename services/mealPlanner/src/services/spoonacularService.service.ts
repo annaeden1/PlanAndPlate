@@ -37,8 +37,8 @@ export interface SpoonacularSearchParams {
   cuisines?: string[];
   diet?: string;
   intolerances?: string;
-  type?: string; // breakfast | main course | ...
-  number?: number; // number of recipes to return
+  mealType?: string;
+  recipesCount?: number;
   minCalories?: number;
   maxCalories?: number;
   minProtein?: number;
@@ -55,6 +55,8 @@ export interface SpoonacularSearchResult {
   nutrition?: { nutrients: { name: string; amount: number }[] };
 }
 
+const DEFAULT_RECIPES_COUNT = 12;
+
 export const searchRecipes = async (
   params: SpoonacularSearchParams,
 ): Promise<SpoonacularSearchResult[]> => {
@@ -63,7 +65,7 @@ export const searchRecipes = async (
 
   const query = new URLSearchParams({
     apiKey,
-    number: String(params.number ?? 12), // default: return 12 recipes
+    number: String(params.recipesCount ?? DEFAULT_RECIPES_COUNT),
     addRecipeInformation: "true",
     addRecipeNutrition: "true",
     sort: "popularity",
@@ -71,7 +73,7 @@ export const searchRecipes = async (
   if (params.cuisines?.length) query.set("cuisine", params.cuisines.join(","));
   if (params.diet) query.set("diet", params.diet);
   if (params.intolerances) query.set("intolerances", params.intolerances);
-  if (params.type) query.set("type", params.type);
+  if (params.mealType) query.set("type", params.mealType);
   if (params.minCalories !== null && params.minCalories !== undefined) query.set("minCalories", String(params.minCalories));
   if (params.maxCalories !== null && params.maxCalories !== undefined) query.set("maxCalories", String(params.maxCalories));
   if (params.minProtein !== null && params.minProtein !== undefined) query.set("minProtein", String(params.minProtein));

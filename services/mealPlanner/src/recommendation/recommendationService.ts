@@ -108,7 +108,7 @@ class RecommendationService {
       cuisines: profile.cuisines,
       diet: profile.diet,
       intolerances: allergies,
-      type: mealTypeToSpoonacular(mealType),
+      mealType: mealTypeToSpoonacular(mealType),
       targets,
     });
 
@@ -167,16 +167,16 @@ class RecommendationService {
     cuisines: string[];
     diet?: string;
     intolerances: string;
-    type?: string;
+    mealType?: string;
     targets: NutritionTargets;
   }): Promise<SpoonacularSearchResult[]> {
-    const { cuisines, diet, intolerances, type, targets } = args;
-    const base = { intolerances, number: 12 };
+    const { cuisines, diet, intolerances, mealType, targets } = args;
+    const base = { intolerances };
 
     const attempts: SpoonacularSearchParams[] = [
-      { ...base, cuisines, diet, type, ...targets },
-      { ...base, cuisines, diet, type },
-      { ...base, diet, type },
+      { ...base, cuisines, diet, mealType, ...targets },
+      { ...base, cuisines, diet, mealType },
+      { ...base, diet, mealType },
       { ...base, diet },
     ];
 
