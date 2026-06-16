@@ -21,14 +21,13 @@ export const LikedRecipes = () => {
 
   useEffect(() => {
     const userId = getUserId();
-    const token = localStorage.getItem("access-token");
     if (!userId) {
       setLoading(false);
       return;
     }
 
     mealPlannerApi
-      .getLikedRecipes(userId, token)
+      .getLikedRecipes(userId)
       .then((data) => setRecipes(data))
       .catch((err) => console.error("Error fetching liked recipes:", err))
       .finally(() => setLoading(false));

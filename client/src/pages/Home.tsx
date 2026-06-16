@@ -11,7 +11,7 @@ import type {
   GroceryListStatus,
   Meal,
 } from "@/features/home/types/home";
-import { Stack, Box, Avatar } from "@mui/material";
+import { Box, Avatar } from "@mui/material";
 import { useMemo } from "react";
 import { PageHeader } from "@/components/common/PageHeader";
 
