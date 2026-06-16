@@ -129,19 +129,28 @@ class MealPlannerService {
     });
 
     let sourceNutrients: nutrients = {
-        calories: 0,
-        protein: 0,
-        fat: 0,
-        carbohydrates: 0,
-      };
+      calories: 0,
+      protein: 0,
+      fat: 0,
+      carbohydrates: 0,
+    };
     daysOfWeek.forEach((dayName, index) => {
       const spoonacularDayIndex = (index + 6) % 7;
       const spoonacularDay = spoonacularDays[spoonacularDayIndex];
       sourceNutrients = {
-        calories: sourceNutrients.calories + (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.calories || 0),
-        protein: sourceNutrients.protein + (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.protein || 0),
-        fat: sourceNutrients.fat + (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.fat || 0),
-        carbohydrates: sourceNutrients.carbohydrates + (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.carbohydrates || 0),
+        calories:
+          sourceNutrients.calories +
+          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.calories || 0),
+        protein:
+          sourceNutrients.protein +
+          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.protein || 0),
+        fat:
+          sourceNutrients.fat +
+          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.fat || 0),
+        carbohydrates:
+          sourceNutrients.carbohydrates +
+          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.carbohydrates ||
+            0),
       };
     });
 
@@ -243,7 +252,10 @@ class MealPlannerService {
     return targetDay;
   }
 
-  async getRecipeDetails(recipeId: string, userId?: string): Promise<IRecipe & any> {
+  async getRecipeDetails(
+    recipeId: string,
+    userId?: string,
+  ): Promise<IRecipe & any> {
     const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
     let recipeData;
 
@@ -316,7 +328,10 @@ class MealPlannerService {
     return { ...recipeData.toObject(), isLiked };
   }
 
-  async toggleRecipeLike(userId: string, recipeId: string): Promise<{ isLiked: boolean }> {
+  async toggleRecipeLike(
+    userId: string,
+    recipeId: string,
+  ): Promise<{ isLiked: boolean }> {
     const userFavs = await UserFavorites.findOne({ userId });
 
     if (!userFavs) {
@@ -327,12 +342,35 @@ class MealPlannerService {
     const isCurrentlyLiked = userFavs.likedRecipeIds.includes(recipeId);
 
     if (isCurrentlyLiked) {
-      await UserFavorites.updateOne({ userId }, { $pull: { likedRecipeIds: recipeId } });
+      await UserFavorites.updateOne(
+        { userId },
+        { $pull: { likedRecipeIds: recipeId } },
+      );
     } else {
-      await UserFavorites.updateOne({ userId }, { $addToSet: { likedRecipeIds: recipeId } });
+      await UserFavorites.updateOne(
+        { userId },
+        { $addToSet: { likedRecipeIds: recipeId } },
+      );
     }
 
     return { isLiked: !isCurrentlyLiked };
+  }
+
+  async getLikedRecipes(userId: string): Promise<any[]> {
+    const userFavs = await UserFavorites.findOne({ userId });
+    if (
+      !userFavs ||
+      !userFavs.likedRecipeIds ||
+      userFavs.likedRecipeIds.length === 0
+    ) {
+      return [];
+    }
+
+    const recipes = await Recipe.find({
+      originRecipeId: { $in: userFavs.likedRecipeIds },
+    });
+
+    return recipes.map((r) => ({ ...r.toObject(), isLiked: true }));
   }
 }
 

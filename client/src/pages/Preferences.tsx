@@ -118,10 +118,25 @@ export function Preferences({ onComplete }: PreferencesProps) {
           pb: '2rem',
         }}
       >
-        <Box sx={{ maxWidth: '28rem', mx: 'auto' }}>
+        <Box sx={{ maxWidth: '28rem', mx: 'auto', display: 'flex', gap: '1rem' }}>
+          {step > 1 && (
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => setStep(step - 1)}
+              sx={{
+                height: '3.5rem',
+                borderRadius: '0.75rem',
+                fontSize: '1rem',
+                flex: 1,
+              }}
+            >
+              Back
+            </Button>
+          )}
           <Button
             variant="contained"
-            fullWidth
+            fullWidth={step === 1}
             size="large"
             onClick={handleNext}
             endIcon={<ChevronRightIcon />}
@@ -130,6 +145,7 @@ export function Preferences({ onComplete }: PreferencesProps) {
               borderRadius: '0.75rem',
               boxShadow: 3,
               fontSize: '1rem',
+              flex: step > 1 ? 2 : undefined,
             }}
           >
             {step === totalSteps ? 'Get Started' : 'Continue'}

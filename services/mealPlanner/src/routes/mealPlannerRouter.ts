@@ -257,3 +257,29 @@ mealPlannerRouter.patch(
   authMiddleware,
   MealPlannerController.replaceMeal,
 );
+
+/**
+ * @swagger
+ * /users/{userId}/favorites:
+ *   get:
+ *     summary: Get all liked recipes for a user
+ *     tags: [MealPlanner]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK - List of liked recipes
+ *       400:
+ *         description: Bad Request - Invalid userId
+ *       500:
+ *         description: Internal Server Error - Failed to fetch recipes
+ */
+mealPlannerRouter.get(
+  "/users/:userId/favorites",
+  authMiddleware,
+  MealPlannerController.getLikedRecipes,
+);
