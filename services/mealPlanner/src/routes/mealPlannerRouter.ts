@@ -1,6 +1,7 @@
-import express from 'express';
-import MealPlannerController from '../controllers/mealPlannerController';
-import authMiddleware from '../middlewares/auth.middleware';
+import express from "express";
+import MealPlannerController from "../controllers/mealPlannerController";
+import RecommendationController from "../recommendation/recommendationController";
+import authMiddleware from "../middlewares/auth.middleware";
 
 export const mealPlannerRouter = express.Router();
 
@@ -47,7 +48,7 @@ export const mealPlannerRouter = express.Router();
  *         description: Internal Server Error - Server error while creating meal plan
  **/
 mealPlannerRouter.post(
-  '/users/:userId/meal-plans/weekly',
+  "/users/:userId/meal-plans/weekly",
   authMiddleware,
   MealPlannerController.createWeeklyPlan,
 );
@@ -80,7 +81,7 @@ mealPlannerRouter.post(
  *         description: Internal Server Error - Server error while retrieving meal plan
  **/
 mealPlannerRouter.get(
-  '/users/:userId/meal-plans',
+  "/users/:userId/meal-plans",
   authMiddleware,
   MealPlannerController.getWeeklyPlan,
 );
@@ -114,7 +115,7 @@ mealPlannerRouter.get(
  *         description: Internal Server Error - Server error while retrieving meal plan
  **/
 mealPlannerRouter.get(
-  '/users/:userId/meal-plans/day',
+  "/users/:userId/meal-plans/day",
   authMiddleware,
   MealPlannerController.getDailyPlan,
 );
@@ -179,7 +180,7 @@ mealPlannerRouter.get(
  *         description: Internal Server Error - Failed to create manual recipe
  **/
 mealPlannerRouter.post(
-  '/recipes',
+  "/recipes",
   authMiddleware,
   MealPlannerController.createManualRecipe,
 );
@@ -199,12 +200,13 @@ mealPlannerRouter.post(
  *         description: Internal Server Error - Failed to retrieve manual recipes
  **/
 mealPlannerRouter.get(
-  '/recipes/manual',
+  "/recipes/manual",
   authMiddleware,
   MealPlannerController.getManualRecipes,
 );
 
 /**
+ * @swagger
  * /recipes/{recipeId}:
  *   get:
  *     summary: Get the details of a recipe by its ID from API
@@ -226,7 +228,7 @@ mealPlannerRouter.get(
  *         description: Internal Server Error - Server error while retrieving recipe details
  **/
 mealPlannerRouter.get(
-  '/recipes/:recipeId',
+  "/recipes/:recipeId",
   authMiddleware,
   MealPlannerController.getRecipeDetails,
 );
@@ -254,9 +256,91 @@ mealPlannerRouter.get(
  *         description: Failed to toggle recipe like
  */
 mealPlannerRouter.patch(
-  '/recipes/:recipeId/like',
+  "/recipes/:recipeId/like",
   authMiddleware,
   MealPlannerController.toggleRecipeLike,
+);
+
+/**
+ * @swagger
+ * /users/{userId}/recipes/{recipeId}/suggestions:
+ *   get:
+ *     summary: Get personalized recipe suggestions to replace a recipe
+ *     tags: [MealPlanner]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *       - in: path
+ *         name: recipeId
+ *         schema:
+ *           type: string
+ *         required: true
+ *       - in: query
+ *         name: mealType
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: OK - Ranked suggestions
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Failed to get suggestions
+ */
+mealPlannerRouter.get(
+  "/users/:userId/recipes/:recipeId/suggestions",
+  authMiddleware,
+  RecommendationController.getSuggestions,
+);
+
+/**
+ * @swagger
+ * /users/{userId}/meal-plans/day/meal:
+ *   patch:
+ *     summary: Replace a meal slot in a day with a new recipe
+ *     tags: [MealPlanner]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               date:
+ *                 type: string
+ *               mealType:
+ *                 type: string
+ *               newRecipeId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: OK - Updated day
+ *       400:
+ *         description: Bad Request - Invalid input
+ *       403:
+ *         description: Forbidden - userId does not match authenticated user
+ *       404:
+ *         description: Not Found - Plan or day not found
+ *       500:
+ *         description: Failed to replace meal
+ */
+mealPlannerRouter.patch(
+  "/users/:userId/meal-plans/day/meal",
+  authMiddleware,
+  MealPlannerController.replaceMeal,
 );
 
 /**

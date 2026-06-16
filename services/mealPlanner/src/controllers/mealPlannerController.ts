@@ -1,5 +1,6 @@
-import { Request, Response } from 'express';
-import mealPlannerService from '../services/mealPlannerService';
+import { Request, Response } from "express";
+import { AuthRequest } from "../utils/types/auth";
+import mealPlannerService from "../services/mealPlannerService";
 
 class MealPlannerController {
   async createWeeklyPlan(req: Request, res: Response) {
@@ -160,6 +161,42 @@ class MealPlannerController {
     } catch (error) {
       console.error('Error toggling recipe like:', error);
       res.status(500).json({ error: 'Failed to toggle recipe like' });
+    }
+  }
+
+  async replaceMeal(req: AuthRequest, res: Response) {
+    try {
+      const { userId } = req.params;
+      const { date, mealType, newRecipeId } = req.body;
+
+      if (!userId || !date || !mealType || !newRecipeId) {
+        return res
+          .status(400)
+          .json({ error: "userId, date, mealType and newRecipeId are required" });
+      }
+      if (req.user?._id !== userId) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      if (!["breakfast", "lunch", "dinner"].includes(mealType)) {
+        return res.status(400).json({ error: "Invalid mealType" });
+      }
+      if (Number.isNaN(new Date(date).getTime())) {
+        return res.status(400).json({ error: "Invalid date" });
+      }
+
+      const updatedDay = await mealPlannerService.replaceMeal(
+        userId,
+        date,
+        mealType,
+        String(newRecipeId),
+      );
+      if (!updatedDay) {
+        return res.status(404).json({ error: "Meal plan or day not found" });
+      }
+      res.json(updatedDay);
+    } catch (error) {
+      console.error("Error replacing meal:", error);
+      res.status(500).json({ error: "Failed to replace meal" });
     }
   }
 

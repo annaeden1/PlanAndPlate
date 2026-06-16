@@ -206,7 +206,7 @@ export const GroceryList = () => {
                         item={item}
                         onDelete={removeItem}
                         onUpdateInventory={updateInventoryQuantity}
-                        onDone={removeItem} // same action as delete; both remove from DB
+                        onDone={removeItem} 
                         onToggle={toggleChecked}
                       />
                     ))}

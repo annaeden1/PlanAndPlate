@@ -32,3 +32,53 @@ export const getRecipeDetailsBulk = async (ids: string): Promise<RecipeResponse[
   const response = await axios.get(url);
   return response.data;
 };
+
+export interface SpoonacularSearchParams {
+  cuisines?: string[];
+  diet?: string;
+  intolerances?: string;
+  mealType?: string;
+  recipesCount?: number;
+  minCalories?: number;
+  maxCalories?: number;
+  minProtein?: number;
+}
+
+export interface SpoonacularSearchResult {
+  id: number;
+  title: string;
+  image?: string;
+  readyInMinutes?: number;
+  cuisines?: string[];
+  dishTypes?: string[];
+  diets?: string[];
+  nutrition?: { nutrients: { name: string; amount: number }[] };
+}
+
+const DEFAULT_RECIPES_COUNT = 12;
+
+export const searchRecipes = async (
+  params: SpoonacularSearchParams,
+): Promise<SpoonacularSearchResult[]> => {
+  const apiKey = process.env.SPOONACULAR_API_KEY;
+  if (!apiKey) throw new Error("SPOONACULAR_API_KEY is not set");
+
+  const query = new URLSearchParams({
+    apiKey,
+    number: String(params.recipesCount ?? DEFAULT_RECIPES_COUNT),
+    addRecipeInformation: "true",
+    addRecipeNutrition: "true",
+    sort: "popularity",
+  });
+  if (params.cuisines?.length) query.set("cuisine", params.cuisines.join(","));
+  if (params.diet) query.set("diet", params.diet);
+  if (params.intolerances) query.set("intolerances", params.intolerances);
+  if (params.mealType) query.set("type", params.mealType);
+  if (params.minCalories !== null && params.minCalories !== undefined) query.set("minCalories", String(params.minCalories));
+  if (params.maxCalories !== null && params.maxCalories !== undefined) query.set("maxCalories", String(params.maxCalories));
+  if (params.minProtein !== null && params.minProtein !== undefined) query.set("minProtein", String(params.minProtein));
+
+  const url = `https://api.spoonacular.com/recipes/complexSearch?${query.toString()}`;
+  const response = await axios.get(url);
+  return response.data.results ?? [];
+};

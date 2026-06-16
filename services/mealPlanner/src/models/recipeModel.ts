@@ -28,7 +28,9 @@ export interface IRecipe {
   servings?: number;
   readyInMinutes?: number;
   diets?: string[];
-  isLiked?: boolean;
+  cuisines?: string[];
+  dishTypes?: string[];
+  embedding?: number[];
   instructions?: IRecipeInstructions;
 }
 
@@ -45,6 +47,9 @@ const recipeSchema = new mongoose.Schema({
   servings: { type: Number },
   readyInMinutes: { type: Number },
   diets: [{ type: String }],
+  cuisines: [{ type: String }],
+  dishTypes: [{ type: String }],
+  embedding: { type: [Number], default: undefined },
   instructions: {
     steps: [{ type: String }],
     ingredients: [{

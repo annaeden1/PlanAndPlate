@@ -1,9 +1,11 @@
 import { Box, Button, Chip, Typography, Snackbar, Alert } from '@mui/material';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import { useGroceryList } from '@/context/GroceryListContext';
-import type { ApiRecipe } from '@/features/mealPlanner/types/mealPlanner';
+import type { ApiRecipe, RecipeSuggestion } from '@/features/mealPlanner/types/mealPlanner';
+import { SuggestionsDrawer } from '@/features/mealPlanner/components/SuggestionsDrawer';
+import { getUserId } from '@/shared/utils/userId';
 
 import { RecipeHero } from '@/features/mealPlanner/components/RecipeHero';
 import { RecipeIngredients } from '@/features/mealPlanner/components/RecipeIngredients';
@@ -28,6 +30,46 @@ export function RecipeDetail({}: RecipeDetailProps) {
     message: '',
     severity: 'success',
   });
+
+  const [searchParams] = useSearchParams();
+  const date = searchParams.get('date');
+  const mealType = searchParams.get('mealType') ?? 'dinner';
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<RecipeSuggestion[]>([]);
+  const handleOpenSuggestions = async () => {
+    setDrawerOpen(true);
+    setSuggestionsLoading(true);
+    try {
+      const userId = getUserId() ?? '';
+      const id = recipe?.originRecipeId || recipeId || '';
+      const data = await mealPlannerApi.getSuggestions(userId, id, mealType);
+      setSuggestions(data);
+    } catch (err) {
+      console.error('Failed to load suggestions:', err);
+      setSnackbar({ open: true, message: 'Failed to load suggestions.', severity: 'error' });
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
+  const handleUseSuggestion = async (s: RecipeSuggestion) => {
+    const userId = getUserId() ?? '';
+    try {
+      if (date) {
+        await mealPlannerApi.replaceMeal(
+          userId,
+          { date, mealType, newRecipeId: s.originRecipeId },
+        );
+      }
+      setDrawerOpen(false);
+      navigate(`/recipe/${s.originRecipeId}${date ? `?date=${date}&mealType=${mealType}` : ''}`);
+    } catch (err) {
+      console.error('Failed to replace meal:', err);
+      setSnackbar({ open: true, message: 'Failed to replace meal.', severity: 'error' });
+    }
+  };
 
   const handleAddIngredientsToList = async () => {
     if (!recipe) return;
@@ -176,6 +218,13 @@ export function RecipeDetail({}: RecipeDetailProps) {
                 >
                   Add Ingredients to Cart
                 </Button>
+                <Button
+                  variant="outlined"
+                  sx={{ height: '3rem', borderRadius: '0.625rem' }}
+                  onClick={handleOpenSuggestions}
+                >
+                  New Recipe Suggestions for you
+                </Button>
               </Box>
             </Box>
           </Box>
@@ -196,6 +245,14 @@ export function RecipeDetail({}: RecipeDetailProps) {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <SuggestionsDrawer
+        open={drawerOpen}
+        loading={suggestionsLoading}
+        suggestions={suggestions}
+        onClose={() => setDrawerOpen(false)}
+        onUse={handleUseSuggestion}
+      />
     </Box>
   );
 }
