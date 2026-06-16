@@ -212,42 +212,7 @@ class MealPlannerService {
     return dailyPlan.days[0];
   }
 
-  async createManualRecipe(
-    recipePayload: Partial<IRecipe>,
-    userId: string,
-  ): Promise<IRecipe> {
-    const manualRecipe = new Recipe({
-      source: 'manual',
-      userId,
-      originRecipeId: userId + '-' + new mongoose.Types.ObjectId().toString(),
-      name: recipePayload.name,
-      image: recipePayload.image,
-      servings: recipePayload.servings,
-      readyInMinutes: recipePayload.readyInMinutes,
-      diets: recipePayload.diets ?? [],
-      instructions: recipePayload.instructions,
-      calories: recipePayload.calories ?? 300,
-      protein: recipePayload.protein ?? 15,
-      fat: recipePayload.fat ?? 10,
-      carbs: recipePayload.carbs ?? 35,
-    });
-
-    await manualRecipe.save();
-    return manualRecipe.toObject();
-  }
-
-  async getManualRecipes(userId: string): Promise<(IRecipe & any)[]> {
-    const manualRecipes = await Recipe.find({
-      source: 'manual',
-      userId,
-    }).lean();
-    return manualRecipes;
-  }
-
-  async getRecipeDetails(
-    recipeId: string,
-    userId?: string,
-  ): Promise<IRecipe & any> {
+  async getRecipeDetails(recipeId: string, userId?: string): Promise<IRecipe & any> {
     const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
     let recipeData;
 
@@ -334,6 +299,23 @@ class MealPlannerService {
     }
 
     return { isLiked: !isCurrentlyLiked };
+  }
+
+  async getLikedRecipes(userId: string): Promise<any[]> {
+    const userFavs = await UserFavorites.findOne({ userId });
+    if (
+      !userFavs ||
+      !userFavs.likedRecipeIds ||
+      userFavs.likedRecipeIds.length === 0
+    ) {
+      return [];
+    }
+
+    const recipes = await Recipe.find({
+      originRecipeId: { $in: userFavs.likedRecipeIds },
+    });
+
+    return recipes.map((r) => ({ ...r.toObject(), isLiked: true }));
   }
 }
 
