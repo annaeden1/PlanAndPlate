@@ -16,7 +16,9 @@ export interface IRecipeInstructions {
 
 export interface IRecipe {
   _id?: mongoose.Types.ObjectId;
+  userId?: string;
   originRecipeId: string;
+  source: string;
   name: string;
   image?: string;
   calories?: number;
@@ -33,7 +35,9 @@ export interface IRecipe {
 }
 
 const recipeSchema = new mongoose.Schema({
+  userId: { type: String },
   originRecipeId: { type: String, required: true, unique: true }, // ID from Spoonacular or internal
+  source: { type: String, required: true },
   name: { type: String, required: true },
   image: { type: String },
   calories: { type: Number },

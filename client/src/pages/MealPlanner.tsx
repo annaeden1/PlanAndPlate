@@ -13,9 +13,9 @@ import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import { useGroceryList } from '@/context/GroceryListContext';
 import { getUserId } from '@/shared/utils/userId';
 import { PageHeader } from '@/components/common/PageHeader';
-interface MealPlannerProps {}
+interface MealPlannerProps { }
 
-export function MealPlanner({}: MealPlannerProps) {
+export function MealPlanner({ }: MealPlannerProps) {
   const today = new Date();
   const todayName = DAYS[today.getDay()];
 
@@ -46,7 +46,7 @@ export function MealPlanner({}: MealPlannerProps) {
     try {
       const mealPlanId = mealPlan?._id ?? '';
       const recipeDetails = await mealPlannerApi.getRecipeDetails(
-        meal.id.toString(),
+        meal.id.toString()
       );
       const recipeIdForImport =
         recipeDetails._id || recipeDetails.originRecipeId || meal.id.toString();
@@ -144,7 +144,11 @@ export function MealPlanner({}: MealPlannerProps) {
       try {
         const data = await mealPlannerApi.getWeeklyPlan(
           userId,
+<<<<<<< HEAD
           weekDate,
+=======
+          weekDate
+>>>>>>> 5f88cae5ab53bd85d9bbf61c01ad08aada3d7801
         );
         setMealPlan(data);
         setCachedWeekKey(weekKey);

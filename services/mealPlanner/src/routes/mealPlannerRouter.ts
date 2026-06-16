@@ -122,6 +122,91 @@ mealPlannerRouter.get(
 
 /**
  * @swagger
+ * /recipes:
+ *   post:
+ *     summary: Create a new manual recipe and save it to the recipe collection
+ *     tags: [MealPlanner]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               image:
+ *                 type: string
+ *               servings:
+ *                 type: number
+ *               readyInMinutes:
+ *                 type: number
+ *               diets:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *               instructions:
+ *                 type: object
+ *                 properties:
+ *                   steps:
+ *                     type: array
+ *                     items:
+ *                       type: string
+ *                   ingredients:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: number
+ *                         name:
+ *                           type: string
+ *                         image:
+ *                           type: string
+ *                         amount:
+ *                           type: number
+ *                         unit:
+ *                           type: string
+ *                         aisle:
+ *                           type: string
+ *     responses:
+ *       201:
+ *         description: Created - Manual recipe created successfully
+ *       400:
+ *         description: Bad Request - Invalid recipe payload
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal Server Error - Failed to create manual recipe
+ **/
+mealPlannerRouter.post(
+  "/recipes",
+  authMiddleware,
+  MealPlannerController.createManualRecipe,
+);
+
+/**
+ * @swagger
+ * /recipes/manual:
+ *   get:
+ *     summary: Get all manual recipes created by the logged-in user
+ *     tags: [MealPlanner]
+ *     responses:
+ *       200:
+ *         description: OK - Manual recipes retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal Server Error - Failed to retrieve manual recipes
+ **/
+mealPlannerRouter.get(
+  "/recipes/manual",
+  authMiddleware,
+  MealPlannerController.getManualRecipes,
+);
+
+/**
+ * @swagger
  * /recipes/{recipeId}:
  *   get:
  *     summary: Get the details of a recipe by its ID from API

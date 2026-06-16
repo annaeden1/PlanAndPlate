@@ -34,6 +34,9 @@ export function Auth({ onAuthComplete }: AuthProps) {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [showError, setShowError] = useState(false);
 
+  const isDuplicateEmailError =
+    isSignUp && showError && errorMessage === 'Email already exists';
+
   const handleSubmit = async (e: React.FormEvent, formData: AuthFormData) => {
     e.preventDefault();
 
@@ -53,10 +56,10 @@ export function Auth({ onAuthComplete }: AuthProps) {
         setErrorMessage('Email or password is incorrect');
         setShowError(true);
       }
-    } catch (error) {
-      isSignUp
-        ? setErrorMessage('Email already exists')
-        : setErrorMessage('Email or password is incorrect');
+    } catch {
+      setErrorMessage(
+        isSignUp ? 'Email already exists' : 'Email or password is incorrect',
+      );
       setShowError(true);
     }
   };
@@ -114,37 +117,44 @@ export function Auth({ onAuthComplete }: AuthProps) {
               setIsSignUp={(value: boolean) => {
                 setIsSignUp(value);
                 setShowError(false);
+                setErrorMessage('');
               }}
             />
-            <AuthForm isSignUp={isSignUp} onSubmit={handleSubmit} />
+
+            <Collapse in={showError && !isDuplicateEmailError}>
+              <Alert
+                severity="error"
+                action={
+                  <IconButton
+                    aria-label="close"
+                    color="inherit"
+                    size="small"
+                    onClick={() => setShowError(false)}
+                  >
+                    <CloseIcon fontSize="inherit" />
+                  </IconButton>
+                }
+                sx={{
+                  mb: 2,
+                  borderRadius: '0.75rem',
+                  boxShadow: 2,
+                  '& .MuiAlert-message': {
+                    fontWeight: 500,
+                  },
+                }}
+              >
+                {errorMessage}
+              </Alert>
+            </Collapse>
+
+            <AuthForm
+              isSignUp={isSignUp}
+              onSubmit={handleSubmit}
+              emailError={isDuplicateEmailError}
+              emailHelperText={isDuplicateEmailError ? errorMessage : ''}
+            />
           </CardContent>
         </Card>
-
-        <Collapse in={showError}>
-          <Alert
-            severity="error"
-            action={
-              <IconButton
-                aria-label="close"
-                color="inherit"
-                size="small"
-                onClick={() => setShowError(false)}
-              >
-                <CloseIcon fontSize="inherit" />
-              </IconButton>
-            }
-            sx={{
-              mt: 2,
-              borderRadius: '0.75rem',
-              boxShadow: 2,
-              '& .MuiAlert-message': {
-                fontWeight: 500,
-              },
-            }}
-          >
-            {errorMessage}
-          </Alert>
-        </Collapse>
       </Box>
     </Box>
   );

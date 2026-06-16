@@ -164,7 +164,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
         <>
           <RecipeHero
             recipe={recipe}
-            onBack={() => navigate('/planner')}
+            onBack={() => navigate(-1)}
             onToggleLike={handleToggleLike}
           />
 

@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'axios';
 import type {
   ApiMealPlan,
   ApiMealPlanDay,
@@ -7,12 +7,12 @@ import type {
 } from "@/features/mealPlanner/types/mealPlanner";
 
 const api = axios.create({
-  baseURL: "/mealPlanner",
-  headers: { "Content-Type": "application/json" },
+  baseURL: '/mealPlanner',
+  headers: { 'Content-Type': 'application/json' },
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access-token");
+  const token = localStorage.getItem('access-token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -43,6 +43,12 @@ export const mealPlannerApi = {
 
   getRecipeDetails: (recipeId: string) =>
     api.get<ApiRecipe>(`/recipes/${recipeId}`).then((r) => r.data),
+
+  createManualRecipe: (payload: any) =>
+    api.post<ApiRecipe>(`/recipes`, payload).then((r) => r.data),
+
+  getManualRecipes: () =>
+    api.get<ApiRecipe[]>(`/recipes/manual`).then((r) => r.data),
 
   toggleRecipeLike: (recipeId: string) =>
     api
