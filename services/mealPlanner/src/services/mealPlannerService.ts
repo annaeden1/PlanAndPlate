@@ -112,24 +112,24 @@ class MealPlannerService {
         date: dateStr,
         breakfast: meals[0]
           ? {
-            recipeId: meals[0].id,
-            name: meals[0].title,
-            calories: caloriesMap[meals[0].id] || 0,
-          }
+              recipeId: meals[0].id,
+              name: meals[0].title,
+              calories: caloriesMap[meals[0].id] || 0,
+            }
           : { recipeId: 0, name: '', calories: 0 },
         lunch: meals[1]
           ? {
-            recipeId: meals[1].id,
-            name: meals[1].title,
-            calories: caloriesMap[meals[1].id] || 0,
-          }
+              recipeId: meals[1].id,
+              name: meals[1].title,
+              calories: caloriesMap[meals[1].id] || 0,
+            }
           : { recipeId: 0, name: '', calories: 0 },
         dinner: meals[2]
           ? {
-            recipeId: meals[2].id,
-            name: meals[2].title,
-            calories: caloriesMap[meals[2].id] || 0,
-          }
+              recipeId: meals[2].id,
+              name: meals[2].title,
+              calories: caloriesMap[meals[2].id] || 0,
+            }
           : { recipeId: 0, name: '', calories: 0 },
       };
     });
@@ -212,7 +212,10 @@ class MealPlannerService {
     return dailyPlan.days[0];
   }
 
-  async getRecipeDetails(recipeId: string, userId?: string): Promise<IRecipe & any> {
+  async getRecipeDetails(
+    recipeId: string,
+    userId?: string,
+  ): Promise<IRecipe & any> {
     const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
     let recipeData;
 
@@ -316,6 +319,38 @@ class MealPlannerService {
     });
 
     return recipes.map((r) => ({ ...r.toObject(), isLiked: true }));
+  }
+
+  async createManualRecipe(
+    recipePayload: Partial<IRecipe>,
+    userId: string,
+  ): Promise<IRecipe> {
+    const manualRecipe = new Recipe({
+      source: 'manual',
+      userId,
+      originRecipeId: userId + '-' + new mongoose.Types.ObjectId().toString(),
+      name: recipePayload.name,
+      image: recipePayload.image,
+      servings: recipePayload.servings,
+      readyInMinutes: recipePayload.readyInMinutes,
+      diets: recipePayload.diets ?? [],
+      instructions: recipePayload.instructions,
+      calories: recipePayload.calories ?? 300,
+      protein: recipePayload.protein ?? 15,
+      fat: recipePayload.fat ?? 10,
+      carbs: recipePayload.carbs ?? 35,
+    });
+
+    await manualRecipe.save();
+    return manualRecipe.toObject();
+  }
+
+  async getManualRecipes(userId: string): Promise<(IRecipe & any)[]> {
+    const manualRecipes = await Recipe.find({
+      source: 'manual',
+      userId,
+    }).lean();
+    return manualRecipes;
   }
 }
 
