@@ -15,9 +15,16 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 interface AuthFormProps {
   isSignUp: boolean;
   onSubmit: (e: React.FormEvent, data: any) => void;
+  emailError?: boolean;
+  emailHelperText?: string;
 }
 
-export function AuthForm({ isSignUp, onSubmit }: AuthFormProps) {
+export function AuthForm({
+  isSignUp,
+  onSubmit,
+  emailError = false,
+  emailHelperText = '',
+}: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -55,6 +62,8 @@ export function AuthForm({ isSignUp, onSubmit }: AuthFormProps) {
         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
         required
         sx={{ mb: '1rem' }}
+        error={emailError}
+        helperText={emailHelperText}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
