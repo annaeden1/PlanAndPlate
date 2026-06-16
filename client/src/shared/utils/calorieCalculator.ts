@@ -1,7 +1,3 @@
-// Goal-driven calorie engine (Mifflin-St Jeor, same approach as calculator.net).
-// Pure module duplicated in services/mealPlanner/src/utils/calorieCalculator.ts —
-// keep both copies in sync so client display and server meal-gen never drift.
-
 export type Gender = 'male' | 'female';
 
 export type ActivityLevel =
@@ -30,7 +26,6 @@ export interface CalorieTargets {
   proteinGramsPerDay: number;
 }
 
-// calculator.net activity multipliers
 export const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   sedentary: 1.2,
   light: 1.375,
@@ -40,8 +35,6 @@ export const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
   extra_active: 1.9,
 };
 
-// Per-goal modifier. Protein per kg of bodyweight; a deficit keeps protein high
-// to preserve muscle. healthyNote drives the "eat healthier" guidance copy.
 export const GOAL_MODIFIERS: Record<
   string,
   { calorieFactor: number; proteinPerKg: number; healthyNote?: boolean }
@@ -57,7 +50,6 @@ export const lbToKg = (lb: number): number => lb * 0.453592;
 export const ftInToCm = (ft: number, inch: number): number =>
   (ft * 12 + inch) * 2.54;
 
-// Mifflin-St Jeor BMR
 const calcBmr = (
   weightKg: number,
   heightCm: number,
@@ -80,8 +72,6 @@ const isComplete = (stats?: Partial<BodyStats> | null): stats is BodyStats =>
   !!stats.activityLevel &&
   stats.activityLevel in ACTIVITY_MULTIPLIERS;
 
-// Returns null when stats are incomplete → callers stay backward-compatible
-// (no target sent = previous behavior).
 export const calcTargets = (
   stats: Partial<BodyStats> | null | undefined,
   healthGoal: string,
@@ -92,7 +82,9 @@ export const calcTargets = (
   const maintenance = bmr * ACTIVITY_MULTIPLIERS[stats.activityLevel];
 
   const goal = GOAL_MODIFIERS[healthGoal] ?? GOAL_MODIFIERS.maintain_weight;
-  const targetCalories = maintenance * goal.calorieFactor;
+
+  const calorieFloor = stats.gender === 'male' ? 1500 : 1200;
+  const targetCalories = Math.max(calorieFloor, maintenance * goal.calorieFactor);
   const proteinGramsPerDay = goal.proteinPerKg * stats.weightKg;
 
   return {

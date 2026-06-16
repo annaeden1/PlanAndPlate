@@ -50,8 +50,6 @@ export function BodyGoalEditor({
 
     setSaving(true);
     try {
-      // PATCH merges only the keys we send, so diet/allergies/budget are
-      // untouched. We deliberately send just healthGoal + bodyStats.
       const prefs: Record<string, unknown> = { healthGoal: goal };
       if (isComplete(bodyStats)) prefs.bodyStats = bodyStats;
 

@@ -34,7 +34,6 @@ export function Profile() {
     ? `${targets.targetCalories.toLocaleString()} kcal/day · ${targets.proteinGramsPerDay}g protein`
     : 'Set your body stats to get a calorie target';
 
-  // TODO: Implement sign out server logic
   const handleSignOut = () => {
     localStorage.removeItem('access-token');
     localStorage.removeItem('refresh-token');

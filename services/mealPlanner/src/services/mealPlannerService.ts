@@ -17,8 +17,10 @@ class MealPlannerService {
     date?: string,
     token?: string,
   ): Promise<IMealPlan & any> {
-    // Calculate week start (Sunday) from the provided date or current date
     const refDate = date ? new Date(date) : new Date();
+    if (isNaN(refDate.getTime())) {
+      throw new Error(`Invalid date: ${date}`);
+    }
     const weekStart = new Date(refDate);
     weekStart.setDate(refDate.getDate() - refDate.getDay());
 
@@ -37,8 +39,6 @@ class MealPlannerService {
       ? userPreferences.data.userPreferences.diet[0] || ""
       : userPreferences.data.userPreferences.diet || "";
 
-    // Goal-driven calorie target. Returns null when body stats are incomplete,
-    // so legacy users without bodyStats keep the previous (untargeted) behavior.
     const targets = calcTargets(
       userPreferences.data.userPreferences.bodyStats,
       userPreferences.data.userPreferences.healthGoal,
@@ -50,7 +50,6 @@ class MealPlannerService {
       targets?.targetCalories,
     );
 
-    // Collect all recipe IDs to fetch nutrition
     const allRecipeIds: number[] = [];
     Object.values(weeklyPlanFromAPI.week).forEach((day: any) => {
       if (day.meals) {
@@ -60,22 +59,25 @@ class MealPlannerService {
       }
     });
 
-    // Check DB first; collect IDs not yet saved
     const caloriesMap: { [key: number]: number } = {};
     const missingIds: number[] = [];
 
-    await Promise.all(
-      allRecipeIds.map(async (id) => {
-        const saved = await Recipe.findOne({ originRecipeId: id.toString() });
-        if (saved) {
-          caloriesMap[id] = saved.calories ?? 0;
-        } else {
-          missingIds.push(id);
-        }
-      }),
+    const savedRecipes = await Recipe.find({
+      originRecipeId: { $in: allRecipeIds.map((id) => id.toString()) },
+    });
+    const savedCalories = new Map<string, number>(
+      savedRecipes.map((r): [string, number] => [r.originRecipeId, r.calories ?? 0]),
     );
 
-    // Single bulk request for all recipes not in DB
+    for (const id of allRecipeIds) {
+      const cals = savedCalories.get(id.toString());
+      if (cals !== undefined) {
+        caloriesMap[id] = cals;
+      } else {
+        missingIds.push(id);
+      }
+    }
+
     if (missingIds.length > 0) {
       const bulkResults = await getRecipeDetailsBulk(missingIds.join(","));
       bulkResults.forEach((recipe: any) => {
@@ -86,7 +88,6 @@ class MealPlannerService {
       });
     }
 
-    // Map meals to Sunday-Saturday dates
     const daysOfWeek = [
       "sunday",
       "monday",
@@ -107,7 +108,7 @@ class MealPlannerService {
     ];
 
     const days = daysOfWeek.map((dayName, index) => {
-      const spoonacularDayIndex = (index + 6) % 7; // Shift to align Sunday first
+      const spoonacularDayIndex = (index + 6) % 7;
       const spoonacularDay = spoonacularDays[spoonacularDayIndex];
       const dayData = weeklyPlanFromAPI.week[spoonacularDay];
 

@@ -66,7 +66,6 @@ export function Preferences({ onComplete }: PreferencesProps) {
     setBodyStats((prev) => ({ ...prev, ...patch }));
   };
 
-  // Gate "Continue" on the steps that need valid input before calorie calc.
   const canContinue =
     (step !== 3 || isBodyStatsComplete(bodyStats)) &&
     (step !== 4 || !!bodyStats.activityLevel);

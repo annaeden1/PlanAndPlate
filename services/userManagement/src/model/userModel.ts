@@ -11,12 +11,22 @@ const userSchema = new mongoose.Schema({
     healthGoal: { type: String },
     weeklyBudget: { type: Number },
     bodyStats: {
-      weightKg: { type: Number },
-      heightCm: { type: Number },
-      age: { type: Number },
-      gender: { type: String }, // 'male' | 'female'
-      activityLevel: { type: String }, // 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active' | 'extra_active'
-      unitSystem: { type: String }, // 'metric' | 'us' (display only; stored values are metric)
+      weightKg: { type: Number, min: 0 },
+      heightCm: { type: Number, min: 0 },
+      age: { type: Number, min: 0 },
+      gender: { type: String, enum: ['male', 'female'] },
+      activityLevel: {
+        type: String,
+        enum: [
+          'sedentary',
+          'light',
+          'moderate',
+          'active',
+          'very_active',
+          'extra_active',
+        ],
+      },
+      unitSystem: { type: String, enum: ['metric', 'us'] }, // display only; stored values are metric
     },
   },
   tokens: { type: [String] },

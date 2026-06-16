@@ -9,8 +9,12 @@ export const generateMealPlan = async (
   const apiKey = process.env.SPOONACULAR_API_KEY;
   if (!apiKey) throw new Error("SPOONACULAR_API_KEY is not set");
 
-  let url = `https://api.spoonacular.com/mealplanner/generate?apiKey=${apiKey}&timeFrame=week&diet=${diet || ""}&exclude=${exclude || ""}`;
-  if (targetCalories) url += `&targetCalories=${Math.round(targetCalories)}`;
+  const params = new URLSearchParams({ apiKey, timeFrame: "week" });
+  if (diet) params.set("diet", diet);
+  if (exclude) params.set("exclude", exclude);
+  if (targetCalories) params.set("targetCalories", String(Math.round(targetCalories)));
+
+  const url = `https://api.spoonacular.com/mealplanner/generate?${params.toString()}`;
   console.log("Spoonacular generateMealPlan URL:", url.replace(apiKey, "***"));
   const response = await axios.get(url);
   return response.data;

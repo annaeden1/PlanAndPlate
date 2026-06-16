@@ -21,14 +21,12 @@ export function BodyStatsStep({ value, onChange }: BodyStatsStepProps) {
   const [age, setAge] = useState(value.age ? String(value.age) : '');
   const [gender, setGender] = useState<Gender | ''>(value.gender ?? '');
 
-  // Display inputs (raw strings; canonical metric is derived and pushed up).
   const [kg, setKg] = useState(
     value.unitSystem !== 'us' && value.weightKg ? String(value.weightKg) : '',
   );
   const [cm, setCm] = useState(
     value.unitSystem !== 'us' && value.heightCm ? String(value.heightCm) : '',
   );
-  // For a returning US-unit user, seed lb/ft/in from the stored canonical metric.
   const [lb, setLb] = useState(
     value.unitSystem === 'us' && value.weightKg
       ? String(round1(value.weightKg / 0.453592))
@@ -36,24 +34,28 @@ export function BodyStatsStep({ value, onChange }: BodyStatsStepProps) {
   );
   const [ft, setFt] = useState(
     value.unitSystem === 'us' && value.heightCm
-      ? String(Math.floor(value.heightCm / 2.54 / 12))
+      ? String(Math.floor(Math.round(value.heightCm / 2.54) / 12))
       : '',
   );
   const [inch, setInch] = useState(
     value.unitSystem === 'us' && value.heightCm
-      ? String(Math.round((value.heightCm / 2.54) % 12))
+      ? String(Math.round(value.heightCm / 2.54) % 12)
       : '',
   );
 
-  // Push canonical (metric) values up whenever any input changes.
   useEffect(() => {
+    const safe = (n: number) => (Number.isFinite(n) ? n : 0);
     const weightKg =
-      unit === 'metric' ? Number(kg) : lb ? round1(lbToKg(Number(lb))) : 0;
+      unit === 'metric'
+        ? safe(Number(kg))
+        : lb
+          ? safe(round1(lbToKg(Number(lb))))
+          : 0;
     const heightCm =
       unit === 'metric'
-        ? Number(cm)
+        ? safe(Number(cm))
         : ft || inch
-          ? round1(ftInToCm(Number(ft || 0), Number(inch || 0)))
+          ? safe(round1(ftInToCm(Number(ft || 0), Number(inch || 0))))
           : 0;
 
     onChange({
@@ -68,13 +70,12 @@ export function BodyStatsStep({ value, onChange }: BodyStatsStepProps) {
 
   const handleUnitChange = (next: UnitSystem | null) => {
     if (!next || next === unit) return;
-    // Convert current entry so the user does not lose data on toggle.
     if (next === 'us') {
       if (kg) setLb(String(round1(Number(kg) / 0.453592)));
       if (cm) {
-        const totalIn = Number(cm) / 2.54;
+        const totalIn = Math.round(Number(cm) / 2.54);
         setFt(String(Math.floor(totalIn / 12)));
-        setInch(String(Math.round(totalIn % 12)));
+        setInch(String(totalIn % 12));
       }
     } else {
       if (lb) setKg(String(round1(lbToKg(Number(lb)))));
