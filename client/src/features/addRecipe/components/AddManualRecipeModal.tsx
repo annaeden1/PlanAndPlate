@@ -20,7 +20,10 @@ import { UNIT_OPTIONS } from '@/features/groceryList/utils/unitOptions';
 import { CATEGORY_EMOJIS } from '@/features/groceryList/utils/categoryEmojis';
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import { fileApi } from '@/features/addRecipe/api/file';
-import type { InitialRecipeForm } from '../types/addRecipe';
+import type {
+  InitialRecipeForm,
+  RecipeFormInputFields,
+} from '../types/addRecipe';
 import { validateRecipeForm } from '../utils/validation';
 
 const INITIAL_RECIPE_FORM: InitialRecipeForm = {
@@ -106,10 +109,7 @@ export default function AddManualRecipeModal({
     };
   }, [imageFile]);
 
-  const handleChange = (
-    field: 'name' | 'image' | 'servings' | 'readyInMinutes',
-    value: string,
-  ) => {
+  const handleChange = (field: RecipeFormInputFields, value: string) => {
     setRecipeForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -128,8 +128,6 @@ export default function AddManualRecipeModal({
       instructions: [...prev.instructions, ''],
     }));
   };
-
-
 
   const handleSubmitRecipe = async () => {
     const error = validateRecipeForm(recipeForm);
@@ -160,19 +158,22 @@ export default function AddManualRecipeModal({
         readyInMinutes: recipeForm.readyInMinutes
           ? Number(recipeForm.readyInMinutes)
           : undefined,
-        instructions: trimmedSteps.length > 0
-          ? {
-              steps: trimmedSteps,
-              ingredients: recipeForm.ingredients
-                .filter((ingredient) => ingredient.name.trim())
-                .map((ingredient) => ({
-                  name: ingredient.name.trim(),
-                  amount: Number(ingredient.amount) || 0,
-                  unit: ingredient.unit.trim() || undefined,
-                  aisle: ingredient.aisle ? ingredient.aisle.trim() : undefined,
-                })),
-            }
-          : undefined,
+        instructions:
+          trimmedSteps.length > 0
+            ? {
+                steps: trimmedSteps,
+                ingredients: recipeForm.ingredients
+                  .filter((ingredient) => ingredient.name.trim())
+                  .map((ingredient) => ({
+                    name: ingredient.name.trim(),
+                    amount: Number(ingredient.amount) || 0,
+                    unit: ingredient.unit.trim() || undefined,
+                    aisle: ingredient.aisle
+                      ? ingredient.aisle.trim()
+                      : undefined,
+                  })),
+              }
+            : undefined,
       });
 
       if (onSaved) await onSaved();

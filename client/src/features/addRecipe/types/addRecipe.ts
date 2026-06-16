@@ -11,3 +11,9 @@ export interface InitialRecipeForm {
     aisle: string;
   }[];
 }
+
+export type RecipeFormInputFields =
+  | 'name'
+  | 'image'
+  | 'servings'
+  | 'readyInMinutes';
