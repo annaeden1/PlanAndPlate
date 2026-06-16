@@ -20,13 +20,15 @@ import { UNIT_OPTIONS } from '@/features/groceryList/utils/unitOptions';
 import { CATEGORY_EMOJIS } from '@/features/groceryList/utils/categoryEmojis';
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import { fileApi } from '@/features/addRecipe/api/file';
+import type { InitialRecipeForm } from '../types/addRecipe';
+import { validateRecipeForm } from '../utils/validation';
 
-const INITIAL_RECIPE_FORM = {
+const INITIAL_RECIPE_FORM: InitialRecipeForm = {
   name: '',
   image: '',
   servings: '',
   readyInMinutes: '',
-  instructions: '',
+  instructions: [''],
   ingredients: [{ name: '', amount: '', unit: '', aisle: '' }],
 };
 
@@ -74,10 +76,13 @@ export default function AddManualRecipeModal({
     }));
   };
 
-  const handleRemoveIngredient = (index: number) => {
+  const handleRemoveItem = (
+    field: 'ingredients' | 'instructions',
+    index: number,
+  ) => {
     setRecipeForm((prev) => ({
       ...prev,
-      ingredients: prev.ingredients.filter((_, i) => i !== index),
+      [field]: (prev[field] as any[]).filter((_, i) => i !== index),
     }));
   };
 
@@ -102,55 +107,39 @@ export default function AddManualRecipeModal({
   }, [imageFile]);
 
   const handleChange = (
-    field: keyof typeof INITIAL_RECIPE_FORM,
+    field: 'name' | 'image' | 'servings' | 'readyInMinutes',
     value: string,
   ) => {
     setRecipeForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleInstructionChange = (index: number, value: string) => {
+    setRecipeForm((prev) => ({
+      ...prev,
+      instructions: prev.instructions.map((step, stepIndex) =>
+        stepIndex === index ? value : step,
+      ),
+    }));
+  };
+
+  const handleAddInstruction = () => {
+    setRecipeForm((prev) => ({
+      ...prev,
+      instructions: [...prev.instructions, ''],
+    }));
+  };
+
+
+
   const handleSubmitRecipe = async () => {
-    if (!recipeForm.name.trim()) {
-      setFormError('Recipe name is required.');
+    const error = validateRecipeForm(recipeForm);
+    if (error) {
+      setFormError(error);
       return;
     }
 
     setFormError(null);
     setSubmitting(true);
-
-    const servingsNum = recipeForm.servings
-      ? Number(recipeForm.servings)
-      : undefined;
-    if (
-      servingsNum !== undefined &&
-      (!Number.isFinite(servingsNum) || servingsNum < 0)
-    ) {
-      setFormError('Servings must be a non-negative number.');
-      setSubmitting(false);
-      return;
-    }
-
-    const readyNum = recipeForm.readyInMinutes
-      ? Number(recipeForm.readyInMinutes)
-      : undefined;
-    if (
-      readyNum !== undefined &&
-      (!Number.isFinite(readyNum) || readyNum < 0)
-    ) {
-      setFormError('Ready in minutes must be a non-negative number.');
-      setSubmitting(false);
-      return;
-    }
-
-    const invalidIngredientAmount = recipeForm.ingredients.some((ing) => {
-      if (!ing.name || !ing.name.trim()) return false;
-      const amt = Number(ing.amount);
-      return !Number.isFinite(amt) || amt < 0;
-    });
-    if (invalidIngredientAmount) {
-      setFormError('All ingredient amounts must be non-negative numbers.');
-      setSubmitting(false);
-      return;
-    }
 
     try {
       let uploadedImageUrl: string | undefined;
@@ -160,6 +149,10 @@ export default function AddManualRecipeModal({
         uploadedImageUrl = uploadResponse.url;
       }
 
+      const trimmedSteps = recipeForm.instructions
+        .map((step) => step.trim())
+        .filter((step) => step.length > 0);
+
       await mealPlannerApi.createManualRecipe({
         name: recipeForm.name.trim(),
         image: uploadedImageUrl,
@@ -167,18 +160,18 @@ export default function AddManualRecipeModal({
         readyInMinutes: recipeForm.readyInMinutes
           ? Number(recipeForm.readyInMinutes)
           : undefined,
-        instructions: recipeForm.instructions
+        instructions: trimmedSteps.length > 0
           ? {
-            steps: [recipeForm.instructions.trim()],
-            ingredients: recipeForm.ingredients
-              .filter((ingredient) => ingredient.name.trim())
-              .map((ingredient) => ({
-                name: ingredient.name.trim(),
-                amount: Number(ingredient.amount) || 0,
-                unit: ingredient.unit.trim() || undefined,
-                aisle: ingredient.aisle ? ingredient.aisle.trim() : undefined,
-              })),
-          }
+              steps: trimmedSteps,
+              ingredients: recipeForm.ingredients
+                .filter((ingredient) => ingredient.name.trim())
+                .map((ingredient) => ({
+                  name: ingredient.name.trim(),
+                  amount: Number(ingredient.amount) || 0,
+                  unit: ingredient.unit.trim() || undefined,
+                  aisle: ingredient.aisle ? ingredient.aisle.trim() : undefined,
+                })),
+            }
           : undefined,
       });
 
@@ -382,7 +375,7 @@ export default function AddManualRecipeModal({
 
                 <IconButton
                   aria-label="Remove ingredient"
-                  onClick={() => handleRemoveIngredient(index)}
+                  onClick={() => handleRemoveItem('ingredients', index)}
                   sx={{ mt: { xs: 0.5, sm: 0 } }}
                 >
                   <DeleteIcon />
@@ -391,14 +384,41 @@ export default function AddManualRecipeModal({
             </Box>
           ))}
 
-          <TextField
-            label="Instructions"
-            value={recipeForm.instructions}
-            onChange={(e) => handleChange('instructions', e.target.value)}
-            fullWidth
-            multiline
-            minRows={4}
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              Instructions
+            </Typography>
+            <Button
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={handleAddInstruction}
+            >
+              Add step
+            </Button>
+          </Box>
+
+          {recipeForm.instructions.map((step, index) => (
+            <Box
+              key={`instruction-${index}`}
+              sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}
+            >
+              <TextField
+                label={`Step ${index + 1}`}
+                value={step}
+                onChange={(e) => handleInstructionChange(index, e.target.value)}
+                fullWidth
+                multiline
+                minRows={1}
+              />
+              <IconButton
+                aria-label={`Remove step ${index + 1}`}
+                onClick={() => handleRemoveItem('instructions', index)}
+                sx={{ mt: 1 }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Box>
+          ))}
         </Stack>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>

@@ -173,6 +173,8 @@ mealPlannerRouter.get(
  *         description: Created - Manual recipe created successfully
  *       400:
  *         description: Bad Request - Invalid recipe payload
+ *       401:
+ *         description: Unauthorized
  *       500:
  *         description: Internal Server Error - Failed to create manual recipe
  **/

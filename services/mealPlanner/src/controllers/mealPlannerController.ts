@@ -105,7 +105,7 @@ class MealPlannerController {
       }
 
       const manualRecipes = await mealPlannerService.getManualRecipes(userId);
-      res.json(manualRecipes);
+      res.status(200).json(manualRecipes);
     } catch (error) {
       console.error('Error fetching manual recipes:', error);
       res.status(500).json({ error: 'Failed to fetch manual recipes' });
