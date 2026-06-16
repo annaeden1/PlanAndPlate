@@ -82,7 +82,7 @@ export function Profile() {
   };
 
   const openEditPreferences = () => {
-    setEditedDiet(diet || []);
+    setEditedDiet(diet?.length ? [diet[0]] : []);
     setEditedAllergies(allergies || []);
     setEditedGoal(healthGoal || '');
     setEditedBudget(
@@ -158,7 +158,7 @@ export function Profile() {
     }
 
     const result = await updatePreferenceSettings({
-      diet: editedDiet,
+      diet: editedDiet.slice(0, 1),
       allergies: editedAllergies,
       healthGoal: editedGoal,
       weeklyBudget: parsedBudget,

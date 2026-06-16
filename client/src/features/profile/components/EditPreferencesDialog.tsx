@@ -63,10 +63,11 @@ export function EditPreferencesDialog({
         <InputLabel id="diet-select-label">Diets</InputLabel>
         <Select
           labelId="diet-select-label"
-          multiple
-          value={editedDiet}
-          onChange={(event) => onDietChange(event.target.value as string[])}
-          input={<OutlinedInput label="Diets" />}
+          value={editedDiet[0] || ''}
+          label="Diets"
+          onChange={(event) =>
+            onDietChange(event.target.value ? [event.target.value] : [])
+          }
           MenuProps={{
             PaperProps: {
               sx: {
@@ -75,15 +76,6 @@ export function EditPreferencesDialog({
               },
             },
           }}
-          renderValue={(selected) =>
-            selected
-              .map(
-                (value) =>
-                  dietaryOptions.find((option) => option.id === value)?.label ||
-                  value,
-              )
-              .join(', ')
-          }
           sx={{
             minWidth: 0,
             '& .MuiSelect-select': {
@@ -93,10 +85,10 @@ export function EditPreferencesDialog({
             },
           }}
         >
+          <MenuItem value="">No preference</MenuItem>
           {dietaryOptions.map((option) => (
             <MenuItem key={option.id} value={option.id}>
-              <Checkbox checked={editedDiet.includes(option.id)} />
-              <ListItemText primary={option.label} />
+              {option.label}
             </MenuItem>
           ))}
         </Select>
@@ -155,7 +147,7 @@ export function EditPreferencesDialog({
           label="Health Goal"
           onChange={(event) => onGoalChange(event.target.value)}
         >
-          <MenuItem value="">Not set</MenuItem>
+          <MenuItem value="">No specific goal</MenuItem>
           {goalsOptions.map((option) => (
             <MenuItem key={option.id} value={option.id}>
               {option.label}
