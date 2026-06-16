@@ -296,7 +296,6 @@ class MealPlannerService {
       };
 
       if (existingRecipe) {
-        // Recipe was cached by the recommendation engine (embeddings only); backfill the full fields now.
         existingRecipe.set(fullFields);
         await existingRecipe.save();
         recipeData = existingRecipe;

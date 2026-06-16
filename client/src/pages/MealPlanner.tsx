@@ -47,7 +47,6 @@ export function MealPlanner({}: MealPlannerProps) {
       const mealPlanId = mealPlan?._id ?? '';
       const recipeDetails = await mealPlannerApi.getRecipeDetails(
         meal.id.toString(),
-        localStorage.getItem('access-token'),
       );
       const recipeIdForImport =
         recipeDetails._id || recipeDetails.originRecipeId || meal.id.toString();
@@ -141,13 +140,11 @@ export function MealPlanner({}: MealPlannerProps) {
       }
 
       const userId = getUserId() ?? '';
-      const token = localStorage.getItem('access-token');
 
       try {
         const data = await mealPlannerApi.getWeeklyPlan(
           userId,
           weekDate,
-          token,
         );
         setMealPlan(data);
         setCachedWeekKey(weekKey);
@@ -157,7 +154,6 @@ export function MealPlanner({}: MealPlannerProps) {
           const data = await mealPlannerApi.createWeeklyPlan(
             userId,
             weekDate,
-            token,
           );
           setSnackbar({
             open: true,

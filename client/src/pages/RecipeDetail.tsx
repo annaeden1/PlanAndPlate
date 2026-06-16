@@ -42,10 +42,9 @@ export function RecipeDetail({}: RecipeDetailProps) {
     setDrawerOpen(true);
     setSuggestionsLoading(true);
     try {
-      const token = localStorage.getItem('access-token');
       const userId = getUserId() ?? '';
       const id = recipe?.originRecipeId || recipeId || '';
-      const data = await mealPlannerApi.getSuggestions(userId, id, mealType, token);
+      const data = await mealPlannerApi.getSuggestions(userId, id, mealType);
       setSuggestions(data);
     } catch (err) {
       console.error('Failed to load suggestions:', err);
@@ -56,14 +55,12 @@ export function RecipeDetail({}: RecipeDetailProps) {
   };
 
   const handleUseSuggestion = async (s: RecipeSuggestion) => {
-    const token = localStorage.getItem('access-token');
     const userId = getUserId() ?? '';
     try {
       if (date) {
         await mealPlannerApi.replaceMeal(
           userId,
           { date, mealType, newRecipeId: s.originRecipeId },
-          token,
         );
       }
       setDrawerOpen(false);
@@ -97,13 +94,12 @@ export function RecipeDetail({}: RecipeDetailProps) {
 
   const handleToggleLike = async () => {
     if (!recipe) return;
-    const token = localStorage.getItem('access-token');
     const id = recipe.originRecipeId || recipeId || '';
 
     setRecipe((prev) => (prev ? { ...prev, isLiked: !prev.isLiked } : prev));
 
     try {
-      const result = await mealPlannerApi.toggleRecipeLike(id, token);
+      const result = await mealPlannerApi.toggleRecipeLike(id);
       setRecipe((prev) => (prev ? { ...prev, isLiked: result.isLiked } : prev));
     } catch (err) {
       console.error('Failed to toggle like:', err);
@@ -119,13 +115,12 @@ export function RecipeDetail({}: RecipeDetailProps) {
   useEffect(() => {
     const fetchRecipe = async () => {
       try {
-        const token = localStorage.getItem('access-token');
         if (!recipeId) {
           setError('No recipe ID provided');
           setLoading(false);
           return;
         }
-        const data = await mealPlannerApi.getRecipeDetails(recipeId, token);
+        const data = await mealPlannerApi.getRecipeDetails(recipeId);
         setRecipe(data);
       } catch (err) {
         console.error('Error fetching recipe:', err);
