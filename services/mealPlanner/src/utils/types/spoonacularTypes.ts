@@ -143,7 +143,57 @@ export type nutrients = {
   carbohydrates: number;
 };
 
-type recipeNutrients = {
+export type MealType = "breakfast" | "main course";
+
+export type ComplexSearchParams = {
+  type?: MealType;
+  minProtein?: number;
+  minCalories?: number;
+  maxCalories?: number;
+  diet?: string;
+  excludeIngredients?: string;
+  number?: number;
+};
+
+// A single recipe returned by recipes/complexSearch with addRecipeNutrition=true.
+export type ComplexSearchRecipe = {
+  id: number;
+  title: string;
+  image?: string;
+  nutrition: {
+    nutrients: recipeNutrients[];
+  };
+};
+
+export type ComplexSearchResponse = {
+  results: ComplexSearchRecipe[];
+  offset: number;
+  number: number;
+  totalResults: number;
+};
+
+// Search function shape injected into the day-plan builder (dependency injection
+// so the pure builder logic can be unit-tested without hitting Spoonacular).
+export type SearchRecipesFn = (
+  params: ComplexSearchParams,
+) => Promise<ComplexSearchRecipe[]>;
+
+export type SlotName = "breakfast" | "lunch" | "dinner";
+
+export type SlotResult = {
+  slot: SlotName;
+  recipe: ComplexSearchRecipe;
+  protein: number;
+  calories: number;
+  proteinFloorMet: boolean;
+};
+
+export type DayResult = {
+  slots: SlotResult[];
+  proteinTargetMet: boolean;
+};
+
+export type recipeNutrients = {
   name: string;
   amount: number;
   unit: string;
