@@ -6,6 +6,9 @@ export interface Meal {
   time: string;
   calories: number;
   completed: boolean;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
 }
 
 export interface CalorieProgress {

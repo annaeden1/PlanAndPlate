@@ -1,13 +1,6 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  IconButton,
-  TextField,
-  Typography,
-} from '@mui/material';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { Alert, Box, Button, TextField, Typography } from '@mui/material';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import { colors, shadows } from '@/core/theme/tokens';
 
 interface ManualBarcodeEntryProps {
   barcode: string;
@@ -27,36 +20,59 @@ export const ManualBarcodeEntry = ({
   onBack,
 }: ManualBarcodeEntryProps) => {
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ px: '1.5rem', pt: '3rem', pb: '1.5rem' }}>
-        <Box sx={{ maxWidth: '28rem', mx: 'auto' }}>
-          <IconButton onClick={onBack}>
-            <ArrowBackIcon />
-          </IconButton>
-
-          <Typography variant="h1">Manual Entry</Typography>
-        </Box>
+    <Box
+      sx={{
+        bgcolor: '#fff',
+        borderRadius: '1.625rem',
+        p: '1.5rem',
+        boxShadow: shadows.card,
+        border: `1px solid ${colors.cardBorder}`,
+        animation: 'pp-slideUp .5s both',
+      }}
+    >
+      <Box
+        onClick={onBack}
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.375rem',
+          fontSize: 13.5,
+          fontWeight: 600,
+          color: colors.greenLeaf,
+          cursor: 'pointer',
+          mb: '0.875rem',
+          '&:hover': { textDecoration: 'underline' },
+        }}
+      >
+        <ArrowBackRoundedIcon sx={{ fontSize: 18 }} /> Back to scanner
       </Box>
 
-      <Box sx={{ flex: 1, px: '1.5rem' }}>
-        <Box sx={{ maxWidth: '28rem', mx: 'auto' }}>
-          <Card sx={{ p: '2rem' }}>
-            {error && <Alert severity="error">{error}</Alert>}
+      <Typography variant="h3" sx={{ color: colors.ink, mb: '0.375rem' }}>
+        Enter barcode manually
+      </Typography>
+      <Typography sx={{ fontSize: 13, color: colors.textMuted, mb: '1.125rem' }}>
+        Type the digits printed under the product's barcode.
+      </Typography>
 
-            <TextField
-              fullWidth
-              label="Barcode"
-              value={barcode}
-              onChange={(e) => onBarcodeChange(e.target.value)}
-              sx={{ mt: error ? '1rem' : 0 }}
-            />
+      {error && (
+        <Alert severity="error" sx={{ mb: '14px', borderRadius: '14px' }}>
+          {error}
+        </Alert>
+      )}
 
-            <Button fullWidth onClick={onSubmit} sx={{ mt: '1rem' }}>
-              {scanning ? 'Searching...' : 'Find Product'}
-            </Button>
-          </Card>
-        </Box>
-      </Box>
+      <TextField
+        fullWidth
+        label="Barcode"
+        value={barcode}
+        onChange={(e) => onBarcodeChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') onSubmit();
+        }}
+      />
+
+      <Button fullWidth variant="contained" size="large" onClick={onSubmit} disabled={scanning} sx={{ mt: '16px' }}>
+        {scanning ? 'Searching…' : 'Find product'}
+      </Button>
     </Box>
   );
 };

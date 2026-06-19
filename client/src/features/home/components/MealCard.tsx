@@ -1,85 +1,132 @@
-import { useState } from "react";
-import { Box, Card, Typography, Chip } from "@mui/material";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-import type { Meal } from "@/features/home/types/home";
-import platePicturePlaceholder from "@/assets/plate pic.jpg";
+import { useState } from 'react';
+import { Box, Typography } from '@mui/material';
+import type { Meal } from '@/features/home/types/home';
+import { colors, foodGradientFor } from '@/core/theme/tokens';
 
 interface MealCardProps {
   meal: Meal;
   onToggle: () => void;
+  delay?: string;
 }
 
-export const MealCard = ({ meal, onToggle }: MealCardProps) => {
-  const [imageError, setImageError] = useState(false);
+const MEAL_EMOJI: Record<Meal['mealType'], string> = {
+  Breakfast: '🥑',
+  Lunch: '🥗',
+  Dinner: '🍣',
+};
 
-  const handleImageError = () => {
-    setImageError(true);
-  };
+export const MealCard = ({ meal, onToggle, delay = '0s' }: MealCardProps) => {
+  const [imgOk, setImgOk] = useState(Boolean(meal.image));
+  const done = meal.completed;
 
   return (
-    <Card
+    <Box
       onClick={onToggle}
+      role="button"
+      aria-pressed={done}
       sx={{
-        display: "flex",
-        alignItems: "center",
-        p: "1rem",
-        borderRadius: "0.75rem",
-        boxShadow: "0 0.0625rem 0.25rem rgba(0,0,0,0.06)",
-        border: "0.0625rem solid",
-        borderColor: "grey.100",
-        cursor: "pointer",
-        transition: "box-shadow 0.2s",
-        "&:hover": { boxShadow: "0 0.125rem 0.5rem rgba(0,0,0,0.1)" },
+        flex: 1,
+        minWidth: 0,
+        bgcolor: '#fff',
+        borderRadius: '1.25rem',
+        overflow: 'hidden',
+        cursor: 'pointer',
+        boxShadow: '0 0.5rem 1.375rem -1rem rgba(20,40,30,.45)',
+        border: `1px solid ${colors.cardBorder}`,
+        transition: 'transform .18s, box-shadow .25s',
+        animation: 'pp-slideUp .5s both',
+        animationDelay: delay,
+        '&:hover': {
+          transform: 'translateY(-0.25rem)',
+          boxShadow: '0 1.25rem 2rem -1.125rem rgba(20,40,30,.4)',
+        },
       }}
     >
       <Box
-        component="img"
-        src={!meal.image || imageError ? platePicturePlaceholder : meal.image}
-        alt={meal.name}
-        onError={handleImageError}
         sx={{
-          width: "4rem",
-          height: "4rem",
-          borderRadius: "0.5rem",
-          objectFit: "cover",
-          flexShrink: 0,
+          position: 'relative',
+          height: 84,
+          background: foodGradientFor(meal.name),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 40,
         }}
-      />
-
-      <Box sx={{ ml: "1rem", flex: 1, minWidth: 0 }}>
-        <Typography variant="body1" fontWeight={600} noWrap>
+      >
+        {imgOk ? (
+          <Box
+            component="img"
+            src={meal.image}
+            alt={meal.name}
+            onError={() => setImgOk(false)}
+            sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          MEAL_EMOJI[meal.mealType] ?? '🍽️'
+        )}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            background: done ? 'linear-gradient(135deg,#2fbf87,#15674c)' : 'rgba(255,255,255,.9)',
+            border: `2px solid ${done ? 'transparent' : '#fff'}`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all .2s',
+            boxShadow: '0 0.25rem 0.625rem -0.25rem rgba(20,40,30,.5)',
+          }}
+        >
+          {done && (
+            <Box
+              component="svg"
+              width={14}
+              height={14}
+              viewBox="0 0 24 24"
+              fill="none"
+              sx={{ animation: 'pp-checkpop .35s both' }}
+            >
+              <path d="M5 13l4 4L19 7" stroke="#fff" strokeWidth={3.4} strokeLinecap="round" strokeLinejoin="round" />
+            </Box>
+          )}
+        </Box>
+      </Box>
+      <Box sx={{ p: '0.8125rem 0.9375rem' }}>
+        <Box
+          component="span"
+          sx={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: colors.greenLeaf,
+            bgcolor: colors.mintTint,
+            px: '0.5625rem',
+            py: '0.125rem',
+            borderRadius: '0.5rem',
+          }}
+        >
+          {meal.mealType}
+        </Box>
+        <Typography
+          noWrap
+          sx={{
+            fontSize: 14.5,
+            fontWeight: 700,
+            color: colors.ink,
+            mt: '0.5625rem',
+            textDecoration: done ? 'line-through' : 'none',
+            opacity: done ? 0.5 : 1,
+          }}
+        >
           {meal.name}
         </Typography>
-        <Box sx={{ display: "flex", alignItems: "center", gap: "0.5rem", mt: "0.25rem" }}>
-          <Chip
-            label={meal.mealType}
-            size="small"
-            sx={{
-              bgcolor: "grey.100",
-              color: "text.secondary",
-              fontWeight: 500,
-              fontSize: "0.75rem",
-              height: "1.5rem",
-            }}
-          />
-          <Typography variant="caption" color="text.secondary">
-            {meal.time}
-          </Typography>
-        </Box>
-        <Typography variant="caption" color="text.secondary" sx={{ mt: "0.25rem" }}>
-          {Math.round(meal.calories)} kcal
+        <Typography sx={{ fontSize: 12, color: colors.textMuted, mt: '0.25rem' }}>
+          {meal.time} · {Math.round(meal.calories)} kcal
         </Typography>
       </Box>
-
-      <Box sx={{ flexShrink: 0, ml: "0.5rem" }}>
-        {meal.completed ? (
-          <CheckCircleIcon sx={{ color: "primary.main", fontSize: "1.75rem" }} />
-        ) : (
-          <RadioButtonUncheckedIcon sx={{ color: "grey.300", fontSize: "1.75rem" }} />
-        )}
-      </Box>
-    </Card>
+    </Box>
   );
 };
-

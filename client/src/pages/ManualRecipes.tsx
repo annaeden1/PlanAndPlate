@@ -1,26 +1,21 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Box, Button, Typography, Stack } from '@mui/material';
-import { PageHeader } from '@/components/common/PageHeader';
+import { useEffect, useMemo, useState } from 'react';
+import { Box, Button, CircularProgress, Snackbar, Alert, Typography } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import type { ApiRecipe } from '@/features/mealPlanner/types/mealPlanner';
+import { RecipeGridCard } from '@/features/mealPlanner/components/RecipeGridCard';
 import AddManualRecipeModal from '@/features/addRecipe/components/AddManualRecipeModal';
+import { colors, gradients } from '@/core/theme/tokens';
+
+type Filter = 'All' | 'Liked' | 'Quick';
+const FILTERS: Filter[] = ['All', 'Liked', 'Quick'];
 
 export function ManualRecipes() {
-  const navigate = useNavigate();
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [manualRecipes, setManualRecipes] = useState<ApiRecipe[]>([]);
   const [loadingRecipes, setLoadingRecipes] = useState(false);
-
-  const handleOpenAddRecipeModal = () => {
-    setSuccessMessage(null);
-    setIsAddRecipeModalOpen(true);
-  };
-
-  const handleCloseAddRecipeModal = () => {
-    setIsAddRecipeModalOpen(false);
-  };
+  const [filter, setFilter] = useState<Filter>('All');
 
   const loadManualRecipes = async () => {
     setLoadingRecipes(true);
@@ -38,87 +33,114 @@ export function ManualRecipes() {
     loadManualRecipes();
   }, []);
 
+  const visibleRecipes = useMemo(() => {
+    if (filter === 'Liked') return manualRecipes.filter((r) => r.isLiked);
+    if (filter === 'Quick')
+      return manualRecipes.filter((r) => r.readyInMinutes && r.readyInMinutes <= 20);
+    return manualRecipes;
+  }, [manualRecipes, filter]);
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: '3rem' }}>
-      <PageHeader
-        title="Manual Recipes"
-        subtitle="Add and manage your custom recipes"
-        action={
-          <Button variant="contained" onClick={handleOpenAddRecipeModal}>
-            Add Recipe
-          </Button>
-        }
-      />
+    <Box sx={{ animation: 'pp-slideUp .4s both' }}>
+
       <Box
         sx={{
-          maxWidth: '80rem',
-          mx: 'auto',
-          px: { xs: '1rem', sm: '1.5rem' },
-          py: '1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '1rem',
+          mb: '1.25rem',
+          flexWrap: 'wrap',
         }}
       >
-        {loadingRecipes ? (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Loading your recipes...
-          </Typography>
-        ) : manualRecipes.length > 0 ? (
-          <Stack spacing={2} sx={{ mb: 3 }}>
-            {manualRecipes.map((recipe) => (
+        <Box className="pp-scroll" sx={{ display: 'flex', gap: '0.5rem', overflowX: 'auto', flex: 1 }}>
+          {FILTERS.map((f) => {
+            const active = filter === f;
+            return (
               <Box
-                key={recipe._id ?? recipe.name}
-                onClick={() =>
-                  navigate(`/recipe/${recipe.originRecipeId || recipe._id}`)
-                }
+                key={f}
+                onClick={() => setFilter(f)}
                 sx={{
-                  p: 2,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 2,
-                  bgcolor: 'background.paper',
+                  flex: 'none',
+                  px: '1.25rem',
+                  py: '0.5625rem',
+                  borderRadius: '0.8125rem',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    bgcolor: 'action.hover',
-                    borderColor: 'primary.main',
-                    boxShadow: 1,
-                  },
+                  fontSize: 13,
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap',
+                  background: active ? gradients.cta : '#fff',
+                  color: active ? '#fff' : colors.ink,
+                  border: `1.5px solid ${active ? 'transparent' : 'rgba(20,40,30,.1)'}`,
+                  boxShadow: '0 0.25rem 0.75rem -0.5rem rgba(20,40,30,.25)',
+                  transition: 'all .25s',
                 }}
               >
-                <Typography variant="h6" sx={{ mb: 0.5 }}>
-                  {recipe.name}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {recipe.servings
-                    ? `${recipe.servings} servings`
-                    : 'Servings not set'}
-                  {' • '}
-                  {recipe.readyInMinutes
-                    ? `${recipe.readyInMinutes} min`
-                    : 'Ready time not set'}
-                </Typography>
+                {f}
               </Box>
-            ))}
-          </Stack>
-        ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            No manual recipes added yet. Use the button above to create one.
-          </Typography>
-        )}
-        {successMessage && (
-          <Typography variant="body2" color="success.main" sx={{ mt: 2 }}>
-            {successMessage}
-          </Typography>
-        )}
+            );
+          })}
+        </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setIsAddRecipeModalOpen(true)}>
+          Add recipe
+        </Button>
       </Box>
+
+      {loadingRecipes ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: '3rem' }}>
+          <CircularProgress color="primary" />
+        </Box>
+      ) : visibleRecipes.length > 0 ? (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2,1fr)', lg: 'repeat(3,1fr)' },
+            gap: '1.125rem',
+          }}
+        >
+          {visibleRecipes.map((recipe, i) => (
+            <RecipeGridCard key={recipe._id ?? recipe.name} recipe={recipe} delay={`${i * 0.04}s`} />
+          ))}
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            bgcolor: '#fff',
+            borderRadius: '1.375rem',
+            border: `1px solid ${colors.cardBorder}`,
+            p: '2.5rem',
+            textAlign: 'center',
+          }}
+        >
+          <Typography sx={{ fontSize: 38 }}>📖</Typography>
+          <Typography sx={{ fontSize: 16, fontWeight: 700, color: colors.ink, mt: '0.5rem' }}>
+            {filter === 'All' ? 'No recipes yet' : `No ${filter.toLowerCase()} recipes`}
+          </Typography>
+          <Typography sx={{ fontSize: 13, color: colors.textMuted, mt: '0.25rem' }}>
+            Use “Add recipe” to create your first custom recipe.
+          </Typography>
+        </Box>
+      )}
 
       <AddManualRecipeModal
         open={isAddRecipeModalOpen}
-        onClose={handleCloseAddRecipeModal}
+        onClose={() => setIsAddRecipeModalOpen(false)}
         onSaved={async () => {
           setSuccessMessage('Recipe saved successfully.');
           await loadManualRecipes();
         }}
       />
+
+      <Snackbar
+        open={Boolean(successMessage)}
+        autoHideDuration={4000}
+        onClose={() => setSuccessMessage(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity="success" onClose={() => setSuccessMessage(null)} sx={{ width: '100%' }}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

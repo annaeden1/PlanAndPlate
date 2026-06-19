@@ -1,6 +1,7 @@
-import { Box, Button, IconButton, Typography } from "@mui/material";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import { Box, IconButton, Typography } from '@mui/material';
+import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+import { colors, gradients } from '@/core/theme/tokens';
 
 interface WeeklyTimelineProps {
   currentWeek: number;
@@ -19,91 +20,112 @@ export function WeeklyTimeline({
   days,
   weekRange,
 }: WeeklyTimelineProps) {
+  const today = new Date();
+
+  const ref = new Date();
+  ref.setDate(today.getDate() + currentWeek * 7);
+  const sunday = new Date(ref);
+  sunday.setDate(ref.getDate() - ref.getDay());
+
+  const weekDates = days.map((_, i) => {
+    const d = new Date(sunday);
+    d.setDate(sunday.getDate() + i);
+    return d;
+  });
+
+  const isToday = (d: Date) => d.toDateString() === today.toDateString();
+
   return (
-    <>
-      <Box
-        sx={{
-          px: "1.5rem",
-          py: "1rem",
-          bgcolor: "background.paper",
-          borderBottom: 1,
-          borderColor: "divider",
-          position: "sticky",
-          top: "4rem",
-          zIndex: 10,
-        }}
-      >
-        <Box
-          sx={{
-            maxWidth: "80rem",
-            mx: "auto",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <IconButton onClick={() => onWeekChange(currentWeek - 1)}>
-            <ChevronLeftIcon />
-          </IconButton>
-          <Box sx={{ textAlign: "center" }}>
-            <Typography variant="body2" color="text.secondary">
-              Week of
-            </Typography>
-            <Typography>{weekRange}</Typography>
-          </Box>
-          <IconButton onClick={() => onWeekChange(currentWeek + 1)}>
-            <ChevronRightIcon />
-          </IconButton>
-        </Box>
-      </Box>
+    <Box sx={{ animation: 'pp-slideUp .5s both' }}>
 
       <Box
         sx={{
-          px: "1.5rem",
-          py: "1.5rem",
-          borderBottom: 1,
-          borderColor: "divider",
-          bgcolor: "background.default",
-          position: "sticky",
-          top: "7.5rem",
-          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.875rem',
+          mb: '0.875rem',
         }}
       >
-        <Box
-          sx={{
-            maxWidth: "80rem",
-            mx: "auto",
-            display: "flex",
-            justifyContent: { xs: "flex-start", md: "center" },
-            gap: "0.5rem",
-            overflowX: "auto",
-            scrollbarWidth: "none",
-            "&::-webkit-scrollbar": { display: "none" },
-            pb: "0.5rem",
-          }}
+        <IconButton
+          onClick={() => onWeekChange(currentWeek - 1)}
+          aria-label="Previous week"
+          sx={{ bgcolor: '#fff', border: `1px solid ${colors.cardBorder}`, '&:hover': { bgcolor: colors.mintTint } }}
         >
-          {days.map((day) => (
-            <Button
+          <ChevronLeftRoundedIcon />
+        </IconButton>
+        <Box sx={{ textAlign: 'center', minWidth: 160 }}>
+          <Typography sx={{ fontSize: 11, color: colors.textMuted, fontWeight: 600 }}>
+            Week of
+          </Typography>
+          <Typography sx={{ fontSize: 14, fontWeight: 700, color: colors.ink }}>
+            {weekRange}
+          </Typography>
+        </Box>
+        <IconButton
+          onClick={() => onWeekChange(currentWeek + 1)}
+          aria-label="Next week"
+          sx={{ bgcolor: '#fff', border: `1px solid ${colors.cardBorder}`, '&:hover': { bgcolor: colors.mintTint } }}
+        >
+          <ChevronRightRoundedIcon />
+        </IconButton>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: '0.625rem', overflowX: 'auto' }} className="pp-scroll">
+        {days.map((day, i) => {
+          const active = selectedDay === day;
+          const date = weekDates[i];
+          const past = currentWeek === 0 && date < today && !isToday(date);
+          return (
+            <Box
               key={day}
               onClick={() => onDaySelect(day)}
-              variant={selectedDay === day ? "contained" : "text"}
               sx={{
-                borderRadius: "1.5rem",
-                px: "1.5rem",
-                py: "0.75rem",
-                whiteSpace: "nowrap",
-                ...(selectedDay !== day && {
-                  bgcolor: "grey.100",
-                  color: "text.secondary",
-                  "&:hover": { bgcolor: "grey.200" },
-                }),
+                flex: '1 0 auto',
+                minWidth: 64,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: '0.4375rem',
+                py: '0.875rem',
+                borderRadius: '1.125rem',
+                cursor: 'pointer',
+                background: active ? gradients.cta : '#fff',
+                border: `1px solid ${active ? 'transparent' : colors.cardBorder}`,
+                boxShadow: active
+                  ? '0 0.875rem 1.625rem -0.875rem rgba(21,103,76,.6)'
+                  : '0 0.375rem 1.125rem -1rem rgba(20,40,30,.4)',
+                transition: 'transform .2s, background .3s',
+                '&:hover': { transform: 'translateY(-0.1875rem)' },
               }}
             >
-              {day}
-            </Button>
-          ))}
-        </Box>
+              <Typography
+                sx={{ fontSize: 11, fontWeight: 700, color: active ? 'rgba(255,255,255,.75)' : colors.textGhost }}
+              >
+                {day}
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "'Bricolage Grotesque', sans-serif",
+                  fontSize: 20,
+                  fontWeight: 700,
+                  color: active ? '#fff' : colors.ink,
+                }}
+              >
+                {date.getDate()}
+              </Typography>
+              <Box
+                sx={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  background: active ? colors.mintPale : past ? colors.greenBright : 'transparent',
+                }}
+              />
+            </Box>
+          );
+        })}
       </Box>
-    </>
+    </Box>
   );
 }
