@@ -1,4 +1,4 @@
-import { Box, Button, Chip, Typography, Snackbar, Alert } from '@mui/material';
+import { Box, Button, Chip, Typography, Snackbar, Alert, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
@@ -6,6 +6,7 @@ import { useGroceryList } from '@/context/GroceryListContext';
 import type { ApiRecipe, RecipeSuggestion } from '@/features/mealPlanner/types/mealPlanner';
 import { SuggestionsDrawer } from '@/features/mealPlanner/components/SuggestionsDrawer';
 import { getUserId } from '@/shared/utils/userId';
+import AddManualRecipeModal from '@/features/addRecipe/components/AddManualRecipeModal';
 
 import { RecipeHero } from '@/features/mealPlanner/components/RecipeHero';
 import { RecipeIngredients } from '@/features/mealPlanner/components/RecipeIngredients';
@@ -30,6 +31,14 @@ export function RecipeDetail({}: RecipeDetailProps) {
     message: '',
     severity: 'success',
   });
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const isOwner = Boolean(
+    recipe && recipe.source === 'manual' && recipe.userId === getUserId(),
+  );
 
   const [searchParams] = useSearchParams();
   const date = searchParams.get('date');
@@ -109,6 +118,23 @@ export function RecipeDetail({}: RecipeDetailProps) {
         message: 'Failed to save like status.',
         severity: 'error',
       });
+    }
+  };
+
+  const handleDeleteRecipe = async () => {
+    if (!recipe) return;
+    setDeleting(true);
+    try {
+      const id = recipe.originRecipeId || recipeId || '';
+      await mealPlannerApi.deleteManualRecipe(id);
+      setDeleteDialogOpen(false);
+      navigate('/my-recipes');
+    } catch (err) {
+      console.error('Failed to delete recipe:', err);
+      setDeleteDialogOpen(false);
+      setSnackbar({ open: true, message: 'Failed to delete recipe.', severity: 'error' });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -225,6 +251,26 @@ export function RecipeDetail({}: RecipeDetailProps) {
                 >
                   New Recipe Suggestions for you
                 </Button>
+                {isOwner && (
+                  <>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      sx={{ height: '3rem', borderRadius: '0.625rem' }}
+                      onClick={() => setEditModalOpen(true)}
+                    >
+                      Edit Recipe
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      sx={{ height: '3rem', borderRadius: '0.625rem' }}
+                      onClick={() => setDeleteDialogOpen(true)}
+                    >
+                      Delete Recipe
+                    </Button>
+                  </>
+                )}
               </Box>
             </Box>
           </Box>
@@ -253,6 +299,40 @@ export function RecipeDetail({}: RecipeDetailProps) {
         onClose={() => setDrawerOpen(false)}
         onUse={handleUseSuggestion}
       />
+
+      {/* Edit Modal */}
+      <AddManualRecipeModal
+        open={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        recipeToEdit={recipe ?? undefined}
+        onSaved={async () => {
+          setEditModalOpen(false);
+          // Reload recipe data
+          if (recipeId) {
+            const updated = await mealPlannerApi.getRecipeDetails(recipeId);
+            setRecipe(updated);
+          }
+          setSnackbar({ open: true, message: 'Recipe updated successfully!', severity: 'success' });
+        }}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Delete Recipe</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete &ldquo;{recipe?.name}&rdquo;? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleting}>
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteRecipe} color="error" disabled={deleting}>
+            {deleting ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
