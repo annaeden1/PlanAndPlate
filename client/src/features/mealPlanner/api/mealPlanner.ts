@@ -77,4 +77,9 @@ export const mealPlannerApi = {
 
   getLikedRecipes: (userId: string) =>
     api.get<ApiRecipe[]>(`/users/${userId}/favorites`).then((r) => r.data),
+
+  getUserStats: (userId: string) =>
+    api
+      .get<{ weeksActive: number; mealsLogged: number }>(`/users/${userId}/stats`)
+      .then((r) => r.data),
 };
