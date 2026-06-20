@@ -406,6 +406,28 @@ class MealPlannerService {
     }).lean();
     return manualRecipes;
   }
+
+  async getUserStats(userId: string): Promise<{ weeksActive: number; mealsLogged: number }> {
+    const weeksActive = await MealPlan.countDocuments({ userId });
+
+    const mealPlans = await MealPlan.find({ userId });
+    const mealsInPlans = mealPlans.reduce((total, plan) => {
+      const dailyMeals = (plan.days || []).flatMap(day => [day.breakfast, day.lunch, day.dinner]);
+      const validMeals = dailyMeals.filter(meal => {
+        if (!meal || !meal.recipeId) return false;
+        const recipeIdStr = String(meal.recipeId).trim();
+        return recipeIdStr !== "0" && recipeIdStr !== "";
+      });
+      return total + validMeals.length;
+    }, 0);
+
+    const manualRecipesCount = await Recipe.countDocuments({ userId, source: 'manual' });
+
+    return {
+      weeksActive,
+      mealsLogged: mealsInPlans + manualRecipesCount,
+    };
+  }
 }
 
 export default new MealPlannerService();

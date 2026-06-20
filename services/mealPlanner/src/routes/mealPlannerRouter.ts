@@ -368,3 +368,42 @@ mealPlannerRouter.get(
   authMiddleware,
   MealPlannerController.getLikedRecipes,
 );
+
+/**
+ * @swagger
+ * /users/{userId}/stats:
+ *   get:
+ *     summary: Get user statistics (weeks active, meals logged)
+ *     tags: [MealPlanner]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: OK - User statistics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 weeksActive:
+ *                   type: number
+ *                 mealsLogged:
+ *                   type: number
+ *       400:
+ *         description: Bad Request - Invalid input data
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - Not the authenticated user
+ *       500:
+ *         description: Internal Server Error - Failed to fetch stats
+ */
+mealPlannerRouter.get(
+  "/users/:userId/stats",
+  authMiddleware,
+  MealPlannerController.getUserStats,
+);

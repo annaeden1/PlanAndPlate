@@ -214,6 +214,27 @@ class MealPlannerController {
       res.status(500).json({ error: "Failed to fetch liked recipes" });
     }
   }
+
+  async getUserStats(req: Request, res: Response) {
+    try {
+      const { userId } = req.params;
+      if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+        return res
+          .status(400)
+          .json({ error: 'Invalid input data: userId is required' });
+      }
+
+      if ((req as any).user?._id !== userId) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+
+      const stats = await mealPlannerService.getUserStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+      res.status(500).json({ error: "Failed to fetch user stats" });
+    }
+  }
 }
 
 export default new MealPlannerController();
