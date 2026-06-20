@@ -1,261 +1,117 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Snackbar, Alert } from '@mui/material';
+import { Box, Typography, Alert, CircularProgress } from '@mui/material';
 import { WeeklyTimeline } from '@/features/mealPlanner/components/weeklyTimeLine';
 import { PlannedMealCard } from '@/features/mealPlanner/components/mealPlannerCard';
 import { MealPlannerEmptyState } from '@/features/mealPlanner/components/mealPlannerEmptyState';
-import {
-  DAYS,
-  type MealPlanItem,
-} from '@/features/mealPlanner/types/mealPlanner';
-import type { ApiMealPlan } from '@/features/mealPlanner/types/mealPlanner';
-import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
-import { useGroceryList } from '@/context/GroceryListContext';
-import { getUserId } from '@/shared/utils/userId';
-import { PageHeader } from '@/components/common/PageHeader';
-interface MealPlannerProps { }
+import { WeeklyChart } from '@/components/common/WeeklyChart';
+import { AppSnackbar } from '@/components/common/AppSnackbar';
+import { DAYS } from '@/features/mealPlanner/types/mealPlanner';
+import { useWeeklyMealPlan } from '@/features/mealPlanner/hooks/useWeeklyMealPlan';
+import { computeWeekRange, fullDayName } from '@/features/mealPlanner/utils/mealPlannerDates';
+import { selectMealsForDay, dateForSelectedDay } from '@/features/mealPlanner/utils/selectMealsForDay';
+import { computeWeeklyBalance } from '@/features/mealPlanner/utils/weeklyBalance';
+import { colors } from '@/core/theme/tokens';
 
-export function MealPlanner({ }: MealPlannerProps) {
-  const today = new Date();
-  const todayName = DAYS[today.getDay()];
-
+export function MealPlanner() {
+  const todayName = DAYS[new Date().getDay()];
   const [selectedDay, setSelectedDay] = useState(todayName);
   const [currentWeek, setCurrentWeek] = useState(0);
-  const [mealPlan, setMealPlan] = useState<ApiMealPlan | null>(null);
-  const [cachedWeekKey, setCachedWeekKey] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const spoonacularImageUrl = (recipeId: string | number, size = '312x231') =>
-    `https://spoonacular.com/recipeImages/${recipeId}-${size}.jpg`;
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error';
-  }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
+
   const navigate = useNavigate();
-  const { importRecipe } = useGroceryList();
+  const {
+    mealPlan,
+    loading,
+    generating,
+    error,
+    generatePlan,
+    addMealToList,
+    snackbar,
+    closeSnackbar,
+  } = useWeeklyMealPlan(currentWeek, selectedDay);
 
-  const formatDayKey = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('en-US', { weekday: 'short' });
-
-  const handleAddToList = async (meal: MealPlanItem) => {
-    try {
-      const mealPlanId = mealPlan?._id ?? '';
-      const recipeDetails = await mealPlannerApi.getRecipeDetails(
-        meal.id.toString()
-      );
-      const recipeIdForImport =
-        recipeDetails._id || recipeDetails.originRecipeId || meal.id.toString();
-
-      await importRecipe(recipeIdForImport, mealPlanId);
-      setSnackbar({
-        open: true,
-        message: 'Ingredients added to grocery list successfully!',
-        severity: 'success',
-      });
-    } catch (err) {
-      console.error('Error adding to grocery list:', err);
-      setSnackbar({
-        open: true,
-        message: 'Failed to add ingredients to grocery list.',
-        severity: 'error',
-      });
-    }
-  };
-
-  const weekRange = (() => {
-    const ref = new Date();
-    ref.setDate(ref.getDate() + currentWeek * 7);
-
-    const day = ref.getDay();
-    const sunday = new Date(ref);
-    sunday.setDate(ref.getDate() - day);
-
-    const saturday = new Date(sunday);
-    saturday.setDate(sunday.getDate() + 6);
-
-    const format = (d: Date) =>
-      d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
-    return `${format(sunday)} - ${format(saturday)}`;
-  })();
-
-  const selectedMeals: MealPlanItem[] = [];
-  if (mealPlan) {
-    const dayRecord = mealPlan.days.find(
-      (day) => formatDayKey(day.date) === selectedDay,
-    );
-    if (dayRecord) {
-      const candidates = [
-        {
-          id: Number(dayRecord.breakfast.recipeId),
-          name: dayRecord.breakfast.name,
-          type: 'Breakfast',
-          calories: dayRecord.breakfast.calories,
-          image: spoonacularImageUrl(dayRecord.breakfast.recipeId),
-        },
-        {
-          id: Number(dayRecord.lunch.recipeId),
-          name: dayRecord.lunch.name,
-          type: 'Lunch',
-          calories: dayRecord.lunch.calories,
-          image: spoonacularImageUrl(dayRecord.lunch.recipeId),
-        },
-        {
-          id: Number(dayRecord.dinner.recipeId),
-          name: dayRecord.dinner.name,
-          type: 'Dinner',
-          calories: dayRecord.dinner.calories,
-          image: spoonacularImageUrl(dayRecord.dinner.recipeId),
-        },
-      ];
-      selectedMeals.push(...candidates.filter((m) => m.id && m.name));
-    }
-  }
-
-  const fetchWeeklyPlan = async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const today = new Date();
-      const dayIndex = DAYS.indexOf(selectedDay);
-      const selectedDate = new Date(today);
-      selectedDate.setDate(
-        today.getDate() + currentWeek * 7 + (dayIndex - today.getDay()),
-      );
-      const weekDate = selectedDate.toISOString().split('T')[0];
-
-      // Cache key is based on currentWeek only - ensures same week doesn't re-fetch
-      const weekKey = currentWeek.toString();
-
-      // Check if week is already cached
-      if (cachedWeekKey === weekKey && mealPlan) {
-        setLoading(false);
-        return;
-      }
-
-      const userId = getUserId() ?? '';
-
-      try {
-        const data = await mealPlannerApi.getWeeklyPlan(
-          userId,
-          weekDate,
-        );
-        setMealPlan(data);
-        setCachedWeekKey(weekKey);
-      } catch (error: any) {
-        if (error.response?.status === 404) {
-          console.log('No meal plan found, creating new weekly plan...');
-          const data = await mealPlannerApi.createWeeklyPlan(
-            userId,
-            weekDate,
-          );
-          setSnackbar({
-            open: true,
-            message: 'New weekly meal plan created!',
-            severity: 'success',
-          });
-          setMealPlan(data);
-          setCachedWeekKey(weekKey);
-        } else {
-          throw error;
-        }
-      }
-    } catch (fetchError: any) {
-      console.error('Error loading meal plan:', fetchError);
-      setError('Accessing meal plan failed. Please try again later.');
-      setMealPlan(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchWeeklyPlan();
-  }, [currentWeek]);
+  const selectedMeals = selectMealsForDay(mealPlan, selectedDay);
+  const selectedFullName = fullDayName(selectedDay);
+  const weeklyBalance = computeWeeklyBalance(mealPlan);
+  const selectedDayIndex = DAYS.indexOf(selectedDay);
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: '3rem' }}>
-      <PageHeader
-        title="Weekly Planner"
-        subtitle="Your personalized weekly menu"
+    <Box sx={{ animation: 'pp-slideUp .4s both' }}>
+      <WeeklyTimeline
+        currentWeek={currentWeek}
+        onWeekChange={setCurrentWeek}
+        selectedDay={selectedDay}
+        onDaySelect={setSelectedDay}
+        days={DAYS}
+        weekRange={computeWeekRange(currentWeek)}
       />
+
       <Box
         sx={{
-          maxWidth: 3000,
-          mx: 'auto',
-          px: { xs: '1rem', sm: '1.5rem' },
-          py: '1.5rem',
-          mt: '-2rem',
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '1.7fr 1fr' },
+          gap: '1.375rem',
+          mt: '1.5rem',
+          alignItems: 'start',
         }}
       >
-        <WeeklyTimeline
-          currentWeek={currentWeek}
-          onWeekChange={setCurrentWeek}
-          selectedDay={selectedDay}
-          onDaySelect={setSelectedDay}
-          days={DAYS}
-          weekRange={weekRange}
-        />
 
-        <Box sx={{ px: { xs: '0', sm: '1.5rem' }, py: '1.5rem' }}>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="h3" sx={{ color: colors.ink, mb: '0.875rem' }}>
+            {selectedFullName}'s plan
+          </Typography>
+
           {loading ? (
-            <Typography>Loading weekly plan...</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: '3rem' }}>
+              <CircularProgress color="primary" />
+            </Box>
           ) : error ? (
-            <Typography color="error">{error}</Typography>
+            <Alert severity="error" sx={{ borderRadius: '14px' }}>
+              {error}
+            </Alert>
           ) : selectedMeals.length === 0 ? (
-            <MealPlannerEmptyState selectedDay={selectedDay} />
+            <MealPlannerEmptyState
+              selectedDay={selectedFullName}
+              onGenerate={generatePlan}
+              loading={generating}
+            />
           ) : (
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: {
-                  xs: '1fr',
-                  md: 'repeat(2, 1fr)',
-                  lg: 'repeat(3, 1fr)',
-                },
-                gap: '1.5rem',
-              }}
-            >
-              {selectedMeals.map((meal) => (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {selectedMeals.map((meal, i) => (
                 <PlannedMealCard
                   key={`${selectedDay}-${meal.type}`}
                   meal={meal}
-                  onViewRecipe={(meal) =>
+                  delay={`${0.06 + i * 0.07}s`}
+                  onViewRecipe={(m) =>
                     navigate(
-                      `/recipe/${meal.id}?date=${
-                        mealPlan?.days.find(
-                          (d) => formatDayKey(d.date) === selectedDay,
-                        )?.date ?? ''
-                      }&mealType=${meal.type.toLowerCase()}`,
+                      `/recipe/${m.id}?date=${dateForSelectedDay(mealPlan, selectedDay)}&mealType=${m.type.toLowerCase()}`,
                     )
                   }
-                  onAddToList={handleAddToList}
+                  onAddToList={addMealToList}
                 />
               ))}
             </Box>
           )}
         </Box>
+
+        {/* side column */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '22px', minWidth: 0 }}>
+          <WeeklyChart
+            title="Weekly balance"
+            bars={weeklyBalance.bars}
+            activeIndex={selectedDayIndex}
+            avgLabel={weeklyBalance.avg ? weeklyBalance.avg.toLocaleString() : undefined}
+            height={120}
+          />
+        </Box>
       </Box>
-      <Snackbar
+
+      <AppSnackbar
         open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+        message={snackbar.message}
+        severity={snackbar.severity}
+        onClose={closeSnackbar}
+      />
     </Box>
   );
 }

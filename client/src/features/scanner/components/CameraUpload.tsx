@@ -1,7 +1,8 @@
 import FileUploadIcon from '@mui/icons-material/FileUpload';
-import { Alert, Box, Button, Typography } from '@mui/material';
+import { Alert, Box, Typography } from '@mui/material';
 import { useRef } from 'react';
 import { ScannerCamera } from '@/features/scanner/components/ScannerCamera';
+import { colors, gradients, shadows } from '@/core/theme/tokens';
 
 interface CameraUploadProps {
   scanning: boolean;
@@ -18,68 +19,70 @@ export const CameraUpload = ({
 }: CameraUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileClick = () => {
-    fileInputRef.current?.click();
-  };
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      onPhotoSelected(file);
-    }
+    if (file) onPhotoSelected(file);
     event.target.value = '';
   };
+
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ px: '1.5rem', pt: '3rem', pb: '1.5rem' }}>
-        <Box sx={{ maxWidth: '28rem', mx: 'auto', textAlign: 'center' }}>
-          <Typography variant="h1">Product Scanner</Typography>
-          <Typography color="text.secondary">
-            Upload a photo of the barcode to check its nutritional value
-          </Typography>
-        </Box>
+    <Box sx={{ animation: 'pp-slideUp .5s both' }}>
+      {error && (
+        <Alert severity="error" sx={{ mb: '0.875rem', borderRadius: '0.875rem' }}>
+          {error}
+        </Alert>
+      )}
+
+      <ScannerCamera scanning={scanning} />
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
+        disabled={scanning}
+      />
+
+      <Box
+        onClick={scanning ? undefined : () => fileInputRef.current?.click()}
+        sx={{
+          mt: '1rem',
+          background: gradients.cta,
+          borderRadius: '1rem',
+          p: '1rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '0.625rem',
+          color: '#fff',
+          fontWeight: 700,
+          fontSize: 15,
+          cursor: scanning ? 'default' : 'pointer',
+          opacity: scanning ? 0.85 : 1,
+          boxShadow: shadows.cta,
+          transition: 'transform .15s',
+          '&:hover': scanning ? {} : { transform: 'translateY(-0.125rem)' },
+        }}
+      >
+        <FileUploadIcon sx={{ fontSize: 20 }} />
+        {scanning ? 'Scanning…' : 'Upload barcode photo'}
       </Box>
 
-      <Box sx={{ flex: 1, px: '1.5rem' }}>
-        <Box sx={{ maxWidth: '28rem', mx: 'auto' }}>
-          {error && <Alert severity="error">{error}</Alert>}
-
-          <ScannerCamera scanning={scanning} />
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            style={{ display: 'none' }}
-            onChange={handleFileChange}
-            disabled={scanning}
-          />
-
-          <Box
-            sx={{
-              mt: '1.5rem',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.75rem',
-            }}
-          >
-            <Button
-              variant="contained"
-              size="large"
-              onClick={handleFileClick}
-              disabled={scanning}
-              startIcon={<FileUploadIcon />}
-              sx={{ height: '3.5rem', borderRadius: '0.75rem' }}
-            >
-              {scanning ? 'Processing...' : 'Upload Photo'}
-            </Button>
-
-            <Button variant="text" onClick={onManualEntryClick}>
-              Or enter barcode manually
-            </Button>
-          </Box>
-        </Box>
-      </Box>
+      <Typography
+        onClick={onManualEntryClick}
+        sx={{
+          mt: '0.875rem',
+          textAlign: 'center',
+          fontSize: 13.5,
+          fontWeight: 600,
+          color: colors.greenLeaf,
+          cursor: 'pointer',
+          '&:hover': { textDecoration: 'underline' },
+        }}
+      >
+        Or enter barcode manually
+      </Typography>
     </Box>
   );
 };

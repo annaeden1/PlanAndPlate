@@ -1,7 +1,8 @@
-import { Box, Typography, Stack } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { MealCard } from "./MealCard";
-import type { Meal } from "@/features/home/types/home";
+import { Box, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { MealCard } from './MealCard';
+import type { Meal } from '@/features/home/types/home';
+import { colors } from '@/core/theme/tokens';
 
 interface TodaysMealsProps {
   meals: Meal[];
@@ -15,37 +16,65 @@ export const TodaysMeals = ({ meals, onToggleMeal }: TodaysMealsProps) => {
     <Box>
       <Box
         sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mb: "1rem",
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: '0.875rem',
         }}
       >
-        <Typography variant="h6" fontWeight={700}>
-          Today's Meals
+        <Typography variant="h3" sx={{ color: colors.ink }}>
+          Today's meals
         </Typography>
         <Typography
-          variant="body2"
-          fontWeight={600}
-          onClick={() => {
-            window.scrollTo(0, 0);
-            navigate("/planner");
-          }}
+          onClick={() => navigate('/planner')}
           sx={{
-            color: "primary.main",
-            cursor: "pointer",
-            "&:hover": { textDecoration: "underline" },
+            fontSize: 13,
+            fontWeight: 600,
+            color: colors.greenLeaf,
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
           }}
         >
-          View All &gt;
+          Open planner ›
         </Typography>
       </Box>
 
-      <Stack spacing="0.75rem">
-        {meals.map((meal) => (
-          <MealCard key={meal.id} meal={meal} onToggle={() => onToggleMeal(meal.id)} />
-        ))}
-      </Stack>
+      {meals.length === 0 ? (
+        <Box
+          sx={{
+            bgcolor: '#fff',
+            borderRadius: '20px',
+            border: `1px solid ${colors.cardBorder}`,
+            p: '28px',
+            textAlign: 'center',
+          }}
+        >
+          <Typography sx={{ fontSize: 32 }}>🍽️</Typography>
+          <Typography sx={{ fontSize: 14.5, fontWeight: 700, color: colors.ink, mt: '8px' }}>
+            No meals planned yet
+          </Typography>
+          <Typography sx={{ fontSize: 12.5, color: colors.textMuted, mt: '4px' }}>
+            Generate a plan to see your day fill up.
+          </Typography>
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: '14px',
+          }}
+        >
+          {meals.map((meal, i) => (
+            <MealCard
+              key={meal.id}
+              meal={meal}
+              onToggle={() => onToggleMeal(meal.id)}
+              delay={`${0.12 + i * 0.06}s`}
+            />
+          ))}
+        </Box>
+      )}
     </Box>
   );
 };

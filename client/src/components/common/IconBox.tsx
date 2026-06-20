@@ -14,7 +14,7 @@ interface IconBoxProps {
 export function IconBox({
   icon,
   color = 'primary.main',
-  bgColor = 'rgba(62, 180, 137, 0.1)',
+  bgColor = 'rgba(47, 191, 135, 0.12)',
   size = '2.5rem',
   iconSize = '1.25rem',
   shape = 'square',
@@ -25,7 +25,7 @@ export function IconBox({
       sx={{
         width: size,
         height: size,
-        borderRadius: shape === 'circle' ? '50%' : '0.625rem',
+        borderRadius: shape === 'circle' ? '50%' : '0.75rem',
         bgcolor: bgColor,
         display: 'flex',
         alignItems: 'center',

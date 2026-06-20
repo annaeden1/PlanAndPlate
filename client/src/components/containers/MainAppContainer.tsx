@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { GroceryListProvider } from "../../context/GroceryListContext";
 import { MealPlannerProvider } from "../../context/MealPlannerContext";
+import { UserProvider } from "../../context/UserContext";
 import { Profile } from "@/pages/Profile";
 import { GroceryList } from "../../pages/GroceryList";
 import { MealPlanner } from "@/pages/MealPlanner";
@@ -35,13 +36,15 @@ function AppRoutes() {
 export function MainAppContainer() {
   return (
     <BrowserRouter>
-      <GroceryListProvider>
-      <MealPlannerProvider>
-        <MainLayout>
-          <AppRoutes />
-        </MainLayout>
-      </MealPlannerProvider>
-      </GroceryListProvider>
+      <UserProvider>
+        <GroceryListProvider>
+          <MealPlannerProvider>
+            <MainLayout>
+              <AppRoutes />
+            </MainLayout>
+          </MealPlannerProvider>
+        </GroceryListProvider>
+      </UserProvider>
     </BrowserRouter>
   );
 }

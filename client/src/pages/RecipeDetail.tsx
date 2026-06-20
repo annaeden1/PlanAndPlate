@@ -1,4 +1,4 @@
-import { Box, Button, Chip, Typography, Snackbar, Alert } from '@mui/material';
+import { Box, Button, CircularProgress, Typography } from '@mui/material';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
@@ -6,30 +6,21 @@ import { useGroceryList } from '@/context/GroceryListContext';
 import type { ApiRecipe, RecipeSuggestion } from '@/features/mealPlanner/types/mealPlanner';
 import { SuggestionsDrawer } from '@/features/mealPlanner/components/SuggestionsDrawer';
 import { getUserId } from '@/shared/utils/userId';
-
+import { AppSnackbar } from '@/components/common/AppSnackbar';
+import { useSnackbar } from '@/shared/hooks/useSnackbar';
 import { RecipeHero } from '@/features/mealPlanner/components/RecipeHero';
 import { RecipeIngredients } from '@/features/mealPlanner/components/RecipeIngredients';
 import { RecipeInstructions } from '@/features/mealPlanner/components/RecipeInstructions';
 import { RecipeNutritionStats } from '@/features/mealPlanner/components/RecipeNutritionStats';
 
-interface RecipeDetailProps {}
-
-export function RecipeDetail({}: RecipeDetailProps) {
+export function RecipeDetail() {
   const { recipeId } = useParams<{ recipeId: string }>();
   const navigate = useNavigate();
   const { importRecipe } = useGroceryList();
   const [recipe, setRecipe] = useState<ApiRecipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error';
-  }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
+  const { snackbar, showSuccess, showError, close } = useSnackbar();
 
   const [searchParams] = useSearchParams();
   const date = searchParams.get('date');
@@ -38,6 +29,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [suggestions, setSuggestions] = useState<RecipeSuggestion[]>([]);
+
   const handleOpenSuggestions = async () => {
     setDrawerOpen(true);
     setSuggestionsLoading(true);
@@ -48,7 +40,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
       setSuggestions(data);
     } catch (err) {
       console.error('Failed to load suggestions:', err);
-      setSnackbar({ open: true, message: 'Failed to load suggestions.', severity: 'error' });
+      showError('Failed to load suggestions.');
     } finally {
       setSuggestionsLoading(false);
     }
@@ -58,57 +50,39 @@ export function RecipeDetail({}: RecipeDetailProps) {
     const userId = getUserId() ?? '';
     try {
       if (date) {
-        await mealPlannerApi.replaceMeal(
-          userId,
-          { date, mealType, newRecipeId: s.originRecipeId },
-        );
+        await mealPlannerApi.replaceMeal(userId, { date, mealType, newRecipeId: s.originRecipeId });
       }
       setDrawerOpen(false);
       navigate(`/recipe/${s.originRecipeId}${date ? `?date=${date}&mealType=${mealType}` : ''}`);
     } catch (err) {
       console.error('Failed to replace meal:', err);
-      setSnackbar({ open: true, message: 'Failed to replace meal.', severity: 'error' });
+      showError('Failed to replace meal.');
     }
   };
 
   const handleAddIngredientsToList = async () => {
     if (!recipe) return;
-
     try {
       const id = recipe._id || recipe.originRecipeId || recipeId || '';
       await importRecipe(id);
-      setSnackbar({
-        open: true,
-        message: 'Ingredients added to grocery list successfully!',
-        severity: 'success',
-      });
+      showSuccess('Ingredients added to grocery list successfully!');
     } catch (err) {
       console.error('Failed to import ingredients from recipe:', err);
-      setSnackbar({
-        open: true,
-        message: 'Failed to add ingredients to grocery list.',
-        severity: 'error',
-      });
+      showError('Failed to add ingredients to grocery list.');
     }
   };
 
   const handleToggleLike = async () => {
     if (!recipe) return;
     const id = recipe.originRecipeId || recipeId || '';
-
     setRecipe((prev) => (prev ? { ...prev, isLiked: !prev.isLiked } : prev));
-
     try {
       const result = await mealPlannerApi.toggleRecipeLike(id);
       setRecipe((prev) => (prev ? { ...prev, isLiked: result.isLiked } : prev));
     } catch (err) {
       console.error('Failed to toggle like:', err);
       setRecipe((prev) => (prev ? { ...prev, isLiked: !prev.isLiked } : prev));
-      setSnackbar({
-        open: true,
-        message: 'Failed to save like status.',
-        severity: 'error',
-      });
+      showError('Failed to save like status.');
     }
   };
 
@@ -129,122 +103,74 @@ export function RecipeDetail({}: RecipeDetailProps) {
         setLoading(false);
       }
     };
-
     fetchRecipe();
   }, [recipeId]);
 
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: '4rem' }}>
+        <CircularProgress color="primary" />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography color="error" sx={{ textAlign: 'center', py: '4rem' }}>
+        {error}
+      </Typography>
+    );
+  }
+
+  if (!recipe) return null;
+
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: '3rem' }}>
-      {loading && (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100vh',
-          }}
-        >
-          <Typography>Loading recipe...</Typography>
-        </Box>
-      )}
-      {error && (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            height: '100vh',
-          }}
-        >
-          <Typography color="error">{error}</Typography>
-        </Box>
-      )}
+    <Box sx={{ animation: 'pp-slideUp .4s both' }}>
+      <RecipeHero recipe={recipe} onBack={() => navigate(-1)} onToggleLike={handleToggleLike} />
 
-      {recipe && (
-        <>
-          <RecipeHero
-            recipe={recipe}
-            onBack={() => navigate(-1)}
-            onToggleLike={handleToggleLike}
-          />
-
-          <Box sx={{ maxWidth: '64rem', mx: 'auto', px: '1.5rem', mt: '2rem' }}>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', lg: 'repeat(3, 1fr)' },
-                gap: '2rem',
-              }}
-            >
-              <Box
-                sx={{
-                  gridColumn: { lg: 'span 2' },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '2rem',
-                }}
-              >
-                {recipe.diets && recipe.diets.length > 0 && (
-                  <Box
-                    sx={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}
-                  >
-                    {recipe.diets.map((diet: string, idx: number) => (
-                      <Chip
-                        key={idx}
-                        label={diet}
-                        size="small"
-                        sx={{
-                          bgcolor: 'rgba(62, 180, 137, 0.1)',
-                          color: 'primary.main',
-                        }}
-                      />
-                    ))}
-                  </Box>
-                )}
-                <RecipeIngredients
-                  ingredients={recipe.instructions?.ingredients}
-                />
-                <RecipeInstructions steps={recipe.instructions?.steps} />
-              </Box>
-
-              <Box
-                sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
-              >
-                <RecipeNutritionStats recipe={recipe} />
-                <Button
-                  variant="contained"
-                  sx={{ height: '3rem', borderRadius: '0.625rem' }}
-                  onClick={handleAddIngredientsToList}
-                >
-                  Add Ingredients to Cart
-                </Button>
-                <Button
-                  variant="outlined"
-                  sx={{ height: '3rem', borderRadius: '0.625rem' }}
-                  onClick={handleOpenSuggestions}
-                >
-                  New Recipe Suggestions for you
-                </Button>
-              </Box>
-            </Box>
-          </Box>
-        </>
-      )}
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: '1.7fr 1fr' },
+          gap: '2rem',
+          mt: '2rem',
+          alignItems: 'start',
+        }}
       >
-        <Alert
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
-          sx={{ width: '100%' }}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2rem', minWidth: 0 }}>
+          <RecipeIngredients ingredients={recipe.instructions?.ingredients} />
+          <RecipeInstructions steps={recipe.instructions?.steps} />
+        </Box>
+
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            minWidth: 0,
+            position: { lg: 'sticky' },
+            top: { lg: '1.5rem' },
+          }}
         >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+          <RecipeNutritionStats recipe={recipe} />
+          <Button
+            variant="contained"
+            sx={{ height: '3rem', borderRadius: '0.875rem' }}
+            onClick={handleAddIngredientsToList}
+          >
+            Add ingredients to cart
+          </Button>
+          <Button
+            variant="outlined"
+            sx={{ height: '3rem', borderRadius: '0.875rem' }}
+            onClick={handleOpenSuggestions}
+          >
+            Suggest alternatives
+          </Button>
+        </Box>
+      </Box>
+
+      <AppSnackbar open={snackbar.open} message={snackbar.message} severity={snackbar.severity} onClose={close} />
 
       <SuggestionsDrawer
         open={drawerOpen}

@@ -9,7 +9,6 @@ import {
   IconButton,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import AppleIcon from '@mui/icons-material/Apple';
 import { AuthForm } from '@/features/auth/components/AuthForm';
 import { AuthTabs } from '@/features/auth/components/AuthTabs';
 import { userManagementApi } from '@/features/auth/api/auth';
@@ -69,7 +68,7 @@ export function Auth({ onAuthComplete }: AuthProps) {
       sx={{
         minHeight: '100vh',
         background:
-          'linear-gradient(135deg, rgba(62, 180, 137, 0.1) 0%, #ffffff 50%, rgba(255, 143, 90, 0.05) 100%)',
+          'linear-gradient(160deg, #e9e6dc 0%, #f3f1e8 48%, rgba(63,227,155,0.12) 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -83,19 +82,18 @@ export function Auth({ onAuthComplete }: AuthProps) {
             sx={{
               width: '5rem',
               height: '5rem',
-              bgcolor: 'primary.main',
-              borderRadius: '1rem',
+              background: 'linear-gradient(135deg,#3fe39b,#1c7a59)',
+              borderRadius: '1.25rem',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              fontSize: '2.6rem',
               mx: 'auto',
               mb: '1rem',
-              boxShadow: 3,
+              boxShadow: '0 0.75rem 1.5rem -0.625rem rgba(63,227,155,0.55)',
             }}
           >
-            <AppleIcon
-              sx={{ fontSize: '3rem', color: 'primary.contrastText' }}
-            />
+            🍃
           </Box>
           <Typography variant="h1" gutterBottom>
             Plan & Plate

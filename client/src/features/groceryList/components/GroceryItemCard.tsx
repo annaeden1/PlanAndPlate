@@ -1,6 +1,7 @@
 import type { GroceryItem } from '@/features/groceryList/types/grocery';
 import CloseIcon from '@mui/icons-material/Close';
-import { Checkbox, IconButton, Paper, Stack } from '@mui/material';
+import { Checkbox, Box, IconButton, Stack } from '@mui/material';
+import { colors } from '@/core/theme/tokens';
 import { BuyOrDoneAction } from './groceryItemCard/BuyOrDoneAction';
 import { HaveStepper } from './groceryItemCard/HaveStepper';
 import { ItemNameHeader } from './groceryItemCard/ItemNameHeader';
@@ -26,29 +27,31 @@ export const GroceryItemCard = ({
   const buyAmount = Math.max(0, item.quantity - item.inventoryQuantity);
 
   return (
-    <Paper
-      variant="outlined"
+    <Box
       sx={{
-        p: '1rem',
-        borderRadius: '1rem',
+        p: '0.6875rem 0.8125rem',
+        borderRadius: '0.875rem',
         display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        transition: 'border-color 0.2s',
-        borderColor: isDone ? 'success.main' : 'divider',
-        backgroundColor: 'background.paper',
+        alignItems: 'flex-start',
+        gap: '0.5rem',
+        backgroundColor: isDone ? '#f1f8f4' : '#faf9f4',
+        border: `1px solid ${isDone ? 'rgba(47,191,135,.25)' : colors.cardBorder}`,
+        transition: 'background .25s, transform .12s, border-color .2s',
+        '&:hover': { transform: 'translateX(0.1875rem)' },
       }}
     >
       <Checkbox
         checked={isDone}
         onChange={() => onToggle(item.name)}
+        disableRipple
         sx={{
-          color: 'divider',
-          '&.Mui-checked': { color: 'primary.main' },
+          p: '0.125rem',
+          color: '#cfd6cf',
+          '&.Mui-checked': { color: colors.greenBright },
         }}
       />
 
-      <Stack flexGrow={1} spacing="0.5rem">
+      <Stack flexGrow={1} spacing="0.5rem" sx={{ minWidth: 0 }}>
         <ItemNameHeader
           name={item.name}
           isDone={isDone}
@@ -56,7 +59,7 @@ export const GroceryItemCard = ({
           recipeCount={item.recipeCount}
         />
 
-        <Stack direction="row" alignItems="flex-end" spacing="1.5rem">
+        <Stack direction="row" alignItems="flex-end" spacing="1.25rem" flexWrap="wrap" useFlexGap>
           <NeedDisplay quantity={item.quantity} unit={item.unit} />
           <HaveStepper
             inventoryQuantity={item.inventoryQuantity}
@@ -77,12 +80,12 @@ export const GroceryItemCard = ({
         onClick={() => onDelete(item.name)}
         sx={{
           alignSelf: 'flex-start',
-          color: 'text.secondary',
-          '&:hover': { color: 'error.main' },
+          color: colors.textGhost,
+          '&:hover': { color: colors.danger },
         }}
       >
         <CloseIcon fontSize="small" />
       </IconButton>
-    </Paper>
+    </Box>
   );
 };

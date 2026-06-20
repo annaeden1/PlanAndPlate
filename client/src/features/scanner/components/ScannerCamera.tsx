@@ -1,102 +1,87 @@
-import { Box, Card, Typography } from '@mui/material';
-import FileUploadIcon from '@mui/icons-material/FileUpload';
-import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
+import { Box, Typography } from '@mui/material';
+import { colors } from '@/core/theme/tokens';
 
 interface ScannerCameraProps {
   scanning: boolean;
 }
 
+const Bracket = ({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) => {
+  const base = {
+    position: 'absolute' as const,
+    width: 42,
+    height: 42,
+    borderColor: colors.mint,
+  };
+  const map = {
+    tl: { top: 46, left: 60, borderTop: '3px solid', borderLeft: '3px solid', borderRadius: '0.375rem 0 0 0' },
+    tr: { top: 46, right: 60, borderTop: '3px solid', borderRight: '3px solid', borderRadius: '0 0.375rem 0 0' },
+    bl: { bottom: 60, left: 60, borderBottom: '3px solid', borderLeft: '3px solid', borderRadius: '0 0 0 0.375rem' },
+    br: { bottom: 60, right: 60, borderBottom: '3px solid', borderRight: '3px solid', borderRadius: '0 0 0.375rem 0' },
+  };
+  return <Box sx={{ ...base, ...map[pos] }} />;
+};
+
 export const ScannerCamera = ({ scanning }: ScannerCameraProps) => {
   return (
-    <Card
+    <Box
       sx={{
         position: 'relative',
-        aspectRatio: '3/4',
+        height: 360,
+        borderRadius: '1.625rem',
         overflow: 'hidden',
-        bgcolor: 'grey.100',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        background: 'radial-gradient(circle at 50% 40%,#1d2b24,#0c1713)',
+        boxShadow: '0 1.25rem 2.75rem -1.375rem rgba(0,0,0,.55)',
       }}
     >
-      {!scanning ? (
-        <Box sx={{ textAlign: 'center' }}>
-          <Box
-            sx={{
-              width: '5rem',
-              height: '5rem',
-              mx: 'auto',
-              mb: '1rem',
-              borderRadius: '50%',
-              bgcolor: 'rgba(62, 180, 137, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <FileUploadIcon
-              sx={{ fontSize: '2.5rem', color: 'primary.main' }}
-            />
-          </Box>
-          <Typography color="text.secondary" sx={{ mb: '1.5rem' }}>
-            No photo selected
-          </Typography>
-          <Box
-            sx={{
-              width: '12rem',
-              height: '12rem',
-              mx: 'auto',
-              border: '4px dashed',
-              borderColor: 'primary.main',
-              borderRadius: '1rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <InsertDriveFileIcon
-              sx={{ fontSize: '4rem', color: 'primary.main' }}
-            />
-          </Box>
-        </Box>
-      ) : (
-        <Box sx={{ textAlign: 'center' }}>
-          <Box
-            sx={{
-              width: '12rem',
-              height: '12rem',
-              mx: 'auto',
-              border: '4px solid',
-              borderColor: 'primary.main',
-              borderRadius: '1rem',
-              bgcolor: 'rgba(62, 180, 137, 0.1)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              animation: 'pulse 1.5s infinite',
-              '@keyframes pulse': {
-                '0%, 100%': { opacity: 1 },
-                '50%': { opacity: 0.5 },
-              },
-            }}
-          >
-            <InsertDriveFileIcon
-              sx={{
-                fontSize: '4rem',
-                color: 'primary.main',
-                animation: 'bounce 0.5s infinite',
-                '@keyframes bounce': {
-                  '0%, 100%': { transform: 'translateY(0)' },
-                  '50%': { transform: 'translateY(-10px)' },
-                },
-              }}
-            />
-          </Box>
-          <Typography color="primary.main" sx={{ mt: '1rem' }}>
-            Uploading...
-          </Typography>
-        </Box>
+      <Box
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 120,
+          opacity: 0.16,
+          animation: 'pp-floaty 5s ease-in-out infinite',
+        }}
+      >
+        🥫
+      </Box>
+
+      <Bracket pos="tl" />
+      <Bracket pos="tr" />
+      <Bracket pos="bl" />
+      <Bracket pos="br" />
+
+      {scanning && (
+        <Box
+          sx={{
+            position: 'absolute',
+            left: 60,
+            right: 60,
+            top: '50%',
+            height: 3,
+            borderRadius: '0.1875rem',
+            background: 'linear-gradient(90deg,transparent,#3fe39b,transparent)',
+            boxShadow: '0 0 1.125rem #3fe39b',
+            animation: 'pp-scanline 1.1s ease-in-out infinite alternate',
+          }}
+        />
       )}
-    </Card>
+
+      <Typography
+        sx={{
+          position: 'absolute',
+          bottom: 22,
+          left: 0,
+          right: 0,
+          textAlign: 'center',
+          fontSize: 13,
+          color: 'rgba(255,255,255,.6)',
+        }}
+      >
+        {scanning ? 'Hold steady…' : 'Point at a barcode or upload a photo'}
+      </Typography>
+    </Box>
   );
 };

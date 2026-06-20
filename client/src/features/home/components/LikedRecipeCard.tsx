@@ -1,7 +1,9 @@
-import { Box, Card, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import type { ApiRecipe } from "@/features/mealPlanner/types/mealPlanner";
-import platePicturePlaceholder from "@/assets/plate pic.jpg";
+import { useState } from 'react';
+import { Box, Typography } from '@mui/material';
+import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
+import { useNavigate } from 'react-router-dom';
+import type { ApiRecipe } from '@/features/mealPlanner/types/mealPlanner';
+import { colors, foodGradientFor } from '@/core/theme/tokens';
 
 interface LikedRecipeCardProps {
   recipe: ApiRecipe;
@@ -9,58 +11,78 @@ interface LikedRecipeCardProps {
 
 export const LikedRecipeCard = ({ recipe }: LikedRecipeCardProps) => {
   const navigate = useNavigate();
+  const [imgOk, setImgOk] = useState(Boolean(recipe.image));
 
   return (
-    <Card
-      onClick={() => {
-        window.scrollTo(0, 0);
-        navigate(`/recipe/${recipe.originRecipeId}`);
-      }}
+    <Box
+      onClick={() => navigate(`/recipe/${recipe.originRecipeId}`)}
       sx={{
-        minWidth: "10rem",
-        width: "10rem",
-        borderRadius: "0.75rem",
-        cursor: "pointer",
-        boxShadow: "0 0.0625rem 0.25rem rgba(0,0,0,0.06)",
-        border: "0.0625rem solid",
-        borderColor: "grey.100",
-        transition: "transform 0.2s, box-shadow 0.2s",
-        "&:hover": { 
-          transform: "translateY(-0.25rem)", 
-          boxShadow: "0 0.25rem 0.75rem rgba(0,0,0,0.1)" 
-        },
-        flexShrink: 0,
-        mb: "0.5rem"
+        flex: 'none',
+        width: 188,
+        bgcolor: '#fff',
+        borderRadius: '1.25rem',
+        overflow: 'hidden',
+        cursor: 'pointer',
+        boxShadow: '0 0.5rem 1.375rem -1rem rgba(20,40,30,.45)',
+        border: `1px solid ${colors.cardBorder}`,
+        transition: 'transform .18s',
+        '&:hover': { transform: 'translateY(-0.25rem)' },
       }}
     >
       <Box
-        component="img"
-        src={recipe.image || platePicturePlaceholder}
-        alt={recipe.name}
-        onError={(e: any) => { e.target.src = platePicturePlaceholder; }}
-        sx={{ width: "100%", height: "6.875rem", objectFit: "cover", borderTopLeftRadius: "0.75rem", borderTopRightRadius: "0.75rem" }}
-      />
-      <Box sx={{ p: "0.75rem" }}>
-        <Typography 
-          variant="body2" 
-          fontWeight={600} 
-          sx={{ 
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            height: "2.5rem",
-            lineHeight: "1.25rem",
-            mb: "0.5rem"
+        sx={{
+          position: 'relative',
+          height: 108,
+          background: foodGradientFor(recipe.name),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 44,
+        }}
+      >
+        {imgOk ? (
+          <Box
+            component="img"
+            src={recipe.image}
+            alt={recipe.name}
+            onError={() => setImgOk(false)}
+            sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+          />
+        ) : (
+          '🍲'
+        )}
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 10,
+            right: 10,
+            width: 28,
+            height: 28,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,.88)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
+          <FavoriteRoundedIcon sx={{ fontSize: 15, color: colors.orange }} />
+        </Box>
+      </Box>
+      <Box sx={{ p: '0.75rem 0.875rem' }}>
+        <Typography noWrap sx={{ fontSize: 14, fontWeight: 700, color: colors.ink }}>
           {recipe.name}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
-          {Math.round(recipe.calories || 0)} kcal
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.625rem', mt: '0.4375rem' }}>
+          {recipe.readyInMinutes ? (
+            <Typography sx={{ fontSize: 12, color: colors.textMuted }}>
+              ⏱ {recipe.readyInMinutes} min
+            </Typography>
+          ) : null}
+        </Box>
+        <Typography sx={{ fontSize: 11.5, color: colors.textMuted, mt: '0.25rem' }}>
+          🔥 {Math.round(recipe.calories || 0)} kcal
         </Typography>
       </Box>
-    </Card>
+    </Box>
   );
 };

@@ -40,7 +40,7 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
 
     mealPlannerApi
       .getDailyPlan(userId, today)
-      .then((day) => {
+      .then(async (day) => {
         const mapped: Meal[] = (['breakfast', 'lunch', 'dinner'] as const).map((type) => ({
           id: day[type].recipeId,
           name: day[type].name,
@@ -51,6 +51,27 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
           completed: false,
         }));
         setMeals(mapped);
+
+
+        const details = await Promise.all(
+          mapped.map((m) =>
+            m.id ? mealPlannerApi.getRecipeDetails(m.id).catch(() => null) : Promise.resolve(null),
+          ),
+        );
+        const macrosById = new Map(
+          details.filter(Boolean).map((r) => [
+            String(r!.originRecipeId ?? r!._id ?? ''),
+            { protein: r!.protein, carbs: r!.carbs, fat: r!.fat },
+          ]),
+        );
+        setMeals((prev) =>
+          prev.map((m, i) => {
+            const macros = macrosById.get(String(m.id)) ?? (details[i]
+              ? { protein: details[i]!.protein, carbs: details[i]!.carbs, fat: details[i]!.fat }
+              : null);
+            return macros ? { ...m, ...macros } : m;
+          }),
+        );
       })
       .catch(() => setMeals([]))
       .finally(() => setLoading(false));
@@ -62,7 +83,7 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
         meal.id === id ? { ...meal, completed: !meal.completed } : meal,
       ),
     );
-    // TODO: persist to backend once a toggle endpoint is added to mealPlanner service
+
   }, []);
 
   return (

@@ -16,8 +16,8 @@ export interface NavItemConfig {
 export const NAV_ITEMS: NavItemConfig[] = [
   { id: "home", icon: HomeIcon, label: "Home", path: "/" },
   { id: "planner", icon: CalendarMonthIcon, label: "Planner", path: "/planner" },
-  { id: "recipes", icon: MenuBookIcon, label: "My Recipes", path: "/my-recipes" },
-  { id: "cart", icon: ShoppingCartIcon, label: "Cart", path: "/cart" },
+  { id: "cart", icon: ShoppingCartIcon, label: "Grocery", path: "/cart" },
   { id: "scanner", icon: QrCodeScannerIcon, label: "Scanner", path: "/scanner" },
+  { id: "recipes", icon: MenuBookIcon, label: "Recipes", path: "/my-recipes" },
   { id: "profile", icon: PersonIcon, label: "Profile", path: "/profile" },
 ];
