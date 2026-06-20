@@ -3,5 +3,7 @@ node_modules/
 dist/
 coverage/
 jest-localstorage.json*
+.ls-tmp*
 *.log
 CLAUDE.md
+/services/mealPlanner/public/photos/

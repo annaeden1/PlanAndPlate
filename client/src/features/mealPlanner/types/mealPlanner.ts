@@ -53,3 +53,13 @@ export interface ApiRecipe {
 }
 
 export const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+export interface RecipeSuggestion {
+  originRecipeId: string;
+  name: string;
+  image?: string;
+  calories?: number;
+  readyInMinutes?: number;
+  score: number;
+  why?: string;
+}

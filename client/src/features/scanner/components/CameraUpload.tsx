@@ -27,6 +27,7 @@ export const CameraUpload = ({
     if (file) {
       onPhotoSelected(file);
     }
+    event.target.value = '';
   };
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import { findUserByFilter, saveUser } from '../dal/authentication.repository';
 import { hashPassword } from '../utils/password';
 import { findUserAndUpdateFields } from '../dal/userManagement.repository';
+import type { UserUpdatePayload } from '../types/userManagement.types';
 
 export const updatePassword = async (req: Request, res: Response) => {
   const userId = req.params.userId;
@@ -66,6 +67,36 @@ export const getAccountData = async (req: Request, res: Response) => {
   }
 };
 
+export const updateAccountData = async (req: Request, res: Response) => {
+  const userId = req.params.userId;
+  const { name } = req.body;
+
+  try {
+    if (typeof name !== 'string' || name.trim().length === 0) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+
+    const updatePayload: Record<string, string> = { name: name.trim() };
+
+    const updatedUser = await findUserAndUpdateFields(userId, updatePayload);
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    return res.status(200).json({
+      accountData: {
+        email: updatedUser.email,
+        name: updatedUser.name,
+      },
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ error: 'Failed to update account data', details: err });
+  }
+};
+
 export const getPreferences = async (req: Request, res: Response) => {
   const userId = req.params.userId;
 
@@ -96,10 +127,10 @@ export const updatePreferences = async (req: Request, res: Response) => {
   }
 
   try {
-    const updatePayload: any = {};
+    const updatePayload: UserUpdatePayload = {};
 
     for (const [key, value] of Object.entries(preferences)) {
-      updatePayload[`preferences.${key}`] = value;
+      updatePayload[`preferences.${key}`] = value as UserUpdatePayload[string];
     }
 
     const updatedUser = await findUserAndUpdateFields(userId, updatePayload);
@@ -108,7 +139,7 @@ export const updatePreferences = async (req: Request, res: Response) => {
       throw new Error('User not found');
     }
 
-   res.status(200).json({ updatedUser });
+    res.status(200).json({ updatedUser });
   } catch (err) {
     return res
       .status(500)

@@ -16,16 +16,23 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      '/auth': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
       '/userManagement': {
         target: 'http://localhost:8000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/userManagement/, ''),
       },
       '/grocerylist': {
         target: 'http://localhost:8080',
         changeOrigin: true,
       },
       '/mealPlanner': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+      '/file': {
         target: 'http://localhost:3000',
         changeOrigin: true,
       },

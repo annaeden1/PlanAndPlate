@@ -5,6 +5,7 @@ import { MealPlannerProvider } from "../../context/MealPlannerContext";
 import { Profile } from "@/pages/Profile";
 import { GroceryList } from "../../pages/GroceryList";
 import { MealPlanner } from "@/pages/MealPlanner";
+import { ManualRecipes } from "@/pages/ManualRecipes";
 import { RecipeDetail } from "@/pages/RecipeDetail";
 import { Scanner } from '@/pages/Scanner';
 import { MainLayout } from "../layout/MainLayout";
@@ -21,6 +22,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/planner" element={<MealPlanner />} />
+      <Route path="/my-recipes" element={<ManualRecipes />} />
       <Route path="/recipe/:recipeId" element={<RecipeDetail />} />
       <Route path="/cart" element={<GroceryList />} />
       <Route path="/scanner" element={<Scanner />} />
