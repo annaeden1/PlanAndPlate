@@ -10,6 +10,20 @@ import {
 } from './spoonacularService.service';
 import { normalizeUnit } from '../utils/types/units';
 import { nutrients } from '../utils/types/spoonacularTypes';
+import { getAiProvider } from '../ai/aiProvider';
+
+const NUTRITION_FALLBACK = { calories: 400, protein: 20, fat: 15, carbs: 45 };
+
+interface ParsedUserPreferences {
+  /** First diet value — used when an API accepts only one (e.g. Spoonacular). */
+  primaryDiet: string;
+  /** All diets joined with ", " — used for free-text contexts like AI prompts. */
+  dietString: string;
+  /** All allergies joined with ", ". */
+  allergies: string;
+  healthGoal?: string;
+  weeklyBudget?: number;
+}
 
 class MealPlannerService {
   async createWeeklyPlan(
@@ -21,24 +35,11 @@ class MealPlannerService {
     const weekStart = new Date(refDate);
     weekStart.setDate(refDate.getDate() - refDate.getDay());
 
-    const userPreferences = await axios.get(
-      `${process.env.USER_MANAGMENT_URL}/userManagement/${userId}/preferences`,
-      { headers: { Authorization: token } },
-    );
-
-    const allergyExcludeString = Array.isArray(
-      userPreferences.data.userPreferences.allergies,
-    )
-      ? userPreferences.data.userPreferences.allergies.join(',')
-      : userPreferences.data.userPreferences.allergies || '';
-
-    const diet = Array.isArray(userPreferences.data.userPreferences.diet)
-      ? userPreferences.data.userPreferences.diet[0] || ''
-      : userPreferences.data.userPreferences.diet || '';
+    const userPreferences = await this.getUserPreferences(userId, token);
 
     const weeklyPlanFromAPI = await generateMealPlan(
-      diet,
-      allergyExcludeString,
+      userPreferences.primaryDiet,
+      userPreferences.allergies,
     );
 
     const allRecipeIds: number[] = [];
@@ -375,10 +376,104 @@ class MealPlannerService {
     return recipes.map((r) => ({ ...r.toObject(), isLiked: true }));
   }
 
+  /**
+   * Fetches and normalises user preferences from the User Management service.
+   * All array-to-string conversions are done here so callers get clean values.
+   */
+  private async getUserPreferences(
+    userId: string,
+    authHeader?: string,
+  ): Promise<ParsedUserPreferences> {
+    const res = await axios.get(
+      `${process.env.USER_MANAGMENT_URL}/userManagement/${userId}/preferences`,
+      authHeader ? { headers: { Authorization: authHeader } } : {},
+    );
+    // The API may return data under `userPreferences` or `preferences`
+    const raw = res.data?.userPreferences ?? res.data?.preferences ?? {};
+
+    const dietList: string[] = Array.isArray(raw.diet)
+      ? raw.diet
+      : raw.diet
+        ? [raw.diet]
+        : [];
+
+    const allergiesList: string[] = Array.isArray(raw.allergies)
+      ? raw.allergies
+      : raw.allergies
+        ? [raw.allergies]
+        : [];
+
+    return {
+      primaryDiet: dietList[0] ?? '',
+      dietString: dietList.join(', '),
+      allergies: allergiesList.join(', '),
+      healthGoal: raw.healthGoal ?? undefined,
+      weeklyBudget: raw.weeklyBudget ?? undefined,
+    };
+  }
+
   async createManualRecipe(
     recipePayload: Partial<IRecipe>,
     userId: string,
+    authHeader?: string,
   ): Promise<IRecipe> {
+    // ── AI nutrition estimation ────────────────────────────────────────
+    let nutrition = { ...NUTRITION_FALLBACK };
+
+    // Only attempt estimation if no explicit nutrition values were provided
+    const missingNutrition =
+      recipePayload.calories == null &&
+      recipePayload.protein == null &&
+      recipePayload.fat == null &&
+      recipePayload.carbs == null;
+
+    if (missingNutrition) {
+      const ingredients = recipePayload.instructions?.ingredients ?? [];
+      const steps = recipePayload.instructions?.steps ?? [];
+
+      const provider = getAiProvider();
+      if (provider.estimateNutrition && ingredients.length > 0) {
+        // Fetch user preferences to give the AI extra context
+        let userContext: { diet?: string; healthGoal?: string; allergies?: string } | undefined;
+        try {
+          const prefs = await this.getUserPreferences(userId, authHeader);
+          userContext = {
+            diet: prefs.dietString || undefined,
+            healthGoal: prefs.healthGoal,
+            allergies: prefs.allergies || undefined,
+          };
+        } catch (err) {
+          console.warn('Could not fetch user preferences for nutrition estimation:', err);
+        }
+
+        try {
+          const estimate = await provider.estimateNutrition({
+            name: recipePayload.name ?? 'Recipe',
+            ingredients: ingredients.map((ing) => ({
+              name: ing.name,
+              amount: ing.amount,
+              unit: ing.unit,
+            })),
+            steps,
+            servings: recipePayload.servings,
+            userContext,
+          });
+
+          if (estimate) {
+            nutrition = estimate;
+            console.log(`AI nutrition estimated for "${recipePayload.name}":`, nutrition);
+          } else {
+            console.warn(`AI returned null for "${recipePayload.name}", using fallback nutrition.`);
+          }
+        } catch (err) {
+          console.warn('AI nutrition estimation failed, using fallback:', err);
+        }
+      } else if (ingredients.length === 0) {
+        console.info('No ingredients provided; using fallback nutrition values.');
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────
+
     const manualRecipe = new Recipe({
       source: 'manual',
       userId,
@@ -389,10 +484,10 @@ class MealPlannerService {
       readyInMinutes: recipePayload.readyInMinutes,
       diets: recipePayload.diets ?? [],
       instructions: recipePayload.instructions,
-      calories: recipePayload.calories ?? 300,
-      protein: recipePayload.protein ?? 15,
-      fat: recipePayload.fat ?? 10,
-      carbs: recipePayload.carbs ?? 35,
+      calories: recipePayload.calories ?? nutrition.calories,
+      protein: recipePayload.protein ?? nutrition.protein,
+      fat: recipePayload.fat ?? nutrition.fat,
+      carbs: recipePayload.carbs ?? nutrition.carbs,
     });
 
     await manualRecipe.save();
