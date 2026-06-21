@@ -6,7 +6,6 @@ import {
   MenuItem,
   OutlinedInput,
   Select,
-  TextField,
   Typography,
 } from '@mui/material';
 import {
@@ -22,14 +21,12 @@ type EditPreferencesDialogProps = {
   editedDiet: string[];
   editedAllergies: string[];
   editedGoal: string;
-  editedBudget: string;
   preferencesEditError: string | null;
   canSavePreferences: boolean;
   onClose: () => void;
   onDietChange: (value: string[]) => void;
   onAllergiesChange: (value: string[]) => void;
   onGoalChange: (value: string) => void;
-  onBudgetChange: (value: string) => void;
   onSave: () => void;
 };
 
@@ -39,14 +36,12 @@ export function EditPreferencesDialog({
   editedDiet,
   editedAllergies,
   editedGoal,
-  editedBudget,
   preferencesEditError,
   canSavePreferences,
   onClose,
   onDietChange,
   onAllergiesChange,
   onGoalChange,
-  onBudgetChange,
   onSave,
 }: EditPreferencesDialogProps) {
   return (
@@ -155,15 +150,6 @@ export function EditPreferencesDialog({
           ))}
         </Select>
       </FormControl>
-
-      <TextField
-        label="Weekly Budget"
-        value={editedBudget}
-        onChange={(event) => onBudgetChange(event.target.value)}
-        type="number"
-        fullWidth
-        placeholder="e.g. 120"
-      />
 
       {preferencesEditError && (
         <Typography color="error">{preferencesEditError}</Typography>
