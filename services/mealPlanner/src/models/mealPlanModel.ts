@@ -11,6 +11,7 @@ export interface IMealPlanDay {
   breakfast: IMealPlanMeal;
   lunch: IMealPlanMeal;
   dinner: IMealPlanMeal;
+  proteinTargetMet?: boolean;
 }
 
 export interface INutritionSummary {
@@ -34,6 +35,7 @@ const mealPlanSchema = new mongoose.Schema({
     breakfast: { recipeId: String, name: String, calories: Number },
     lunch: { recipeId: String, name: String, calories: Number },
     dinner: { recipeId: String, name: String, calories: Number },
+    proteinTargetMet: Boolean,
   }],
   nutritionSummary: {
     calories: Number,
