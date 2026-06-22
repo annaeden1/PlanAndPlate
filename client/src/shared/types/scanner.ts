@@ -9,6 +9,20 @@ export interface PreferenceMatch {
   status: 'match' | 'mismatch' | 'unknown';
 }
 
+export interface ProductAlternative {
+  productName: string;
+  brand: string;
+  reason: string;
+  source: 'openfoodfacts' | 'ai';
+  verified: boolean;
+  productData?: {
+    image_front_url?: string;
+    product_name?: string;
+    brands?: string;
+    quantity?: string;
+  };
+}
+
 export interface ProductData {
   id: string;
   code: string;
@@ -16,6 +30,7 @@ export interface ProductData {
   brands?: string;
   quantity?: string;
   preferenceMatches?: PreferenceMatch[];
+  alternatives?: ProductAlternative[];
   nutritionData?: {
     image_front_url?: string;
     product_name?: string;

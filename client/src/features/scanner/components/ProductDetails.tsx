@@ -5,6 +5,7 @@ import { HealthScoreCard } from '@/features/scanner/components/HealthScoreCard';
 import { NutritionFactsCard } from '@/features/scanner/components/NutritionFactsCard';
 import { PreferenceMatchesCard } from '@/features/scanner/components/PreferenceMatchesCard';
 import { ProductInfoCard } from '@/features/scanner/components/ProductInfoCard';
+import { AiSuggestionsCard } from './AISuggestionsCard';
 
 const VALID_GRADES = ['a', 'b', 'c', 'd', 'e'] as const;
 type NutriGrade = (typeof VALID_GRADES)[number] | 'unknown';
@@ -43,6 +44,7 @@ export const ProductDetails = ({
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
+          pb: '6rem',
         }}
       >
         <Box sx={{ maxWidth: '28rem', mx: 'auto', width: '100%' }}>
@@ -57,6 +59,8 @@ export const ProductDetails = ({
           <PreferenceMatchesCard
             preferenceMatches={product.preferenceMatches || []}
           />
+
+          <AiSuggestionsCard alternatives={product.alternatives || []} />
 
           <Box
             sx={{
