@@ -42,6 +42,7 @@ export function Profile() {
   const [currentPasswordError, setCurrentPasswordError] = useState<
     string | null
   >(null);
+  const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
 
   const [editedDiet, setEditedDiet] = useState<string[]>([]);
   const [editedAllergies, setEditedAllergies] = useState<string[]>([]);
@@ -78,6 +79,7 @@ export function Profile() {
     setNewPassword('');
     setAccountEditError(null);
     setCurrentPasswordError(null);
+    setNewPasswordError(null);
     setIsAccountEditOpen(true);
   };
 
@@ -102,6 +104,7 @@ export function Profile() {
 
     setAccountEditError(null);
     setCurrentPasswordError(null);
+    setNewPasswordError(null);
 
     const trimmedUsername = editedUsername.trim();
     const usernameChanged = trimmedUsername !== username.trim();
@@ -115,6 +118,11 @@ export function Profile() {
     }
 
     if (passwordChangeRequested) {
+      if (newPassword.length < 6) {
+        setNewPasswordError('Password must be at least 6 characters long');
+        return;
+      }
+
       const passwordResult = await updatePassword({
         oldPassword,
         newPassword,
@@ -304,6 +312,7 @@ export function Profile() {
         newPassword={newPassword}
         accountEditError={accountEditError}
         currentPasswordError={currentPasswordError}
+        newPasswordError={newPasswordError}
         canSaveProfile={canSaveProfile}
         onClose={() => !saving && setIsAccountEditOpen(false)}
         onUsernameChange={setEditedUsername}
@@ -312,8 +321,19 @@ export function Profile() {
           if (currentPasswordError) {
             setCurrentPasswordError(null);
           }
+          if (accountEditError) {
+            setAccountEditError(null);
+          }
         }}
-        onNewPasswordChange={setNewPassword}
+        onNewPasswordChange={(value) => {
+          setNewPassword(value);
+          if (newPasswordError) {
+            setNewPasswordError(null);
+          }
+          if (accountEditError) {
+            setAccountEditError(null);
+          }
+        }}
         onSave={handleSaveAccount}
       />
 
