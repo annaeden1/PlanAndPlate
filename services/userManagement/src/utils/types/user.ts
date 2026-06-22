@@ -11,7 +11,6 @@ export type User = {
     diet: string[];
     allergies: string[];
     healthGoal: string;
-    weeklyBudget: number;
     bodyStats?: BodyStats;
   };
   tokens?: string[];

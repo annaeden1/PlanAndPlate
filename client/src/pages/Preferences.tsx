@@ -10,7 +10,6 @@ import type {
 import { ActivityStep } from '@/features/preferences/components/ActivityStep';
 import { AllergiesStep } from '@/features/preferences/components/AllergiesStep';
 import { BodyStatsStep } from '@/features/preferences/components/BodyStatsStep';
-import { BudgetStep } from '@/features/preferences/components/BudgetStep';
 import { DietaryStep } from '@/features/preferences/components/DietaryStep';
 import { GoalsStep } from '@/features/preferences/components/GoalsStep';
 import { ProgressHeader } from '@/features/preferences/components/ProgressHeader';
@@ -40,9 +39,8 @@ export function Preferences({ onComplete }: PreferencesProps) {
   const [allergies, setAllergies] = useState<Allergies>(allergiesInitialState);
   const [bodyStats, setBodyStats] = useState<Partial<BodyStats>>({});
   const [goal, setGoal] = useState('');
-  const [budget, setBudget] = useState('');
 
-  const totalSteps = 6;
+  const totalSteps = 5;
 
   const handlePreferenceChange = (selectedKey: keyof DietaryPreferences) => {
     const defaultPreferences: DietaryPreferences = dietaryInitialState;
@@ -86,7 +84,6 @@ export function Preferences({ onComplete }: PreferencesProps) {
           diet: selectedDiet ? [selectedDiet] : [],
           allergies: selectedAllergies,
           healthGoal: goal,
-          weeklyBudget: parseFloat(budget) || undefined,
           bodyStats:
             isBodyStatsComplete(bodyStats) && bodyStats.activityLevel
               ? (bodyStats as BodyStats)
@@ -144,8 +141,6 @@ export function Preferences({ onComplete }: PreferencesProps) {
           {step === 5 && (
             <GoalsStep goal={goal} onChange={setGoal} stats={bodyStats} />
           )}
-
-          {step === 6 && <BudgetStep budget={budget} onChange={setBudget} />}
         </Box>
       </Box>
 
@@ -161,7 +156,9 @@ export function Preferences({ onComplete }: PreferencesProps) {
           pb: '2rem',
         }}
       >
-        <Box sx={{ maxWidth: '28rem', mx: 'auto', display: 'flex', gap: '1rem' }}>
+        <Box
+          sx={{ maxWidth: '28rem', mx: 'auto', display: 'flex', gap: '1rem' }}
+        >
           {step > 1 && (
             <Button
               variant="outlined"

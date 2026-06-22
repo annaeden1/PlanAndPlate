@@ -6,10 +6,8 @@ export interface UserProfile {
   diet: string[];
   allergies: string[];
   healthGoal: string;
-  weeklyBudget?: number;
   preferences: string[];
   goal: string;
-  budget: string;
   bodyStats?: Partial<BodyStats>;
   healthGoalId: string;
   loading: boolean;
@@ -30,7 +28,6 @@ export interface UserProfile {
     diet: string[];
     allergies: string[];
     healthGoal: string;
-    weeklyBudget?: number;
   }) => Promise<{
     success: boolean;
     error?: string;

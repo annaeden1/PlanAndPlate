@@ -4,7 +4,6 @@ export interface UserPreferences {
   diet: string[];
   allergies: string[];
   healthGoal: string;
-  weeklyBudget?: number;
   bodyStats?: BodyStats;
 }
 

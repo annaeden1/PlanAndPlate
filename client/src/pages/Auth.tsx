@@ -36,9 +36,21 @@ export function Auth({ onAuthComplete }: AuthProps) {
 
   const isDuplicateEmailError =
     isSignUp && showError && errorMessage === 'Email already exists';
+  const isPasswordLengthError =
+    isSignUp &&
+    showError &&
+    errorMessage === 'Password must be at least 6 characters long';
 
   const handleSubmit = async (e: React.FormEvent, formData: AuthFormData) => {
     e.preventDefault();
+    setShowError(false);
+    setErrorMessage('');
+
+    if (isSignUp && formData.password.length < 6) {
+      setErrorMessage('Password must be at least 6 characters long');
+      setShowError(true);
+      return;
+    }
 
     try {
       const response = isSignUp
@@ -121,7 +133,7 @@ export function Auth({ onAuthComplete }: AuthProps) {
               }}
             />
 
-            <Collapse in={showError && !isDuplicateEmailError}>
+            <Collapse in={showError && !isDuplicateEmailError && !isPasswordLengthError}>
               <Alert
                 severity="error"
                 action={
@@ -152,6 +164,8 @@ export function Auth({ onAuthComplete }: AuthProps) {
               onSubmit={handleSubmit}
               emailError={isDuplicateEmailError}
               emailHelperText={isDuplicateEmailError ? errorMessage : ''}
+              passwordError={isPasswordLengthError}
+              passwordHelperText={isPasswordLengthError ? errorMessage : ''}
             />
           </CardContent>
         </Card>

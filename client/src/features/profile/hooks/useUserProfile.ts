@@ -113,7 +113,7 @@ export const useUserProfile = (): UserProfile => {
   const updatePreferenceSettings = useCallback<
     UserProfile['updatePreferenceSettings']
   >(
-    async ({ diet, allergies, healthGoal, weeklyBudget }) => {
+    async ({ diet, allergies, healthGoal }) => {
       const { token, userId, error } = getAuthContext();
       if (!token || !userId) {
         return { success: false, error: error || 'Unauthorized' };
@@ -127,7 +127,6 @@ export const useUserProfile = (): UserProfile => {
             diet,
             allergies,
             healthGoal,
-            weeklyBudget,
           },
         };
 
@@ -158,10 +157,8 @@ export const useUserProfile = (): UserProfile => {
           diet,
           allergies,
           healthGoal,
-          weeklyBudget,
           preferences: activePrefs,
           goal: goalLabels[healthGoal] || 'Not set',
-          budget: weeklyBudget ? `$${weeklyBudget.toFixed(2)}` : 'Not set',
           saving: false,
         }));
 
@@ -224,7 +221,6 @@ export const useUserProfile = (): UserProfile => {
         );
 
         const rawGoal = userPreferences.healthGoal || '';
-        const rawBudget: number | undefined = userPreferences.weeklyBudget;
 
         setProfile({
           username: accountData.name || 'Unknown',
@@ -232,10 +228,8 @@ export const useUserProfile = (): UserProfile => {
           diet: dietaryPrefs,
           allergies: selectedAllergies,
           healthGoal: rawGoal,
-          weeklyBudget: rawBudget,
           preferences: activePrefs,
           goal: goalLabels[rawGoal] || 'Not set',
-          budget: rawBudget ? `$${rawBudget.toFixed(2)}` : 'Not set',
           bodyStats: userPreferences.bodyStats,
           healthGoalId: userPreferences.healthGoal || '',
           loading: false,

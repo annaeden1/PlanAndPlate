@@ -15,6 +15,12 @@ export const updatePassword = async (req: Request, res: Response) => {
       .json({ error: 'User Id and password (old and new) are required' });
   }
 
+  if (newPassword.length < 6) {
+    return res
+      .status(400)
+      .json({ error: 'New password must be at least 6 characters long' });
+  }
+
   try {
     const user = await findUserByFilter({ _id: userId });
     if (!user) {
