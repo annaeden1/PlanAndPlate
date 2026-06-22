@@ -1,1 +1,1 @@
-export type Options<T> = { id: T; label: string; description?: string }[];
+export type Options<T> = { id: T; label: string }[];

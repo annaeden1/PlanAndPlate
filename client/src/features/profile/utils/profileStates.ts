@@ -8,7 +8,6 @@ export const initialProfileState: UserProfile = {
   healthGoal: '',
   preferences: [],
   goal: 'Loading...',
-  healthGoalId: '',
   loading: true,
   saving: false,
   error: null,

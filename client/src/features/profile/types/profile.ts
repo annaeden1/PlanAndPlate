@@ -1,5 +1,3 @@
-import type { BodyStats } from '@/shared';
-
 export interface UserProfile {
   username: string;
   email: string;
@@ -8,8 +6,6 @@ export interface UserProfile {
   healthGoal: string;
   preferences: string[];
   goal: string;
-  bodyStats?: Partial<BodyStats>;
-  healthGoalId: string;
   loading: boolean;
   saving: boolean;
   error: string | null;
