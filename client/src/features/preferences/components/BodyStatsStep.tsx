@@ -9,6 +9,10 @@ import { useEffect, useState } from 'react';
 import type { BodyStats, Gender, UnitSystem } from '@/shared';
 import { ftInToCm, lbToKg } from '@/shared';
 
+const KG_TO_LB_FACTOR = 0.453592;
+const CM_TO_INCH_FACTOR = 2.54;
+const INCHES_IN_FOOT = 12;
+
 interface BodyStatsStepProps {
   value: Partial<BodyStats>;
   onChange: (patch: Partial<BodyStats>) => void;
@@ -29,17 +33,17 @@ export function BodyStatsStep({ value, onChange }: BodyStatsStepProps) {
   );
   const [lb, setLb] = useState(
     value.unitSystem === 'us' && value.weightKg
-      ? String(round1(value.weightKg / 0.453592))
+      ? String(round1(value.weightKg / KG_TO_LB_FACTOR))
       : '',
   );
   const [ft, setFt] = useState(
     value.unitSystem === 'us' && value.heightCm
-      ? String(Math.floor(Math.round(value.heightCm / 2.54) / 12))
+      ? String(Math.floor(Math.round(value.heightCm / CM_TO_INCH_FACTOR) / INCHES_IN_FOOT))
       : '',
   );
   const [inch, setInch] = useState(
     value.unitSystem === 'us' && value.heightCm
-      ? String(Math.round(value.heightCm / 2.54) % 12)
+      ? String(Math.round(value.heightCm / CM_TO_INCH_FACTOR) % INCHES_IN_FOOT)
       : '',
   );
 
@@ -71,11 +75,11 @@ export function BodyStatsStep({ value, onChange }: BodyStatsStepProps) {
   const handleUnitChange = (next: UnitSystem | null) => {
     if (!next || next === unit) return;
     if (next === 'us') {
-      if (kg) setLb(String(round1(Number(kg) / 0.453592)));
+      if (kg) setLb(String(round1(Number(kg) / KG_TO_LB_FACTOR)));
       if (cm) {
-        const totalIn = Math.round(Number(cm) / 2.54);
-        setFt(String(Math.floor(totalIn / 12)));
-        setInch(String(totalIn % 12));
+        const totalIn = Math.round(Number(cm) / CM_TO_INCH_FACTOR);
+        setFt(String(Math.floor(totalIn / INCHES_IN_FOOT)));
+        setInch(String(totalIn % INCHES_IN_FOOT));
       }
     } else {
       if (lb) setKg(String(round1(lbToKg(Number(lb)))));
