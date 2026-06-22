@@ -9,7 +9,6 @@ const userSchema = new mongoose.Schema({
     diet: { type: [String] },
     allergies: { type: [String] },
     healthGoal: { type: String },
-    weeklyBudget: { type: Number },
   },
   tokens: { type: [String] },
 });
