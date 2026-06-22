@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongoose';
+import { BodyStats } from './preferences';
 
 export type User = {
   _id?: ObjectId | string;
@@ -10,6 +11,7 @@ export type User = {
     diet: string[];
     allergies: string[];
     healthGoal: string;
+    bodyStats?: BodyStats;
   };
   tokens?: string[];
 };
