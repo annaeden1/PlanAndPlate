@@ -1,5 +1,5 @@
 export interface MealPlanItem {
-  id: number;
+  id: number | string;
   name: string;
   type: string;
   calories: number;
@@ -13,9 +13,14 @@ export interface MealPlan {
 
 export interface ApiMealPlanDay {
   date: string;
-  breakfast: { recipeId: string; name: string; calories: number };
-  lunch: { recipeId: string; name: string; calories: number };
-  dinner: { recipeId: string; name: string; calories: number };
+  breakfast: {
+    recipeId: string;
+    name: string;
+    calories: number;
+    image?: string;
+  };
+  lunch: { recipeId: string; name: string; calories: number; image?: string };
+  dinner: { recipeId: string; name: string; calories: number; image?: string };
 }
 
 export interface ApiMealPlan {
@@ -52,7 +57,7 @@ export interface ApiRecipe {
   };
 }
 
-export const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+export const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export interface RecipeSuggestion {
   originRecipeId: string;

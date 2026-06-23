@@ -1,20 +1,20 @@
-import axios from "axios";
-import mongoose from "mongoose";
-import { MealPlan, IMealPlan, IMealPlanDay } from "../models/mealPlanModel";
-import { Recipe, IRecipe } from "../models/recipeModel";
-import { UserFavorites } from "../models/userFavoritesModel";
+import axios from 'axios';
+import mongoose from 'mongoose';
+import { MealPlan, IMealPlan, IMealPlanDay } from '../models/mealPlanModel';
+import { Recipe, IRecipe } from '../models/recipeModel';
+import { UserFavorites } from '../models/userFavoritesModel';
 import {
   getRecipeDetails as getSpoonacularRecipe,
   searchRecipesByNutrition,
-} from "./spoonacularService.service";
-import { normalizeUnit } from "../utils/types/units";
+} from './spoonacularService.service';
+import { normalizeUnit } from '../utils/types/units';
 import {
   nutrients,
   ComplexSearchRecipe,
   SlotResult,
-} from "../utils/types/spoonacularTypes";
-import { calcTargets } from "../utils/calorieCalculator";
-import { buildWeek } from "../utils/dayPlanBuilder";
+} from '../utils/types/spoonacularTypes';
+import { calcTargets } from '../utils/calorieCalculator';
+import { buildWeek } from '../utils/dayPlanBuilder';
 
 const nutrientAmount = (recipe: ComplexSearchRecipe, name: string): number =>
   recipe.nutrition?.nutrients?.find((n) => n.name === name)?.amount ?? 0;
@@ -25,8 +25,9 @@ const slotToMeal = (slot?: SlotResult) =>
         recipeId: String(slot.recipe.id),
         name: slot.recipe.title,
         calories: Math.round(slot.calories),
+        image: slot.recipe.image,
       }
-    : { recipeId: "0", name: "", calories: 0 };
+    : { recipeId: '0', name: '', calories: 0, image: '' };
 
 class MealPlannerService {
   async createWeeklyPlan(
@@ -89,10 +90,10 @@ class MealPlannerService {
           originRecipeId: String(r.id),
           name: r.title,
           image: r.image,
-          calories: nutrientAmount(r, "Calories"),
-          protein: nutrientAmount(r, "Protein"),
-          fat: nutrientAmount(r, "Fat"),
-          carbs: nutrientAmount(r, "Carbohydrates"),
+          calories: nutrientAmount(r, 'Calories'),
+          protein: nutrientAmount(r, 'Protein'),
+          fat: nutrientAmount(r, 'Fat'),
+          carbs: nutrientAmount(r, 'Carbohydrates'),
         })),
         { ordered: false },
       );
@@ -110,14 +111,13 @@ class MealPlannerService {
       dateObj.setDate(weekStart.getDate() + index);
       const dateStr = dateObj.toISOString().split('T')[0];
 
-      const bySlot = (name: string) =>
-        day.slots.find((s) => s.slot === name);
+      const bySlot = (name: string) => day.slots.find((s) => s.slot === name);
 
       return {
         date: dateStr,
-        breakfast: slotToMeal(bySlot("breakfast")),
-        lunch: slotToMeal(bySlot("lunch")),
-        dinner: slotToMeal(bySlot("dinner")),
+        breakfast: slotToMeal(bySlot('breakfast')),
+        lunch: slotToMeal(bySlot('lunch')),
+        dinner: slotToMeal(bySlot('dinner')),
         proteinTargetMet: day.proteinTargetMet,
       };
     });
@@ -127,8 +127,8 @@ class MealPlannerService {
         day.slots.forEach((s) => {
           acc.calories += s.calories;
           acc.protein += s.protein;
-          acc.fat += nutrientAmount(s.recipe, "Fat");
-          acc.carbohydrates += nutrientAmount(s.recipe, "Carbohydrates");
+          acc.fat += nutrientAmount(s.recipe, 'Fat');
+          acc.carbohydrates += nutrientAmount(s.recipe, 'Carbohydrates');
         });
         return acc;
       },
@@ -181,7 +181,7 @@ class MealPlannerService {
   async replaceMeal(
     userId: string,
     date: string,
-    mealType: "breakfast" | "lunch" | "dinner",
+    mealType: 'breakfast' | 'lunch' | 'dinner',
     newRecipeId: string,
   ): Promise<IMealPlanDay | null> {
     const recipe = await this.getRecipeDetails(newRecipeId, userId);
@@ -195,7 +195,7 @@ class MealPlannerService {
 
     const plan = await MealPlan.findOne({
       userId,
-      "days.date": { $gte: dayStart, $lt: dayEnd },
+      'days.date': { $gte: dayStart, $lt: dayEnd },
     });
     if (!plan) return null;
 
@@ -209,7 +209,10 @@ class MealPlannerService {
       recipeId: String(newRecipeId),
       name: recipe.name,
       calories: recipe.calories ?? 0,
+      image: recipe.image ?? '',
     };
+
+    plan.markModified('days');
 
     plan.nutritionSummary.calories = plan.days.reduce(
       (sum, d) =>
@@ -231,8 +234,8 @@ class MealPlannerService {
     const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
     let recipeData;
 
-    const isComplete = existingRecipe &&
-      (existingRecipe.instructions?.steps?.length ?? 0) > 0;
+    const isComplete =
+      existingRecipe && (existingRecipe.instructions?.steps?.length ?? 0) > 0;
 
     if (isComplete) {
       recipeData = existingRecipe;
@@ -240,7 +243,7 @@ class MealPlannerService {
       const recipeDetails = await getSpoonacularRecipe(recipeId);
 
       const fullFields = {
-        source: "spoonacular",
+        source: 'spoonacular',
         originRecipeId: recipeDetails.id || recipeId,
         name: recipeDetails.title,
         image: recipeDetails.image,
