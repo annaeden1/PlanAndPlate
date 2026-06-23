@@ -129,9 +129,12 @@ class MealPlannerController {
         return res.status(400).json({ error: "Recipe name is required" });
       }
 
+      const authHeader = req.headers.authorization;
+
       const recipe = await mealPlannerService.createManualRecipe(
         recipePayload,
         userId,
+        authHeader,
       );
       res.status(201).json(recipe);
     } catch (error) {
