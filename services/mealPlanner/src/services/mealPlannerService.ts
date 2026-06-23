@@ -110,22 +110,25 @@ class MealPlannerService {
               recipeId: meals[0].id,
               name: meals[0].title,
               calories: caloriesMap[meals[0].id] || 0,
+              image: meals[0].image,
             }
-          : { recipeId: 0, name: "", calories: 0 },
+          : { recipeId: 0, name: "", calories: 0, image: "" },
         lunch: meals[1]
           ? {
               recipeId: meals[1].id,
               name: meals[1].title,
               calories: caloriesMap[meals[1].id] || 0,
+              image: meals[1].image,
             }
-          : { recipeId: 0, name: "", calories: 0 },
+          : { recipeId: 0, name: "", calories: 0, image: "" },
         dinner: meals[2]
           ? {
               recipeId: meals[2].id,
               name: meals[2].title,
               calories: caloriesMap[meals[2].id] || 0,
+              image: meals[2].image,
             }
-          : { recipeId: 0, name: "", calories: 0 },
+          : { recipeId: 0, name: "", calories: 0, image: "" },
       };
     });
 
@@ -238,7 +241,10 @@ class MealPlannerService {
       recipeId: String(newRecipeId),
       name: recipe.name,
       calories: recipe.calories ?? 0,
+      image: recipe.image ?? "",
     };
+
+    plan.markModified("days");
 
     plan.nutritionSummary.calories = plan.days.reduce(
       (sum, d) =>

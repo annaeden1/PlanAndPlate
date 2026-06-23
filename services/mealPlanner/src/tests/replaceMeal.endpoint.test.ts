@@ -14,7 +14,7 @@ jest.mock("../services/mealPlannerService", () => ({
   default: {
     replaceMeal: jest.fn(async (_u: string, _d: string, mealType: string) =>
       mealType === "dinner"
-        ? { date: "2026-05-31", dinner: { recipeId: "222", name: "Gyoza", calories: 400 } }
+        ? { date: "2026-05-31", dinner: { recipeId: "222", name: "Gyoza", calories: 400, image: "gyoza.jpg" } }
         : null,
     ),
   },
