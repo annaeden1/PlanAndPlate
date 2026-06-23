@@ -13,9 +13,9 @@ import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import { useGroceryList } from '@/context/GroceryListContext';
 import { getUserId } from '@/shared/utils/userId';
 import { PageHeader } from '@/components/common/PageHeader';
-interface MealPlannerProps { }
+interface MealPlannerProps {}
 
-export function MealPlanner({ }: MealPlannerProps) {
+export function MealPlanner({}: MealPlannerProps) {
   const today = new Date();
   const todayName = DAYS[today.getDay()];
 
@@ -46,7 +46,7 @@ export function MealPlanner({ }: MealPlannerProps) {
     try {
       const mealPlanId = mealPlan?._id ?? '';
       const recipeDetails = await mealPlannerApi.getRecipeDetails(
-        meal.id.toString()
+        meal.id.toString(),
       );
       const recipeIdForImport =
         recipeDetails._id || recipeDetails.originRecipeId || meal.id.toString();
@@ -92,25 +92,31 @@ export function MealPlanner({ }: MealPlannerProps) {
     if (dayRecord) {
       const candidates = [
         {
-          id: Number(dayRecord.breakfast.recipeId),
+          id: dayRecord.breakfast.recipeId,
           name: dayRecord.breakfast.name,
           type: 'Breakfast',
           calories: dayRecord.breakfast.calories,
-          image: spoonacularImageUrl(dayRecord.breakfast.recipeId),
+          image:
+            dayRecord.breakfast.image ||
+            spoonacularImageUrl(dayRecord.breakfast.recipeId),
         },
         {
-          id: Number(dayRecord.lunch.recipeId),
+          id: dayRecord.lunch.recipeId,
           name: dayRecord.lunch.name,
           type: 'Lunch',
           calories: dayRecord.lunch.calories,
-          image: spoonacularImageUrl(dayRecord.lunch.recipeId),
+          image:
+            dayRecord.lunch.image ||
+            spoonacularImageUrl(dayRecord.lunch.recipeId),
         },
         {
-          id: Number(dayRecord.dinner.recipeId),
+          id: dayRecord.dinner.recipeId,
           name: dayRecord.dinner.name,
           type: 'Dinner',
           calories: dayRecord.dinner.calories,
-          image: spoonacularImageUrl(dayRecord.dinner.recipeId),
+          image:
+            dayRecord.dinner.image ||
+            spoonacularImageUrl(dayRecord.dinner.recipeId),
         },
       ];
       selectedMeals.push(...candidates.filter((m) => m.id && m.name));
@@ -142,19 +148,13 @@ export function MealPlanner({ }: MealPlannerProps) {
       const userId = getUserId() ?? '';
 
       try {
-        const data = await mealPlannerApi.getWeeklyPlan(
-          userId,
-          weekDate,
-        );
+        const data = await mealPlannerApi.getWeeklyPlan(userId, weekDate);
         setMealPlan(data);
         setCachedWeekKey(weekKey);
       } catch (error: any) {
         if (error.response?.status === 404) {
           console.log('No meal plan found, creating new weekly plan...');
-          const data = await mealPlannerApi.createWeeklyPlan(
-            userId,
-            weekDate,
-          );
+          const data = await mealPlannerApi.createWeeklyPlan(userId, weekDate);
           setSnackbar({
             open: true,
             message: 'New weekly meal plan created!',
