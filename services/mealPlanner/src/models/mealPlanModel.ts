@@ -12,7 +12,6 @@ export interface IMealPlanDay {
   breakfast: IMealPlanMeal;
   lunch: IMealPlanMeal;
   dinner: IMealPlanMeal;
-  proteinTargetMet?: boolean;
 }
 
 export interface INutritionSummary {

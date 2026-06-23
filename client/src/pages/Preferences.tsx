@@ -1,15 +1,8 @@
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { Box, Button } from '@mui/material';
 import { useState } from 'react';
-import type {
-  Allergies,
-  BodyStats,
-  DietaryPreferences,
-  OnboardingData,
-} from '@/shared';
-import { ActivityStep } from '@/features/preferences/components/ActivityStep';
+import type { Allergies, DietaryPreferences, OnboardingData } from '@/shared';
 import { AllergiesStep } from '@/features/preferences/components/AllergiesStep';
-import { BodyStatsStep } from '@/features/preferences/components/BodyStatsStep';
 import { DietaryStep } from '@/features/preferences/components/DietaryStep';
 import { GoalsStep } from '@/features/preferences/components/GoalsStep';
 import { ProgressHeader } from '@/features/preferences/components/ProgressHeader';
@@ -22,25 +15,14 @@ interface PreferencesProps {
   onComplete: (data: OnboardingData) => void;
 }
 
-const isBodyStatsComplete = (s: Partial<BodyStats>): s is BodyStats =>
-  !!s.weightKg &&
-  s.weightKg > 0 &&
-  !!s.heightCm &&
-  s.heightCm > 0 &&
-  !!s.age &&
-  s.age >= 13 &&
-  s.age <= 100 &&
-  (s.gender === 'male' || s.gender === 'female');
-
 export function Preferences({ onComplete }: PreferencesProps) {
   const [step, setStep] = useState(1);
   const [preferences, setPreferences] =
     useState<DietaryPreferences>(dietaryInitialState);
   const [allergies, setAllergies] = useState<Allergies>(allergiesInitialState);
-  const [bodyStats, setBodyStats] = useState<Partial<BodyStats>>({});
   const [goal, setGoal] = useState('');
 
-  const totalSteps = 5;
+  const totalSteps = 3;
 
   const handlePreferenceChange = (selectedKey: keyof DietaryPreferences) => {
     const defaultPreferences: DietaryPreferences = dietaryInitialState;
@@ -60,14 +42,6 @@ export function Preferences({ onComplete }: PreferencesProps) {
     setAllergies((prev: Allergies) => ({ ...prev, [key]: value }));
   };
 
-  const handleBodyStatsChange = (patch: Partial<BodyStats>) => {
-    setBodyStats((prev) => ({ ...prev, ...patch }));
-  };
-
-  const canContinue =
-    (step !== 3 || isBodyStatsComplete(bodyStats)) &&
-    (step !== 4 || !!bodyStats.activityLevel);
-
   const handleNext = () => {
     if (step < totalSteps) {
       setStep(step + 1);
@@ -84,10 +58,6 @@ export function Preferences({ onComplete }: PreferencesProps) {
           diet: selectedDiet ? [selectedDiet] : [],
           allergies: selectedAllergies,
           healthGoal: goal,
-          bodyStats:
-            isBodyStatsComplete(bodyStats) && bodyStats.activityLevel
-              ? (bodyStats as BodyStats)
-              : undefined,
         },
       };
 
@@ -123,24 +93,7 @@ export function Preferences({ onComplete }: PreferencesProps) {
             />
           )}
 
-          {step === 3 && (
-            <BodyStatsStep value={bodyStats} onChange={handleBodyStatsChange} />
-          )}
-
-          {step === 4 && (
-            <ActivityStep
-              activityLevel={bodyStats.activityLevel ?? ''}
-              onChange={(activityLevel) =>
-                handleBodyStatsChange({
-                  activityLevel: activityLevel as BodyStats['activityLevel'],
-                })
-              }
-            />
-          )}
-
-          {step === 5 && (
-            <GoalsStep goal={goal} onChange={setGoal} stats={bodyStats} />
-          )}
+          {step === 3 && <GoalsStep goal={goal} onChange={setGoal} />}
         </Box>
       </Box>
 
@@ -178,7 +131,6 @@ export function Preferences({ onComplete }: PreferencesProps) {
             variant="contained"
             fullWidth={step === 1}
             size="large"
-            disabled={!canContinue}
             onClick={handleNext}
             endIcon={<ChevronRightIcon />}
             sx={{

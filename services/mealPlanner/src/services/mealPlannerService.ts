@@ -4,30 +4,12 @@ import { MealPlan, IMealPlan, IMealPlanDay } from '../models/mealPlanModel';
 import { Recipe, IRecipe } from '../models/recipeModel';
 import { UserFavorites } from '../models/userFavoritesModel';
 import {
+  generateMealPlan,
   getRecipeDetails as getSpoonacularRecipe,
-  searchRecipesByNutrition,
+  getRecipeDetailsBulk,
 } from './spoonacularService.service';
 import { normalizeUnit } from '../utils/types/units';
-import {
-  nutrients,
-  ComplexSearchRecipe,
-  SlotResult,
-} from '../utils/types/spoonacularTypes';
-import { calcTargets } from '../utils/calorieCalculator';
-import { buildWeek } from '../utils/dayPlanBuilder';
-
-const nutrientAmount = (recipe: ComplexSearchRecipe, name: string): number =>
-  recipe.nutrition?.nutrients?.find((n) => n.name === name)?.amount ?? 0;
-
-const slotToMeal = (slot?: SlotResult) =>
-  slot
-    ? {
-        recipeId: String(slot.recipe.id),
-        name: slot.recipe.title,
-        calories: Math.round(slot.calories),
-        image: slot.recipe.image,
-      }
-    : { recipeId: '0', name: '', calories: 0, image: '' };
+import { nutrients } from '../utils/types/spoonacularTypes';
 
 class MealPlannerService {
   async createWeeklyPlan(
@@ -36,9 +18,6 @@ class MealPlannerService {
     token?: string,
   ): Promise<IMealPlan & any> {
     const refDate = date ? new Date(date) : new Date();
-    if (isNaN(refDate.getTime())) {
-      throw new Error(`Invalid date: ${date}`);
-    }
     const weekStart = new Date(refDate);
     weekStart.setDate(refDate.getDate() - refDate.getDay());
 
@@ -57,92 +36,145 @@ class MealPlannerService {
       ? userPreferences.data.userPreferences.diet[0] || ''
       : userPreferences.data.userPreferences.diet || '';
 
-    const targets = calcTargets(
-      userPreferences.data.userPreferences.bodyStats,
-      userPreferences.data.userPreferences.healthGoal,
+    const weeklyPlanFromAPI = await generateMealPlan(
+      diet,
+      allergyExcludeString,
     );
 
-    const week = await buildWeek(
-      {
-        proteinGramsPerDay: targets?.proteinGramsPerDay ?? 0,
-        targetCalories: targets?.targetCalories ?? 0,
-        diet: diet || undefined,
-        excludeIngredients: allergyExcludeString || undefined,
-      },
-      searchRecipesByNutrition,
-    );
-
-    const allSlots: SlotResult[] = week.flatMap((day) => day.slots);
-    const existing = await Recipe.find({
-      originRecipeId: { $in: allSlots.map((s) => String(s.recipe.id)) },
-    });
-    const existingIds = new Set(existing.map((r) => r.originRecipeId));
-    const toInsert = new Map<string, ComplexSearchRecipe>();
-    for (const slot of allSlots) {
-      const id = String(slot.recipe.id);
-      if (!existingIds.has(id) && !toInsert.has(id)) {
-        toInsert.set(id, slot.recipe);
+    const allRecipeIds: number[] = [];
+    Object.values(weeklyPlanFromAPI.week).forEach((day: any) => {
+      if (day.meals) {
+        day.meals.forEach((meal: any) => {
+          allRecipeIds.push(meal.id);
+        });
       }
-    }
-    if (toInsert.size > 0) {
-      await Recipe.insertMany(
-        Array.from(toInsert.values()).map((r) => ({
-          originRecipeId: String(r.id),
-          name: r.title,
-          image: r.image,
-          calories: nutrientAmount(r, 'Calories'),
-          protein: nutrientAmount(r, 'Protein'),
-          fat: nutrientAmount(r, 'Fat'),
-          carbs: nutrientAmount(r, 'Carbohydrates'),
-        })),
-        { ordered: false },
-      );
+    });
+
+    const caloriesMap: { [key: number]: number } = {};
+    const missingIds: number[] = [];
+
+    await Promise.all(
+      allRecipeIds.map(async (id) => {
+        const saved = await Recipe.findOne({ originRecipeId: id.toString() });
+        if (saved) {
+          caloriesMap[id] = saved.calories ?? 0;
+        } else {
+          missingIds.push(id);
+        }
+      }),
+    );
+
+    if (missingIds.length > 0) {
+      const bulkResults = await getRecipeDetailsBulk(missingIds.join(','));
+      bulkResults.forEach((recipe: any) => {
+        const caloriesNutrient = recipe.nutrition?.nutrients?.find(
+          (n: any) => n.name === 'Calories',
+        );
+        caloriesMap[recipe.id] = caloriesNutrient ? caloriesNutrient.amount : 0;
+      });
     }
 
-    const missedDays = week.filter((d) => !d.proteinTargetMet).length;
-    if (missedDays > 0 && (targets?.proteinGramsPerDay ?? 0) > 0) {
-      console.warn(
-        `Protein target not met for ${missedDays}/7 days (user ${userId}, floor ${targets?.proteinGramsPerDay}g/day).`,
-      );
-    }
+    const daysOfWeek = [
+      'sunday',
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+    ];
+    const spoonacularDays = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
 
-    const days = week.map((day, index) => {
+    const days = daysOfWeek.map((dayName, index) => {
+      const spoonacularDayIndex = (index + 6) % 7; // Shift to align Sunday first
+      const spoonacularDay = spoonacularDays[spoonacularDayIndex];
+      const dayData = weeklyPlanFromAPI.week[spoonacularDay];
+
       const dateObj = new Date(weekStart);
       dateObj.setDate(weekStart.getDate() + index);
       const dateStr = dateObj.toISOString().split('T')[0];
 
-      const bySlot = (name: string) => day.slots.find((s) => s.slot === name);
-
+      const meals = dayData?.meals || [];
       return {
         date: dateStr,
-        breakfast: slotToMeal(bySlot('breakfast')),
-        lunch: slotToMeal(bySlot('lunch')),
-        dinner: slotToMeal(bySlot('dinner')),
-        proteinTargetMet: day.proteinTargetMet,
+        breakfast: meals[0]
+          ? {
+              recipeId: meals[0].id,
+              name: meals[0].title,
+              calories: caloriesMap[meals[0].id] || 0,
+              image: meals[0].image
+            }
+          : { recipeId: 0, name: '', calories: 0, image: '' },
+        lunch: meals[1]
+          ? {
+              recipeId: meals[1].id,
+              name: meals[1].title,
+              calories: caloriesMap[meals[1].id] || 0,
+              image: meals[1].image
+            }
+          : { recipeId: 0, name: '', calories: 0, image: '' },
+        dinner: meals[2]
+          ? {
+              recipeId: meals[2].id,
+              name: meals[2].title,
+              calories: caloriesMap[meals[2].id] || 0,
+              image: meals[2].image
+            }
+          : { recipeId: 0, name: '', calories: 0, image: '' },
       };
     });
 
-    const summary: nutrients = week.reduce(
-      (acc, day) => {
-        day.slots.forEach((s) => {
-          acc.calories += s.calories;
-          acc.protein += s.protein;
-          acc.fat += nutrientAmount(s.recipe, 'Fat');
-          acc.carbohydrates += nutrientAmount(s.recipe, 'Carbohydrates');
-        });
-        return acc;
-      },
-      { calories: 0, protein: 0, fat: 0, carbohydrates: 0 } as nutrients,
-    );
+    let sourceNutrients: nutrients = {
+      calories: 0,
+      protein: 0,
+      fat: 0,
+      carbohydrates: 0,
+    };
+    daysOfWeek.forEach((dayName, index) => {
+      const spoonacularDayIndex = (index + 6) % 7;
+      const spoonacularDay = spoonacularDays[spoonacularDayIndex];
+      sourceNutrients = {
+        calories:
+          sourceNutrients.calories +
+          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.calories || 0),
+        protein:
+          sourceNutrients.protein +
+          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.protein || 0),
+        fat:
+          sourceNutrients.fat +
+          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.fat || 0),
+        carbohydrates:
+          sourceNutrients.carbohydrates +
+          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.carbohydrates ||
+            0),
+      };
+    });
 
     const mealPlan = new MealPlan({
       userId,
       days,
       nutritionSummary: {
-        calories: Math.round(summary.calories),
-        protein: Math.round(summary.protein),
-        fat: Math.round(summary.fat),
-        carbs: Math.round(summary.carbohydrates),
+        calories:
+          sourceNutrients.calories ||
+          days.reduce(
+            (sum, day) =>
+              sum +
+              (day.breakfast?.calories || 0) +
+              (day.lunch?.calories || 0) +
+              (day.dinner?.calories || 0),
+            0,
+          ),
+        protein: sourceNutrients.protein || 0,
+        fat: sourceNutrients.fat || 0,
+        carbs: sourceNutrients.carbohydrates || 0,
       },
     });
 

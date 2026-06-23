@@ -126,12 +126,6 @@ export const updatePreferences = async (req: Request, res: Response) => {
   const userId = req.params.userId;
   const { preferences } = req.body;
 
-  if (!preferences || typeof preferences !== 'object' || Array.isArray(preferences)) {
-    return res
-      .status(400)
-      .json({ error: 'Request body must include a "preferences" object' });
-  }
-
   try {
     const updatePayload: UserUpdatePayload = {};
 
@@ -149,6 +143,6 @@ export const updatePreferences = async (req: Request, res: Response) => {
   } catch (err) {
     return res
       .status(500)
-      .json({ error: 'Failed to update preferences', details: err });
+      .json({ error: 'Failed to retreive data', details: err });
   }
 };

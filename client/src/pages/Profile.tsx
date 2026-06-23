@@ -1,15 +1,12 @@
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import LocalDiningIcon from '@mui/icons-material/LocalDining';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import { Box, Card, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
-import { calcTargets } from '@/shared';
 import { ActionRow } from '@/components/common/ActionRow';
 import { PageHeader } from '@/components/common/PageHeader';
-import { BodyGoalEditor } from '@/features/profile/components/BodyGoalEditor';
 import { EditAccountDialog } from '@/features/profile/components/EditAccountDialog';
 import { EditPreferencesDialog } from '@/features/profile/components/EditPreferencesDialog';
 import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
@@ -26,8 +23,6 @@ export function Profile() {
     healthGoal,
     preferences,
     goal,
-    bodyStats,
-    healthGoalId,
     loading,
     saving,
     error,
@@ -35,12 +30,6 @@ export function Profile() {
     updatePassword,
     updatePreferenceSettings,
   } = useUserProfile();
-  const [editorOpen, setEditorOpen] = useState(false);
-
-  const targets = calcTargets(bodyStats, healthGoalId);
-  const bodyGoalSubtitle = targets
-    ? `${targets.targetCalories.toLocaleString()} kcal/day · ${targets.proteinGramsPerDay}g protein`
-    : 'Set your body stats to get a calorie target';
   const [isAccountEditOpen, setIsAccountEditOpen] = useState(false);
   const [isPreferencesEditOpen, setIsPreferencesEditOpen] = useState(false);
   const [editedUsername, setEditedUsername] = useState('');
@@ -256,15 +245,6 @@ export function Profile() {
                   subtitle={goal}
                   topDivider
                 />
-                <ActionRow
-                  icon={<FitnessCenterIcon />}
-                  iconColor="primary.main"
-                  iconBgColor="rgba(62, 180, 137, 0.1)"
-                  title="Body & Goal"
-                  subtitle={bodyGoalSubtitle}
-                  onClick={() => setEditorOpen(true)}
-                  topDivider
-                />
               </Card>
             </Box>
 
@@ -296,15 +276,6 @@ export function Profile() {
           </Box>
         )}
       </Box>
-
-      {editorOpen && (
-        <BodyGoalEditor
-          open
-          onClose={() => setEditorOpen(false)}
-          initialStats={bodyStats}
-          initialGoal={healthGoalId}
-        />
-      )}
 
       <EditAccountDialog
         open={isAccountEditOpen}

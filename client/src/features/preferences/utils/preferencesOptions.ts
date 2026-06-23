@@ -30,24 +30,3 @@ export const goalsOptions: Options<string> = [
   { id: 'eat_healthier', label: 'Eat Healthier' },
   { id: 'maintain_weight', label: 'Maintain Weight' },
 ];
-
-export const activityOptions: Options<string> = [
-  { id: 'sedentary', label: 'Sedentary', description: 'Little or no exercise' },
-  { id: 'light', label: 'Light', description: 'Exercise 1–3 times/week' },
-  { id: 'moderate', label: 'Moderate', description: 'Exercise 4–5 times/week' },
-  {
-    id: 'active',
-    label: 'Active',
-    description: 'Daily exercise or intense exercise 3–4 times/week',
-  },
-  {
-    id: 'very_active',
-    label: 'Very Active',
-    description: 'Intense exercise 6–7 times/week',
-  },
-  {
-    id: 'extra_active',
-    label: 'Extra Active',
-    description: 'Very intense exercise daily, or physical job',
-  },
-];

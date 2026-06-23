@@ -2,18 +2,15 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import { Box, Typography } from '@mui/material';
 import { IconBox } from '@/components/common/IconBox';
 import { SelectableCard } from '@/components/common/SelectableCard';
-import type { BodyStats } from '@/shared';
 import type { Options } from '../types/options';
 import { goalsOptions } from '../utils/preferencesOptions';
-import { GoalSummary } from './GoalSummary';
 
 interface GoalsStepProps {
   goal: string;
   onChange: (goal: string) => void;
-  stats?: Partial<BodyStats>;
 }
 
-export function GoalsStep({ goal, onChange, stats }: GoalsStepProps) {
+export function GoalsStep({ goal, onChange }: GoalsStepProps) {
   const options: Options<string> = goalsOptions;
 
   return (
@@ -54,8 +51,6 @@ export function GoalsStep({ goal, onChange, stats }: GoalsStepProps) {
           );
         })}
       </Box>
-
-      {stats && goal && <GoalSummary stats={stats} goal={goal} />}
     </Box>
   );
 }
