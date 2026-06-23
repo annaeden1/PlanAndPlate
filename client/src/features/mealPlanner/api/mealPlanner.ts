@@ -77,4 +77,10 @@ export const mealPlannerApi = {
 
   getLikedRecipes: (userId: string) =>
     api.get<ApiRecipe[]>(`/users/${userId}/favorites`).then((r) => r.data),
+
+  updateManualRecipe: (recipeId: string, payload: any) =>
+    api.put<ApiRecipe>(`/recipes/${recipeId}`, payload).then((r) => r.data),
+
+  deleteManualRecipe: (recipeId: string) =>
+    api.delete(`/recipes/${recipeId}`).then((r) => r.data),
 };

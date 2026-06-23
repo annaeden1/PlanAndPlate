@@ -49,12 +49,12 @@ class MealPlannerService {
     const allergyExcludeString = Array.isArray(
       userPreferences.data.userPreferences.allergies,
     )
-      ? userPreferences.data.userPreferences.allergies.join(',')
-      : userPreferences.data.userPreferences.allergies || '';
+      ? userPreferences.data.userPreferences.allergies.join(",")
+      : userPreferences.data.userPreferences.allergies || "";
 
     const diet = Array.isArray(userPreferences.data.userPreferences.diet)
-      ? userPreferences.data.userPreferences.diet[0] || ''
-      : userPreferences.data.userPreferences.diet || '';
+      ? userPreferences.data.userPreferences.diet[0] || ""
+      : userPreferences.data.userPreferences.diet || "";
 
     const targets = calcTargets(
       userPreferences.data.userPreferences.bodyStats,
@@ -108,7 +108,7 @@ class MealPlannerService {
     const days = week.map((day, index) => {
       const dateObj = new Date(weekStart);
       dateObj.setDate(weekStart.getDate() + index);
-      const dateStr = dateObj.toISOString().split('T')[0];
+      const dateStr = dateObj.toISOString().split("T")[0];
 
       const bySlot = (name: string) =>
         day.slots.find((s) => s.slot === name);
@@ -161,15 +161,15 @@ class MealPlannerService {
 
     const weeklyPlan = await MealPlan.findOne({
       userId,
-      'days.date': { $gte: weekStart, $lt: weekEnd },
+      "days.date": { $gte: weekStart, $lt: weekEnd },
     });
     return weeklyPlan;
   }
 
   async getDailyPlan(userId: string, date: any): Promise<any> {
     const dailyPlan = await MealPlan.findOne(
-      { userId, 'days.date': date },
-      { 'days.$': 1 },
+      { userId, "days.date": date },
+      { "days.$": 1 },
     );
 
     if (!dailyPlan || !dailyPlan.days || dailyPlan.days.length === 0) {
@@ -231,8 +231,8 @@ class MealPlannerService {
     const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
     let recipeData;
 
-    const isComplete = existingRecipe &&
-      (existingRecipe.instructions?.steps?.length ?? 0) > 0;
+    const isComplete =
+      existingRecipe && (existingRecipe.instructions?.steps?.length ?? 0) > 0;
 
     if (isComplete) {
       recipeData = existingRecipe;
@@ -246,18 +246,18 @@ class MealPlannerService {
         image: recipeDetails.image,
         calories:
           recipeDetails.nutrition.nutrients.find(
-            (n: any) => n.name === 'Calories',
+            (n: any) => n.name === "Calories",
           )?.amount || 0,
         protein:
           recipeDetails.nutrition.nutrients.find(
-            (n: any) => n.name === 'Protein',
+            (n: any) => n.name === "Protein",
           )?.amount || 0,
         fat:
-          recipeDetails.nutrition.nutrients.find((n: any) => n.name === 'Fat')
+          recipeDetails.nutrition.nutrients.find((n: any) => n.name === "Fat")
             ?.amount || 0,
         carbs:
           recipeDetails.nutrition.nutrients.find(
-            (n: any) => n.name === 'Carbohydrates',
+            (n: any) => n.name === "Carbohydrates",
           )?.amount || 0,
         servings: recipeDetails.servings,
         readyInMinutes: recipeDetails.readyInMinutes,
@@ -351,9 +351,9 @@ class MealPlannerService {
     userId: string,
   ): Promise<IRecipe> {
     const manualRecipe = new Recipe({
-      source: 'manual',
+      source: "manual",
       userId,
-      originRecipeId: userId + '-' + new mongoose.Types.ObjectId().toString(),
+      originRecipeId: userId + "-" + new mongoose.Types.ObjectId().toString(),
       name: recipePayload.name,
       image: recipePayload.image,
       servings: recipePayload.servings,
@@ -372,10 +372,57 @@ class MealPlannerService {
 
   async getManualRecipes(userId: string): Promise<(IRecipe & any)[]> {
     const manualRecipes = await Recipe.find({
-      source: 'manual',
+      source: "manual",
       userId,
     }).lean();
     return manualRecipes;
+  }
+
+  async updateManualRecipe(
+    recipeId: string,
+    payload: Partial<IRecipe>,
+    userId: string,
+  ): Promise<IRecipe | null> {
+    const recipe = await Recipe.findOne({ originRecipeId: recipeId });
+
+    if (!recipe) return null;
+    if (recipe.source !== "manual" || recipe.userId !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const allowedFields: (keyof IRecipe)[] = [
+      "name",
+      "image",
+      "servings",
+      "readyInMinutes",
+      "diets",
+      "instructions",
+    ];
+    for (const field of allowedFields) {
+      if (payload[field] !== undefined) {
+        (recipe as any)[field] = payload[field];
+      }
+    }
+
+    await recipe.save();
+    return recipe.toObject();
+  }
+
+  async deleteManualRecipe(recipeId: string, userId: string): Promise<boolean> {
+    const recipe = await Recipe.findOne({ originRecipeId: recipeId });
+
+    if (!recipe) return false;
+    if (recipe.source !== "manual" || recipe.userId !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    await Recipe.deleteOne({ originRecipeId: recipeId });
+    await UserFavorites.updateMany(
+      { likedRecipeIds: recipeId },
+      { $pull: { likedRecipeIds: recipeId } },
+    );
+
+    return true;
   }
 }
 
