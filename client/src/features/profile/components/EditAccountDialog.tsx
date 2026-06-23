@@ -9,6 +9,7 @@ type EditAccountDialogProps = {
   newPassword: string;
   accountEditError: string | null;
   currentPasswordError: string | null;
+  newPasswordError: string | null;
   canSaveProfile: boolean;
   onClose: () => void;
   onUsernameChange: (value: string) => void;
@@ -25,6 +26,7 @@ export function EditAccountDialog({
   newPassword,
   accountEditError,
   currentPasswordError,
+  newPasswordError,
   canSaveProfile,
   onClose,
   onUsernameChange,
@@ -68,6 +70,8 @@ export function EditAccountDialog({
         onChange={(event) => onNewPasswordChange(event.target.value)}
         fullWidth
         margin="dense"
+        error={Boolean(newPasswordError)}
+        helperText={newPasswordError || ''}
       />
 
       {accountEditError && (

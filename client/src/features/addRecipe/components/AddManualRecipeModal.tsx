@@ -19,6 +19,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { UNIT_OPTIONS } from '@/features/groceryList/utils/unitOptions';
 import { CATEGORY_EMOJIS } from '@/features/groceryList/utils/categoryEmojis';
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
+import type { ApiRecipe } from '@/features/mealPlanner/types/mealPlanner';
 import { fileApi } from '@/features/addRecipe/api/file';
 import type {
   InitialRecipeForm,
@@ -41,13 +42,16 @@ interface Props {
   open: boolean;
   onClose: () => void;
   onSaved?: () => Promise<void> | void;
+  recipeToEdit?: ApiRecipe;
 }
 
 export default function AddManualRecipeModal({
   open,
   onClose,
   onSaved,
+  recipeToEdit,
 }: Props) {
+  const isEditMode = Boolean(recipeToEdit);
   const [recipeForm, setRecipeForm] = useState(INITIAL_RECIPE_FORM);
   const [formError, setFormError] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -94,6 +98,35 @@ export default function AddManualRecipeModal({
     setImageFile(file);
     e.target.value = '';
   };
+
+  // Pre-populate form when editing
+  useEffect(() => {
+    if (open && recipeToEdit) {
+      setRecipeForm({
+        name: recipeToEdit.name || '',
+        image: recipeToEdit.image || '',
+        servings: recipeToEdit.servings != null ? String(recipeToEdit.servings) : '',
+        readyInMinutes: recipeToEdit.readyInMinutes != null ? String(recipeToEdit.readyInMinutes) : '',
+        instructions: recipeToEdit.instructions?.steps?.length
+          ? recipeToEdit.instructions.steps
+          : [''],
+        ingredients: recipeToEdit.instructions?.ingredients?.length
+          ? recipeToEdit.instructions.ingredients.map((ing: any) => ({
+              name: ing.name || '',
+              amount: ing.amount != null ? String(ing.amount) : '',
+              unit: ing.unit || '',
+              aisle: ing.aisle || '',
+            }))
+          : [{ name: '', amount: '', unit: '', aisle: '' }],
+      });
+      setImageFile(null);
+      setImagePreviewUrl(recipeToEdit.image || '');
+    } else if (open && !recipeToEdit) {
+      setRecipeForm(INITIAL_RECIPE_FORM);
+      setImageFile(null);
+      setImagePreviewUrl('');
+    }
+  }, [open, recipeToEdit]);
 
   useEffect(() => {
     if (!imageFile) {
@@ -151,30 +184,56 @@ export default function AddManualRecipeModal({
         .map((step) => step.trim())
         .filter((step) => step.length > 0);
 
-      await mealPlannerApi.createManualRecipe({
-        name: recipeForm.name.trim(),
-        image: uploadedImageUrl,
-        servings: recipeForm.servings ? Number(recipeForm.servings) : undefined,
-        readyInMinutes: recipeForm.readyInMinutes
-          ? Number(recipeForm.readyInMinutes)
-          : undefined,
-        instructions:
-          trimmedSteps.length > 0
-            ? {
-                steps: trimmedSteps,
-                ingredients: recipeForm.ingredients
-                  .filter((ingredient) => ingredient.name.trim())
-                  .map((ingredient) => ({
-                    name: ingredient.name.trim(),
-                    amount: Number(ingredient.amount) || 0,
-                    unit: ingredient.unit.trim() || undefined,
-                    aisle: ingredient.aisle
-                      ? ingredient.aisle.trim()
-                      : undefined,
-                  })),
-              }
+      if (isEditMode && recipeToEdit) {
+        const id = recipeToEdit.originRecipeId || recipeToEdit._id || '';
+        await mealPlannerApi.updateManualRecipe(id, {
+          name: recipeForm.name.trim(),
+          image: uploadedImageUrl ?? recipeToEdit.image,
+          servings: recipeForm.servings ? Number(recipeForm.servings) : undefined,
+          readyInMinutes: recipeForm.readyInMinutes
+            ? Number(recipeForm.readyInMinutes)
             : undefined,
-      });
+          instructions:
+            trimmedSteps.length > 0
+              ? {
+                  steps: trimmedSteps,
+                  ingredients: recipeForm.ingredients
+                    .filter((ingredient) => ingredient.name.trim())
+                    .map((ingredient) => ({
+                      name: ingredient.name.trim(),
+                      amount: Number(ingredient.amount) || 0,
+                      unit: ingredient.unit.trim() || undefined,
+                      aisle: ingredient.aisle ? ingredient.aisle.trim() : undefined,
+                    })),
+                }
+              : undefined,
+        });
+      } else {
+        await mealPlannerApi.createManualRecipe({
+          name: recipeForm.name.trim(),
+          image: uploadedImageUrl,
+          servings: recipeForm.servings ? Number(recipeForm.servings) : undefined,
+          readyInMinutes: recipeForm.readyInMinutes
+            ? Number(recipeForm.readyInMinutes)
+            : undefined,
+          instructions:
+            trimmedSteps.length > 0
+              ? {
+                  steps: trimmedSteps,
+                  ingredients: recipeForm.ingredients
+                    .filter((ingredient) => ingredient.name.trim())
+                    .map((ingredient) => ({
+                      name: ingredient.name.trim(),
+                      amount: Number(ingredient.amount) || 0,
+                      unit: ingredient.unit.trim() || undefined,
+                      aisle: ingredient.aisle
+                        ? ingredient.aisle.trim()
+                        : undefined,
+                    })),
+                }
+              : undefined,
+        });
+      }
 
       if (onSaved) await onSaved();
       handleClose();
@@ -197,7 +256,7 @@ export default function AddManualRecipeModal({
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>Add Manual Recipe</DialogTitle>
+      <DialogTitle>{isEditMode ? 'Edit Recipe' : 'Add Manual Recipe'}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           {formError && (
@@ -433,6 +492,8 @@ export default function AddManualRecipeModal({
         >
           {submitting ? (
             <CircularProgress size={18} color="inherit" />
+          ) : isEditMode ? (
+            'Save Changes'
           ) : (
             'Save Recipe'
           )}

@@ -23,11 +23,18 @@ export const useAuth = () => {
           const userId = getUserId();
           if (userId) {
             try {
-              const prefsResponse = await userManagementApi.getPreferences(userId, token);
+              const prefsResponse = await userManagementApi.getPreferences(
+                userId,
+                token,
+              );
               const prefs = prefsResponse?.userPreferences;
-              
-              const hasCompletedOnboarding = prefs && (prefs.healthGoal !== undefined || (prefs.diet && prefs.diet.length > 0) || (prefs.allergies && prefs.allergies.length > 0) || prefs.weeklyBudget !== undefined);
-              
+
+              const hasCompletedOnboarding =
+                prefs &&
+                (prefs.healthGoal !== undefined ||
+                  (prefs.diet && prefs.diet.length > 0) ||
+                  (prefs.allergies && prefs.allergies.length > 0));
+
               if (hasCompletedOnboarding) {
                 setAuthState('loggedIn');
               } else {

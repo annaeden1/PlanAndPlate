@@ -7,9 +7,9 @@ import {
   generateMealPlan,
   getRecipeDetails as getSpoonacularRecipe,
   getRecipeDetailsBulk,
-} from './spoonacularService.service';
-import { normalizeUnit } from '../utils/types/units';
-import { nutrients } from '../utils/types/spoonacularTypes';
+} from "./spoonacularService.service";
+import { normalizeUnit } from "../utils/types/units";
+import { nutrients } from "../utils/types/spoonacularTypes";
 
 class MealPlannerService {
   async createWeeklyPlan(
@@ -29,12 +29,12 @@ class MealPlannerService {
     const allergyExcludeString = Array.isArray(
       userPreferences.data.userPreferences.allergies,
     )
-      ? userPreferences.data.userPreferences.allergies.join(',')
-      : userPreferences.data.userPreferences.allergies || '';
+      ? userPreferences.data.userPreferences.allergies.join(",")
+      : userPreferences.data.userPreferences.allergies || "";
 
     const diet = Array.isArray(userPreferences.data.userPreferences.diet)
-      ? userPreferences.data.userPreferences.diet[0] || ''
-      : userPreferences.data.userPreferences.diet || '';
+      ? userPreferences.data.userPreferences.diet[0] || ""
+      : userPreferences.data.userPreferences.diet || "";
 
     const weeklyPlanFromAPI = await generateMealPlan(
       diet,
@@ -65,32 +65,32 @@ class MealPlannerService {
     );
 
     if (missingIds.length > 0) {
-      const bulkResults = await getRecipeDetailsBulk(missingIds.join(','));
+      const bulkResults = await getRecipeDetailsBulk(missingIds.join(","));
       bulkResults.forEach((recipe: any) => {
         const caloriesNutrient = recipe.nutrition?.nutrients?.find(
-          (n: any) => n.name === 'Calories',
+          (n: any) => n.name === "Calories",
         );
         caloriesMap[recipe.id] = caloriesNutrient ? caloriesNutrient.amount : 0;
       });
     }
 
     const daysOfWeek = [
-      'sunday',
-      'monday',
-      'tuesday',
-      'wednesday',
-      'thursday',
-      'friday',
-      'saturday',
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
     ];
     const spoonacularDays = [
-      'monday',
-      'tuesday',
-      'wednesday',
-      'thursday',
-      'friday',
-      'saturday',
-      'sunday',
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday",
     ];
 
     const days = daysOfWeek.map((dayName, index) => {
@@ -100,7 +100,7 @@ class MealPlannerService {
 
       const dateObj = new Date(weekStart);
       dateObj.setDate(weekStart.getDate() + index);
-      const dateStr = dateObj.toISOString().split('T')[0];
+      const dateStr = dateObj.toISOString().split("T")[0];
 
       const meals = dayData?.meals || [];
       return {
@@ -111,21 +111,21 @@ class MealPlannerService {
               name: meals[0].title,
               calories: caloriesMap[meals[0].id] || 0,
             }
-          : { recipeId: 0, name: '', calories: 0 },
+          : { recipeId: 0, name: "", calories: 0 },
         lunch: meals[1]
           ? {
               recipeId: meals[1].id,
               name: meals[1].title,
               calories: caloriesMap[meals[1].id] || 0,
             }
-          : { recipeId: 0, name: '', calories: 0 },
+          : { recipeId: 0, name: "", calories: 0 },
         dinner: meals[2]
           ? {
               recipeId: meals[2].id,
               name: meals[2].title,
               calories: caloriesMap[meals[2].id] || 0,
             }
-          : { recipeId: 0, name: '', calories: 0 },
+          : { recipeId: 0, name: "", calories: 0 },
       };
     });
 
@@ -190,15 +190,15 @@ class MealPlannerService {
 
     const weeklyPlan = await MealPlan.findOne({
       userId,
-      'days.date': { $gte: weekStart, $lt: weekEnd },
+      "days.date": { $gte: weekStart, $lt: weekEnd },
     });
     return weeklyPlan;
   }
 
   async getDailyPlan(userId: string, date: any): Promise<any> {
     const dailyPlan = await MealPlan.findOne(
-      { userId, 'days.date': date },
-      { 'days.$': 1 },
+      { userId, "days.date": date },
+      { "days.$": 1 },
     );
 
     if (!dailyPlan || !dailyPlan.days || dailyPlan.days.length === 0) {
@@ -260,8 +260,8 @@ class MealPlannerService {
     const existingRecipe = await Recipe.findOne({ originRecipeId: recipeId });
     let recipeData;
 
-    const isComplete = existingRecipe &&
-      (existingRecipe.instructions?.steps?.length ?? 0) > 0;
+    const isComplete =
+      existingRecipe && (existingRecipe.instructions?.steps?.length ?? 0) > 0;
 
     if (isComplete) {
       recipeData = existingRecipe;
@@ -275,18 +275,18 @@ class MealPlannerService {
         image: recipeDetails.image,
         calories:
           recipeDetails.nutrition.nutrients.find(
-            (n: any) => n.name === 'Calories',
+            (n: any) => n.name === "Calories",
           )?.amount || 0,
         protein:
           recipeDetails.nutrition.nutrients.find(
-            (n: any) => n.name === 'Protein',
+            (n: any) => n.name === "Protein",
           )?.amount || 0,
         fat:
-          recipeDetails.nutrition.nutrients.find((n: any) => n.name === 'Fat')
+          recipeDetails.nutrition.nutrients.find((n: any) => n.name === "Fat")
             ?.amount || 0,
         carbs:
           recipeDetails.nutrition.nutrients.find(
-            (n: any) => n.name === 'Carbohydrates',
+            (n: any) => n.name === "Carbohydrates",
           )?.amount || 0,
         servings: recipeDetails.servings,
         readyInMinutes: recipeDetails.readyInMinutes,
@@ -380,9 +380,9 @@ class MealPlannerService {
     userId: string,
   ): Promise<IRecipe> {
     const manualRecipe = new Recipe({
-      source: 'manual',
+      source: "manual",
       userId,
-      originRecipeId: userId + '-' + new mongoose.Types.ObjectId().toString(),
+      originRecipeId: userId + "-" + new mongoose.Types.ObjectId().toString(),
       name: recipePayload.name,
       image: recipePayload.image,
       servings: recipePayload.servings,
@@ -401,19 +401,25 @@ class MealPlannerService {
 
   async getManualRecipes(userId: string): Promise<(IRecipe & any)[]> {
     const manualRecipes = await Recipe.find({
-      source: 'manual',
+      source: "manual",
       userId,
     }).lean();
     return manualRecipes;
   }
 
-  async getUserStats(userId: string): Promise<{ weeksActive: number; mealsLogged: number }> {
+  async getUserStats(
+    userId: string,
+  ): Promise<{ weeksActive: number; mealsLogged: number }> {
     const weeksActive = await MealPlan.countDocuments({ userId });
 
     const mealPlans = await MealPlan.find({ userId });
     const mealsInPlans = mealPlans.reduce((total, plan) => {
-      const dailyMeals = (plan.days || []).flatMap(day => [day.breakfast, day.lunch, day.dinner]);
-      const validMeals = dailyMeals.filter(meal => {
+      const dailyMeals = (plan.days || []).flatMap((day) => [
+        day.breakfast,
+        day.lunch,
+        day.dinner,
+      ]);
+      const validMeals = dailyMeals.filter((meal) => {
         if (!meal || !meal.recipeId) return false;
         const recipeIdStr = String(meal.recipeId).trim();
         return recipeIdStr !== "0" && recipeIdStr !== "";
@@ -421,12 +427,62 @@ class MealPlannerService {
       return total + validMeals.length;
     }, 0);
 
-    const manualRecipesCount = await Recipe.countDocuments({ userId, source: 'manual' });
+    const manualRecipesCount = await Recipe.countDocuments({
+      userId,
+      source: "manual",
+    });
 
     return {
       weeksActive,
       mealsLogged: mealsInPlans + manualRecipesCount,
     };
+  }
+
+  async updateManualRecipe(
+    recipeId: string,
+    payload: Partial<IRecipe>,
+    userId: string,
+  ): Promise<IRecipe | null> {
+    const recipe = await Recipe.findOne({ originRecipeId: recipeId });
+
+    if (!recipe) return null;
+    if (recipe.source !== "manual" || recipe.userId !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const allowedFields: (keyof IRecipe)[] = [
+      "name",
+      "image",
+      "servings",
+      "readyInMinutes",
+      "diets",
+      "instructions",
+    ];
+    for (const field of allowedFields) {
+      if (payload[field] !== undefined) {
+        (recipe as any)[field] = payload[field];
+      }
+    }
+
+    await recipe.save();
+    return recipe.toObject();
+  }
+
+  async deleteManualRecipe(recipeId: string, userId: string): Promise<boolean> {
+    const recipe = await Recipe.findOne({ originRecipeId: recipeId });
+
+    if (!recipe) return false;
+    if (recipe.source !== "manual" || recipe.userId !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    await Recipe.deleteOne({ originRecipeId: recipeId });
+    await UserFavorites.updateMany(
+      { likedRecipeIds: recipeId },
+      { $pull: { likedRecipeIds: recipeId } },
+    );
+
+    return true;
   }
 }
 

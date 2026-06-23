@@ -4,10 +4,8 @@ export interface UserProfile {
   diet: string[];
   allergies: string[];
   healthGoal: string;
-  weeklyBudget?: number;
   preferences: string[];
   goal: string;
-  budget: string;
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -28,7 +26,6 @@ export interface UserProfile {
     diet: string[];
     allergies: string[];
     healthGoal: string;
-    weeklyBudget?: number;
   }) => Promise<{
     success: boolean;
     error?: string;

@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from "axios";
 import type {
   ApiMealPlan,
   ApiMealPlanDay,
@@ -7,12 +7,12 @@ import type {
 } from "@/features/mealPlanner/types/mealPlanner";
 
 const api = axios.create({
-  baseURL: '/mealPlanner',
-  headers: { 'Content-Type': 'application/json' },
+  baseURL: "/mealPlanner",
+  headers: { "Content-Type": "application/json" },
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access-token');
+  const token = localStorage.getItem("access-token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -62,9 +62,12 @@ export const mealPlannerApi = {
     limit = 6,
   ) =>
     api
-      .get<RecipeSuggestion[]>(`/users/${userId}/recipes/${recipeId}/suggestions`, {
-        params: { mealType, limit },
-      })
+      .get<RecipeSuggestion[]>(
+        `/users/${userId}/recipes/${recipeId}/suggestions`,
+        {
+          params: { mealType, limit },
+        },
+      )
       .then((r) => r.data),
 
   replaceMeal: (
@@ -80,6 +83,15 @@ export const mealPlannerApi = {
 
   getUserStats: (userId: string) =>
     api
-      .get<{ weeksActive: number; mealsLogged: number }>(`/users/${userId}/stats`)
+      .get<{
+        weeksActive: number;
+        mealsLogged: number;
+      }>(`/users/${userId}/stats`)
       .then((r) => r.data),
+
+  updateManualRecipe: (recipeId: string, payload: any) =>
+    api.put<ApiRecipe>(`/recipes/${recipeId}`, payload).then((r) => r.data),
+
+  deleteManualRecipe: (recipeId: string) =>
+    api.delete(`/recipes/${recipeId}`).then((r) => r.data),
 };

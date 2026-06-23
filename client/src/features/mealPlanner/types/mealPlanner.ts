@@ -36,6 +36,8 @@ export interface Ingredient {
 export interface ApiRecipe {
   _id?: string;
   originRecipeId: string;
+  source?: string;
+  userId?: string;
   name: string;
   image?: string;
   calories?: number;

@@ -187,6 +187,70 @@ mealPlannerRouter.post(
 
 /**
  * @swagger
+ * /recipes/{recipeId}:
+ *   put:
+ *     summary: Update a manual recipe owned by the logged-in user
+ *     tags: [MealPlanner]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       200:
+ *         description: Updated recipe
+ *       400:
+ *         description: Invalid recipe ID
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - not owner or not a manual recipe
+ *       404:
+ *         description: Recipe not found
+ *       500:
+ *         description: Failed to update manual recipe
+ **/
+mealPlannerRouter.put(
+  "/recipes/:recipeId",
+  authMiddleware,
+  MealPlannerController.updateManualRecipe,
+);
+
+/**
+ * @swagger
+ * /recipes/{recipeId}:
+ *   delete:
+ *     summary: Delete a manual recipe owned by the logged-in user
+ *     tags: [MealPlanner]
+ *     parameters:
+ *       - in: path
+ *         name: recipeId
+ *         schema:
+ *           type: string
+ *         required: true
+ *     responses:
+ *       204:
+ *         description: Recipe deleted successfully
+ *       400:
+ *         description: Invalid recipe ID
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - not owner or not a manual recipe
+ *       404:
+ *         description: Recipe not found
+ *       500:
+ *         description: Failed to delete manual recipe
+ **/
+mealPlannerRouter.delete(
+  "/recipes/:recipeId",
+  authMiddleware,
+  MealPlannerController.deleteManualRecipe,
+);
+
+/**
+ * @swagger
  * /recipes/manual:
  *   get:
  *     summary: Get all manual recipes created by the logged-in user
