@@ -1,11 +1,10 @@
 import { CohereClient } from "cohere-ai";
+import { AiProvider, ExplainProfile } from "./aiProvider";
 import {
-  AiProvider,
-  ExplainProfile,
-  NutritionRecipeInput,
   NutritionEstimate,
+  NutritionRecipeInput,
   buildNutritionPrompt,
-} from "./aiProvider";
+} from "./nutritionPrompt";
 
 const EMBED_MODEL = "embed-english-v3.0";
 const TEXT_MODEL = "command-r-08-2024";
@@ -39,10 +38,14 @@ export class CohereProvider implements AiProvider {
     candidates: { originRecipeId: string; name: string }[],
   ): Promise<Record<string, string>> {
     const parts: string[] = [];
-    parts.push(`A user enjoys ${profile.cuisines.join(", ") || "varied"} cuisine.`);
+    parts.push(
+      `A user enjoys ${profile.cuisines.join(", ") || "varied"} cuisine.`,
+    );
     if (profile.diet) parts.push(`They follow a ${profile.diet} diet.`);
-    if (profile.healthGoal) parts.push(`Their health goal is: ${profile.healthGoal}.`);
-    if (profile.allergies) parts.push(`They are allergic to: ${profile.allergies}.`);
+    if (profile.healthGoal)
+      parts.push(`Their health goal is: ${profile.healthGoal}.`);
+    if (profile.allergies)
+      parts.push(`They are allergic to: ${profile.allergies}.`);
     const prompt =
       parts.join(" ") +
       ` For each recipe below, write a short (max 12 words) reason it fits them. ` +

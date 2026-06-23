@@ -1,11 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
+import { AiProvider, ExplainProfile } from "./aiProvider";
 import {
-  AiProvider,
-  ExplainProfile,
-  NutritionRecipeInput,
   NutritionEstimate,
+  NutritionRecipeInput,
   buildNutritionPrompt,
-} from "./aiProvider";
+} from "./nutritionPrompt";
 
 const EMBED_MODEL = "gemini-embedding-001"; // text-only, 3072-dim
 const TEXT_MODEL = "gemini-2.0-flash";
@@ -40,10 +39,14 @@ export class GeminiProvider implements AiProvider {
     candidates: { originRecipeId: string; name: string }[],
   ): Promise<Record<string, string>> {
     const parts: string[] = [];
-    parts.push(`A user enjoys ${profile.cuisines.join(", ") || "varied"} cuisine.`);
+    parts.push(
+      `A user enjoys ${profile.cuisines.join(", ") || "varied"} cuisine.`,
+    );
     if (profile.diet) parts.push(`They follow a ${profile.diet} diet.`);
-    if (profile.healthGoal) parts.push(`Their health goal is: ${profile.healthGoal}.`);
-    if (profile.allergies) parts.push(`They are allergic to: ${profile.allergies}.`);
+    if (profile.healthGoal)
+      parts.push(`Their health goal is: ${profile.healthGoal}.`);
+    if (profile.allergies)
+      parts.push(`They are allergic to: ${profile.allergies}.`);
     const prompt =
       parts.join(" ") +
       ` For each recipe below, write a short (max 12 words) reason it fits them. ` +
@@ -94,4 +97,3 @@ export class GeminiProvider implements AiProvider {
     }
   }
 }
-
