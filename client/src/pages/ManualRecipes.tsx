@@ -46,6 +46,57 @@ export function ManualRecipes() {
     loadManualRecipes();
   }, []);
 
+  const handleConfirmAddToMenu = async (date: string, mealType: string) => {
+    if (!selectedRecipeForMenu) return;
+    const userId = getUserId();
+    if (!userId) {
+      setErrorMessage('Error: User not authenticated.');
+      setSuccessMessage(null);
+      return;
+    }
+    try {
+      await mealPlannerApi.replaceMeal(userId, {
+        date,
+        mealType,
+        newRecipeId:
+          selectedRecipeForMenu.originRecipeId ||
+          selectedRecipeForMenu._id ||
+          '',
+      });
+      setSuccessMessage(
+        `Recipe "${selectedRecipeForMenu.name}" added to menu for ${date} (${mealType}).`,
+      );
+      setErrorMessage(null);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        try {
+          await mealPlannerApi.createWeeklyPlan(userId, date);
+          await mealPlannerApi.replaceMeal(userId, {
+            date,
+            mealType,
+            newRecipeId:
+              selectedRecipeForMenu.originRecipeId ||
+              selectedRecipeForMenu._id ||
+              '',
+          });
+          setSuccessMessage(
+            `Recipe "${selectedRecipeForMenu.name}" added to menu for ${date} (${mealType}).`,
+          );
+          setErrorMessage(null);
+          return;
+        } catch (retryError) {
+          console.error(
+            'Failed to replace meal after initializing plan:',
+            retryError,
+          );
+        }
+      }
+      console.error('Failed to replace meal:', error);
+      setErrorMessage('Failed to add recipe to menu. Please try again.');
+      setSuccessMessage(null);
+    }
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: '3rem' }}>
       <PageHeader
@@ -179,56 +230,7 @@ export function ManualRecipes() {
         open={selectedRecipeForMenu !== null}
         onClose={() => setSelectedRecipeForMenu(null)}
         recipe={selectedRecipeForMenu}
-        onConfirm={async (date, mealType) => {
-          if (!selectedRecipeForMenu) return;
-          const userId = getUserId();
-          if (!userId) {
-            setErrorMessage('Error: User not authenticated.');
-            setSuccessMessage(null);
-            return;
-          }
-          try {
-            await mealPlannerApi.replaceMeal(userId, {
-              date,
-              mealType,
-              newRecipeId:
-                selectedRecipeForMenu.originRecipeId ||
-                selectedRecipeForMenu._id ||
-                '',
-            });
-            setSuccessMessage(
-              `Recipe "${selectedRecipeForMenu.name}" added to menu for ${date} (${mealType}).`,
-            );
-            setErrorMessage(null);
-          } catch (error: any) {
-            if (error.response?.status === 404) {
-              try {
-                await mealPlannerApi.createWeeklyPlan(userId, date);
-                await mealPlannerApi.replaceMeal(userId, {
-                  date,
-                  mealType,
-                  newRecipeId:
-                    selectedRecipeForMenu.originRecipeId ||
-                    selectedRecipeForMenu._id ||
-                    '',
-                });
-                setSuccessMessage(
-                  `Recipe "${selectedRecipeForMenu.name}" added to menu for ${date} (${mealType}).`,
-                );
-                setErrorMessage(null);
-                return;
-              } catch (retryError) {
-                console.error(
-                  'Failed to replace meal after initializing plan:',
-                  retryError,
-                );
-              }
-            }
-            console.error('Failed to replace meal:', error);
-            setErrorMessage('Failed to add recipe to menu. Please try again.');
-            setSuccessMessage(null);
-          }
-        }}
+        onConfirm={handleConfirmAddToMenu}
       />
     </Box>
   );
