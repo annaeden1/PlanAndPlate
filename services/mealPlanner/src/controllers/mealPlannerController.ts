@@ -214,6 +214,66 @@ class MealPlannerController {
       res.status(500).json({ error: "Failed to fetch liked recipes" });
     }
   }
+
+  async updateManualRecipe(req: Request, res: Response) {
+    try {
+      const { recipeId } = req.params;
+      const userId = (req as any).user?._id;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      if (!recipeId || typeof recipeId !== 'string' || recipeId.trim() === '') {
+        return res.status(400).json({ error: 'Invalid recipe ID' });
+      }
+
+      const updated = await mealPlannerService.updateManualRecipe(
+        recipeId,
+        req.body,
+        userId,
+      );
+
+      if (updated === null) {
+        return res.status(404).json({ error: 'Recipe not found' });
+      }
+
+      res.json(updated);
+    } catch (error: any) {
+      if (error?.message === 'FORBIDDEN') {
+        return res.status(403).json({ error: 'Forbidden: not your recipe or not manual' });
+      }
+      console.error('Error updating manual recipe:', error);
+      res.status(500).json({ error: 'Failed to update manual recipe' });
+    }
+  }
+
+  async deleteManualRecipe(req: Request, res: Response) {
+    try {
+      const { recipeId } = req.params;
+      const userId = (req as any).user?._id;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      if (!recipeId || typeof recipeId !== 'string' || recipeId.trim() === '') {
+        return res.status(400).json({ error: 'Invalid recipe ID' });
+      }
+
+      const deleted = await mealPlannerService.deleteManualRecipe(recipeId, userId);
+
+      if (!deleted) {
+        return res.status(404).json({ error: 'Recipe not found' });
+      }
+
+      res.status(204).send();
+    } catch (error: any) {
+      if (error?.message === 'FORBIDDEN') {
+        return res.status(403).json({ error: 'Forbidden: not your recipe or not manual' });
+      }
+      console.error('Error deleting manual recipe:', error);
+      res.status(500).json({ error: 'Failed to delete manual recipe' });
+    }
+  }
 }
 
 export default new MealPlannerController();
