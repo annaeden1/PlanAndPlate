@@ -420,10 +420,10 @@ class MealPlannerService {
     let nutrition = { ...NUTRITION_FALLBACK };
 
     const missingNutrition =
-      recipePayload.calories == null &&
-      recipePayload.protein == null &&
-      recipePayload.fat == null &&
-      recipePayload.carbs == null;
+      recipePayload.calories === null &&
+      recipePayload.protein === null &&
+      recipePayload.fat === null &&
+      recipePayload.carbs === null;
 
     if (missingNutrition) {
       const ingredients = recipePayload.instructions?.ingredients ?? [];
