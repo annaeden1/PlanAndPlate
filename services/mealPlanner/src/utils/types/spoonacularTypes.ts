@@ -117,25 +117,6 @@ export type RecipeResponse = {
   spoonacularScore: number;
 };
 
-export type MealPlanResponse = {
-  week: {
-    [day: string]: {
-      meals: meal[];
-      nutrients: nutrients;
-    };
-  };
-};
-
-type meal = {
-  id: number;
-  image: string;
-  imageType: string;
-  title: string;
-  readyInMinutes: number;
-  servings: number;
-  sourceUrl: string;
-};
-
 export type nutrients = {
   calories: number;
   protein: number;
