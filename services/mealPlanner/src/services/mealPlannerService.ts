@@ -412,6 +412,53 @@ class MealPlannerService {
     }).lean();
     return manualRecipes;
   }
+
+  async updateManualRecipe(
+    recipeId: string,
+    payload: Partial<IRecipe>,
+    userId: string,
+  ): Promise<IRecipe | null> {
+    const recipe = await Recipe.findOne({ originRecipeId: recipeId });
+
+    if (!recipe) return null;
+    if (recipe.source !== 'manual' || recipe.userId !== userId) {
+      throw new Error('FORBIDDEN');
+    }
+
+    const allowedFields: (keyof IRecipe)[] = [
+      'name',
+      'image',
+      'servings',
+      'readyInMinutes',
+      'diets',
+      'instructions',
+    ];
+    for (const field of allowedFields) {
+      if (payload[field] !== undefined) {
+        (recipe as any)[field] = payload[field];
+      }
+    }
+
+    await recipe.save();
+    return recipe.toObject();
+  }
+
+  async deleteManualRecipe(recipeId: string, userId: string): Promise<boolean> {
+    const recipe = await Recipe.findOne({ originRecipeId: recipeId });
+
+    if (!recipe) return false;
+    if (recipe.source !== 'manual' || recipe.userId !== userId) {
+      throw new Error('FORBIDDEN');
+    }
+
+    await Recipe.deleteOne({ originRecipeId: recipeId });
+    await UserFavorites.updateMany(
+      { likedRecipeIds: recipeId },
+      { $pull: { likedRecipeIds: recipeId } },
+    );
+
+    return true;
+  }
 }
 
 export default new MealPlannerService();
