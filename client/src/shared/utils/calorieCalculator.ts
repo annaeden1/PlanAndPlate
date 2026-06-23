@@ -60,7 +60,9 @@ const calcBmr = (
   return gender === 'male' ? base + 5 : base - 161;
 };
 
-const isComplete = (stats?: Partial<BodyStats> | null): stats is BodyStats =>
+export const isBodyStatsComplete = (
+  stats?: Partial<BodyStats> | null,
+): stats is BodyStats =>
   !!stats &&
   typeof stats.weightKg === 'number' &&
   stats.weightKg > 0 &&
@@ -76,7 +78,7 @@ export const calcTargets = (
   stats: Partial<BodyStats> | null | undefined,
   healthGoal: string,
 ): CalorieTargets | null => {
-  if (!isComplete(stats)) return null;
+  if (!isBodyStatsComplete(stats)) return null;
 
   const bmr = calcBmr(stats.weightKg, stats.heightCm, stats.age, stats.gender);
   const maintenance = bmr * ACTIVITY_MULTIPLIERS[stats.activityLevel];

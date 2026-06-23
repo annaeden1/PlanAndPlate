@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import type { BodyStats, OnboardingData } from '@/shared';
+import { isBodyStatsComplete } from '@/shared';
 import { userManagementApi } from '@/features/auth/api/auth';
 import { ActivityStep } from '@/features/preferences/components/ActivityStep';
 import { BodyStatsStep } from '@/features/preferences/components/BodyStatsStep';
@@ -20,13 +21,6 @@ interface BodyGoalEditorProps {
   initialStats?: Partial<BodyStats>;
   initialGoal: string;
 }
-
-const isComplete = (s: Partial<BodyStats>): boolean =>
-  !!s.weightKg &&
-  !!s.heightCm &&
-  !!s.age &&
-  (s.gender === 'male' || s.gender === 'female') &&
-  !!s.activityLevel;
 
 export function BodyGoalEditor({
   open,
@@ -51,7 +45,7 @@ export function BodyGoalEditor({
     setSaving(true);
     try {
       const prefs: Record<string, unknown> = { healthGoal: goal };
-      if (isComplete(bodyStats)) prefs.bodyStats = bodyStats;
+      if (isBodyStatsComplete(bodyStats)) prefs.bodyStats = bodyStats;
 
       await userManagementApi.updatePreferences(
         userId,
@@ -89,7 +83,7 @@ export function BodyGoalEditor({
         <Button
           variant="contained"
           onClick={handleSave}
-          disabled={saving || !isComplete(bodyStats) || !goal}
+          disabled={saving || !isBodyStatsComplete(bodyStats) || !goal}
         >
           {saving ? 'Saving…' : 'Save'}
         </Button>
