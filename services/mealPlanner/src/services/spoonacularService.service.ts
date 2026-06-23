@@ -1,5 +1,8 @@
 import axios from "axios";
-import { MealPlanResponse, RecipeResponse } from "../utils/types/spoonacularTypes";
+import {
+  MealPlanResponse,
+  RecipeResponse,
+} from "../utils/types/spoonacularTypes";
 
 export const generateMealPlan = async (
   diet?: string,
@@ -13,18 +16,21 @@ export const generateMealPlan = async (
   return response.data;
 };
 
-export const getRecipeDetails = async (recipeId: string): Promise<RecipeResponse> => {
+export const getRecipeDetails = async (
+  recipeId: string,
+): Promise<RecipeResponse> => {
   const apiKey = process.env.SPOONACULAR_API_KEY;
   if (!apiKey) throw new Error("SPOONACULAR_API_KEY is not set");
 
   const url = `https://api.spoonacular.com/recipes/${recipeId}/information?includeNutrition=true&apiKey=${apiKey}`;
   const response = await axios.get(url);
-  console.log("Spoonacular recipe details response: instructions ", response.data.analyzedInstructions[0].steps[0].ingredients);
-  console.log("Spoonacular recipe details response: analyzedInstructions ", response.data.analyzedInstructions[0].steps[0].equipment);
+
   return response.data;
 };
 
-export const getRecipeDetailsBulk = async (ids: string): Promise<RecipeResponse[]> => {
+export const getRecipeDetailsBulk = async (
+  ids: string,
+): Promise<RecipeResponse[]> => {
   const apiKey = process.env.SPOONACULAR_API_KEY;
   if (!apiKey) throw new Error("SPOONACULAR_API_KEY is not set");
 
@@ -74,9 +80,12 @@ export const searchRecipes = async (
   if (params.diet) query.set("diet", params.diet);
   if (params.intolerances) query.set("intolerances", params.intolerances);
   if (params.mealType) query.set("type", params.mealType);
-  if (params.minCalories !== null && params.minCalories !== undefined) query.set("minCalories", String(params.minCalories));
-  if (params.maxCalories !== null && params.maxCalories !== undefined) query.set("maxCalories", String(params.maxCalories));
-  if (params.minProtein !== null && params.minProtein !== undefined) query.set("minProtein", String(params.minProtein));
+  if (params.minCalories !== null && params.minCalories !== undefined)
+    query.set("minCalories", String(params.minCalories));
+  if (params.maxCalories !== null && params.maxCalories !== undefined)
+    query.set("maxCalories", String(params.maxCalories));
+  if (params.minProtein !== null && params.minProtein !== undefined)
+    query.set("minProtein", String(params.minProtein));
 
   const url = `https://api.spoonacular.com/recipes/complexSearch?${query.toString()}`;
   const response = await axios.get(url);
