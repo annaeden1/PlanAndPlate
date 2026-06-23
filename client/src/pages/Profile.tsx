@@ -31,6 +31,8 @@ export function Profile() {
     loading,
     saving,
     error,
+    mealsLogged,
+    weeksActive,
     updateAccount,
     updatePassword,
     updatePreferenceSettings,
@@ -186,7 +188,7 @@ export function Profile() {
         <Box sx={{ maxWidth: '80rem', mx: 'auto' }}>
           <Card elevation={3} sx={{ p: '1.5rem' }}>
             <ProfileHeader username={username} email={email} />
-            <StatCards />
+            <StatCards mealsLogged={mealsLogged} weeksActive={weeksActive} />
           </Card>
         </Box>
       </Box>

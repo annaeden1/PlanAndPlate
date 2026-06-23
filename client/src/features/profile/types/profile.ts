@@ -13,6 +13,8 @@ export interface UserProfile {
   loading: boolean;
   saving: boolean;
   error: string | null;
+  mealsLogged: number;
+  weeksActive: number;
   updateAccount: (payload: { username: string }) => Promise<{
     success: boolean;
     error?: string;

@@ -13,8 +13,11 @@ import {
   ComplexSearchRecipe,
   SlotResult,
 } from "../utils/types/spoonacularTypes";
-import { calcTargets } from "../utils/calorieCalculator";
+import { calcTargets, BodyStats } from "../utils/calorieCalculator";
 import { buildWeek } from "../utils/dayPlanBuilder";
+import { getAiProvider } from "../ai/aiProvider";
+
+const NUTRITION_FALLBACK = { calories: 400, protein: 20, fat: 15, carbs: 45 };
 
 const nutrientAmount = (recipe: ComplexSearchRecipe, name: string): number =>
   recipe.nutrition?.nutrients?.find((n) => n.name === name)?.amount ?? 0;
@@ -25,8 +28,20 @@ const slotToMeal = (slot?: SlotResult) =>
         recipeId: String(slot.recipe.id),
         name: slot.recipe.title,
         calories: Math.round(slot.calories),
+        image: slot.recipe.image ?? "",
       }
-    : { recipeId: "0", name: "", calories: 0 };
+    : { recipeId: "0", name: "", calories: 0, image: "" };
+
+interface ParsedUserPreferences {
+  /** First diet value — used when an API accepts only one (e.g. Spoonacular). */
+  primaryDiet: string;
+  /** All diets joined with ", " — used for free-text contexts like AI prompts. */
+  dietString: string;
+  allergies: string;
+  healthGoal?: string;
+  weeklyBudget?: number;
+  bodyStats?: Partial<BodyStats>;
+}
 
 class MealPlannerService {
   async createWeeklyPlan(
@@ -41,32 +56,19 @@ class MealPlannerService {
     const weekStart = new Date(refDate);
     weekStart.setDate(refDate.getDate() - refDate.getDay());
 
-    const userPreferences = await axios.get(
-      `${process.env.USER_MANAGMENT_URL}/userManagement/${userId}/preferences`,
-      { headers: { Authorization: token } },
-    );
-
-    const allergyExcludeString = Array.isArray(
-      userPreferences.data.userPreferences.allergies,
-    )
-      ? userPreferences.data.userPreferences.allergies.join(",")
-      : userPreferences.data.userPreferences.allergies || "";
-
-    const diet = Array.isArray(userPreferences.data.userPreferences.diet)
-      ? userPreferences.data.userPreferences.diet[0] || ""
-      : userPreferences.data.userPreferences.diet || "";
+    const userPreferences = await this.getUserPreferences(userId, token);
 
     const targets = calcTargets(
-      userPreferences.data.userPreferences.bodyStats,
-      userPreferences.data.userPreferences.healthGoal,
+      userPreferences.bodyStats,
+      userPreferences.healthGoal ?? "",
     );
 
     const week = await buildWeek(
       {
         proteinGramsPerDay: targets?.proteinGramsPerDay ?? 0,
         targetCalories: targets?.targetCalories ?? 0,
-        diet: diet || undefined,
-        excludeIngredients: allergyExcludeString || undefined,
+        diet: userPreferences.primaryDiet || undefined,
+        excludeIngredients: userPreferences.allergies || undefined,
       },
       searchRecipesByNutrition,
     );
@@ -209,7 +211,10 @@ class MealPlannerService {
       recipeId: String(newRecipeId),
       name: recipe.name,
       calories: recipe.calories ?? 0,
+      image: recipe.image ?? "",
     };
+
+    plan.markModified("days");
 
     plan.nutritionSummary.calories = plan.days.reduce(
       (sum, d) =>
@@ -346,10 +351,108 @@ class MealPlannerService {
     return recipes.map((r) => ({ ...r.toObject(), isLiked: true }));
   }
 
+  private async getUserPreferences(
+    userId: string,
+    authHeader?: string,
+  ): Promise<ParsedUserPreferences> {
+    const res = await axios.get(
+      `${process.env.USER_MANAGMENT_URL}/userManagement/${userId}/preferences`,
+      authHeader ? { headers: { Authorization: authHeader } } : {},
+    );
+    const raw = res.data?.userPreferences ?? res.data?.preferences ?? {};
+
+    const dietList: string[] = Array.isArray(raw.diet)
+      ? raw.diet
+      : raw.diet
+        ? [raw.diet]
+        : [];
+
+    const allergiesList: string[] = Array.isArray(raw.allergies)
+      ? raw.allergies
+      : raw.allergies
+        ? [raw.allergies]
+        : [];
+
+    return {
+      primaryDiet: dietList[0] ?? "",
+      dietString: dietList.join(", "),
+      allergies: allergiesList.join(", "),
+      healthGoal: raw.healthGoal ?? undefined,
+      weeklyBudget: raw.weeklyBudget ?? undefined,
+      bodyStats: raw.bodyStats ?? undefined,
+    };
+  }
+
   async createManualRecipe(
     recipePayload: Partial<IRecipe>,
     userId: string,
+    authHeader?: string,
   ): Promise<IRecipe> {
+    let nutrition = { ...NUTRITION_FALLBACK };
+
+    const missingNutrition =
+      recipePayload.calories === null &&
+      recipePayload.protein === null &&
+      recipePayload.fat === null &&
+      recipePayload.carbs === null;
+
+    if (missingNutrition) {
+      const ingredients = recipePayload.instructions?.ingredients ?? [];
+      const steps = recipePayload.instructions?.steps ?? [];
+
+      const provider = getAiProvider();
+      if (provider.estimateNutrition && ingredients.length > 0) {
+        let userContext:
+          | { diet?: string; healthGoal?: string; allergies?: string }
+          | undefined;
+        try {
+          const prefs = await this.getUserPreferences(userId, authHeader);
+          userContext = {
+            diet: prefs.dietString || undefined,
+            healthGoal: prefs.healthGoal,
+            allergies: prefs.allergies || undefined,
+          };
+        } catch (err) {
+          console.warn(
+            "Could not fetch user preferences for nutrition estimation:",
+            err,
+          );
+        }
+
+        try {
+          const estimate = await provider.estimateNutrition({
+            name: recipePayload.name ?? "Recipe",
+            ingredients: ingredients.map((ing) => ({
+              name: ing.name,
+              amount: ing.amount,
+              unit: ing.unit,
+            })),
+            steps,
+            servings: recipePayload.servings,
+            userContext,
+          });
+
+          if (estimate) {
+            nutrition = estimate;
+            console.log(
+              `AI nutrition estimated for "${recipePayload.name}":`,
+              nutrition,
+            );
+          } else {
+            console.warn(
+              `AI returned null for "${recipePayload.name}", using fallback nutrition.`,
+            );
+          }
+        } catch (err) {
+          console.warn("AI nutrition estimation failed, using fallback:", err);
+        }
+      } else if (ingredients.length === 0) {
+        console.info(
+          "No ingredients provided; using fallback nutrition values.",
+        );
+      }
+    }
+
     const manualRecipe = new Recipe({
       source: "manual",
       userId,
@@ -360,10 +463,10 @@ class MealPlannerService {
       readyInMinutes: recipePayload.readyInMinutes,
       diets: recipePayload.diets ?? [],
       instructions: recipePayload.instructions,
-      calories: recipePayload.calories ?? 300,
-      protein: recipePayload.protein ?? 15,
-      fat: recipePayload.fat ?? 10,
-      carbs: recipePayload.carbs ?? 35,
+      calories: recipePayload.calories ?? nutrition.calories,
+      protein: recipePayload.protein ?? nutrition.protein,
+      fat: recipePayload.fat ?? nutrition.fat,
+      carbs: recipePayload.carbs ?? nutrition.carbs,
     });
 
     await manualRecipe.save();
@@ -376,6 +479,37 @@ class MealPlannerService {
       userId,
     }).lean();
     return manualRecipes;
+  }
+
+  async getUserStats(
+    userId: string,
+  ): Promise<{ weeksActive: number; mealsLogged: number }> {
+    const weeksActive = await MealPlan.countDocuments({ userId });
+
+    const mealPlans = await MealPlan.find({ userId });
+    const mealsInPlans = mealPlans.reduce((total, plan) => {
+      const dailyMeals = (plan.days || []).flatMap((day) => [
+        day.breakfast,
+        day.lunch,
+        day.dinner,
+      ]);
+      const validMeals = dailyMeals.filter((meal) => {
+        if (!meal || !meal.recipeId) return false;
+        const recipeIdStr = String(meal.recipeId).trim();
+        return recipeIdStr !== "0" && recipeIdStr !== "";
+      });
+      return total + validMeals.length;
+    }, 0);
+
+    const manualRecipesCount = await Recipe.countDocuments({
+      userId,
+      source: "manual",
+    });
+
+    return {
+      weeksActive,
+      mealsLogged: mealsInPlans + manualRecipesCount,
+    };
   }
 
   async updateManualRecipe(

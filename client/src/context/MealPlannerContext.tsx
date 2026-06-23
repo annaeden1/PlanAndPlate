@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from 'react';
 import type { ReactNode } from 'react';
 
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
@@ -26,7 +32,9 @@ interface MealPlannerActions {
   toggleMeal: (id: string) => void;
 }
 
-const MealPlannerContext = createContext<(MealPlannerState & MealPlannerActions) | null>(null);
+const MealPlannerContext = createContext<
+  (MealPlannerState & MealPlannerActions) | null
+>(null);
 
 export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
   const [meals, setMeals] = useState<Meal[]>([]);
@@ -34,22 +42,29 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const userId = getUserId();
-    if (!userId) { setLoading(false); return; }
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
 
     const today = new Date().toISOString().split('T')[0];
 
     mealPlannerApi
       .getDailyPlan(userId, today)
       .then((day) => {
-        const mapped: Meal[] = (['breakfast', 'lunch', 'dinner'] as const).map((type) => ({
-          id: day[type].recipeId,
-          name: day[type].name,
-          image: `https://spoonacular.com/recipeImages/${day[type].recipeId}-312x231.jpg`,
-          mealType: MEAL_TYPES[type],
-          time: MEAL_TIMES[type],
-          calories: day[type].calories,
-          completed: false,
-        }));
+        const mapped: Meal[] = (['breakfast', 'lunch', 'dinner'] as const).map(
+          (type) => ({
+            id: day[type].recipeId,
+            name: day[type].name,
+            image:
+              day[type].image ||
+              `https://spoonacular.com/recipeImages/${day[type].recipeId}-312x231.jpg`,
+            mealType: MEAL_TYPES[type],
+            time: MEAL_TIMES[type],
+            calories: day[type].calories,
+            completed: false,
+          }),
+        );
         setMeals(mapped);
       })
       .catch(() => setMeals([]))
@@ -74,6 +89,7 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
 
 export const useMealPlanner = () => {
   const ctx = useContext(MealPlannerContext);
-  if (!ctx) throw new Error('useMealPlanner must be used inside MealPlannerProvider');
+  if (!ctx)
+    throw new Error('useMealPlanner must be used inside MealPlannerProvider');
   return ctx;
 };

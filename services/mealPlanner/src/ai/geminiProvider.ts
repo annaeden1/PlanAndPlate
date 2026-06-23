@@ -1,5 +1,10 @@
 import { GoogleGenAI } from "@google/genai";
 import { AiProvider, ExplainProfile } from "./aiProvider";
+import {
+  NutritionEstimate,
+  NutritionRecipeInput,
+  buildNutritionPrompt,
+} from "./nutritionPrompt";
 
 const EMBED_MODEL = "gemini-embedding-001"; // text-only, 3072-dim
 const TEXT_MODEL = "gemini-2.0-flash";
@@ -34,10 +39,14 @@ export class GeminiProvider implements AiProvider {
     candidates: { originRecipeId: string; name: string }[],
   ): Promise<Record<string, string>> {
     const parts: string[] = [];
-    parts.push(`A user enjoys ${profile.cuisines.join(", ") || "varied"} cuisine.`);
+    parts.push(
+      `A user enjoys ${profile.cuisines.join(", ") || "varied"} cuisine.`,
+    );
     if (profile.diet) parts.push(`They follow a ${profile.diet} diet.`);
-    if (profile.healthGoal) parts.push(`Their health goal is: ${profile.healthGoal}.`);
-    if (profile.allergies) parts.push(`They are allergic to: ${profile.allergies}.`);
+    if (profile.healthGoal)
+      parts.push(`Their health goal is: ${profile.healthGoal}.`);
+    if (profile.allergies)
+      parts.push(`They are allergic to: ${profile.allergies}.`);
     const prompt =
       parts.join(" ") +
       ` For each recipe below, write a short (max 12 words) reason it fits them. ` +
@@ -53,6 +62,38 @@ export class GeminiProvider implements AiProvider {
     } catch (err) {
       console.error("Gemini explain failed:", err);
       return {};
+    }
+  }
+
+  async estimateNutrition(
+    recipe: NutritionRecipeInput,
+  ): Promise<NutritionEstimate | null> {
+    const prompt = buildNutritionPrompt(recipe);
+    try {
+      const res = await this.ai.models.generateContent({
+        model: TEXT_MODEL,
+        contents: prompt,
+      });
+      const text = (res.text ?? "").replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(text);
+      if (
+        typeof parsed.calories === "number" &&
+        typeof parsed.protein === "number" &&
+        typeof parsed.fat === "number" &&
+        typeof parsed.carbs === "number"
+      ) {
+        return {
+          calories: Math.round(parsed.calories * 10) / 10,
+          protein: Math.round(parsed.protein * 10) / 10,
+          fat: Math.round(parsed.fat * 10) / 10,
+          carbs: Math.round(parsed.carbs * 10) / 10,
+        };
+      }
+      console.warn("Gemini nutrition response has unexpected shape:", parsed);
+      return null;
+    } catch (err) {
+      console.error("Gemini estimateNutrition failed:", err);
+      return null;
     }
   }
 }

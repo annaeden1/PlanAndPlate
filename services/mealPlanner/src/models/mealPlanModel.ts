@@ -1,9 +1,10 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 export interface IMealPlanMeal {
   recipeId: string;
   name: string;
   calories: number;
+  image?: string;
 }
 
 export interface IMealPlanDay {
@@ -30,13 +31,30 @@ export interface IMealPlan {
 
 const mealPlanSchema = new mongoose.Schema({
   userId: { type: String, required: true },
-  days: [{
-    date: { type: Date, required: true },
-    breakfast: { recipeId: String, name: String, calories: Number },
-    lunch: { recipeId: String, name: String, calories: Number },
-    dinner: { recipeId: String, name: String, calories: Number },
-    proteinTargetMet: Boolean,
-  }],
+  days: [
+    {
+      date: { type: Date, required: true },
+      breakfast: {
+        recipeId: String,
+        name: String,
+        calories: Number,
+        image: String,
+      },
+      lunch: {
+        recipeId: String,
+        name: String,
+        calories: Number,
+        image: String,
+      },
+      dinner: {
+        recipeId: String,
+        name: String,
+        calories: Number,
+        image: String,
+      },
+      proteinTargetMet: Boolean,
+    },
+  ],
   nutritionSummary: {
     calories: Number,
     protein: Number,
@@ -45,4 +63,7 @@ const mealPlanSchema = new mongoose.Schema({
   },
 });
 
-export const MealPlan = mongoose.model<IMealPlan & mongoose.Document>("MealPlan", mealPlanSchema);
+export const MealPlan = mongoose.model<IMealPlan & mongoose.Document>(
+  'MealPlan',
+  mealPlanSchema,
+);

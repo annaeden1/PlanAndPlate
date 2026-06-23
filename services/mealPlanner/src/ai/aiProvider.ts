@@ -1,3 +1,5 @@
+import { NutritionEstimate, NutritionRecipeInput } from "./nutritionPrompt";
+
 export interface ExplainProfile {
   cuisines: string[];
   diet?: string;
@@ -11,6 +13,9 @@ export interface AiProvider {
     profile: ExplainProfile,
     candidates: { originRecipeId: string; name: string }[],
   ): Promise<Record<string, string>>;
+  estimateNutrition?(
+    recipe: NutritionRecipeInput,
+  ): Promise<NutritionEstimate | null>;
 }
 
 export class NullAiProvider implements AiProvider {
@@ -27,7 +32,10 @@ export function getAiProvider(): AiProvider {
   if (process.env.AI_PROVIDER === "gemini" && process.env.GEMINI_API_KEY) {
     const { GeminiProvider } = require("./geminiProvider");
     provider = new GeminiProvider(process.env.GEMINI_API_KEY);
-  } else if (process.env.AI_PROVIDER === "cohere" && process.env.COHERE_API_KEY) {
+  } else if (
+    process.env.AI_PROVIDER === "cohere" &&
+    process.env.COHERE_API_KEY
+  ) {
     const { CohereProvider } = require("./cohereProvider");
     provider = new CohereProvider(process.env.COHERE_API_KEY);
   } else {

@@ -9,11 +9,11 @@ import { MealPlan } from "../models/mealPlanModel";
 const buildPlan = () => {
   const day: any = {
     date: new Date("2026-05-31T12:00:00Z"),
-    breakfast: { recipeId: "b", name: "B", calories: 100 },
-    lunch: { recipeId: "l", name: "L", calories: 200 },
-    dinner: { recipeId: "d", name: "D", calories: 300 },
+    breakfast: { recipeId: "b", name: "B", calories: 100, image: "b.jpg" },
+    lunch: { recipeId: "l", name: "L", calories: 200, image: "l.jpg" },
+    dinner: { recipeId: "d", name: "D", calories: 300, image: "d.jpg" },
   };
-  return { days: [day], nutritionSummary: { calories: 0 }, save: jest.fn() };
+  return { days: [day], nutritionSummary: { calories: 0 }, save: jest.fn(), markModified: jest.fn() };
 };
 
 describe("mealPlannerService.replaceMeal", () => {
@@ -23,7 +23,7 @@ describe("mealPlannerService.replaceMeal", () => {
   it("swaps the slot, recomputes total calories and saves", async () => {
     jest
       .spyOn(mealPlannerService, "getRecipeDetails")
-      .mockResolvedValue({ name: "Gyoza", calories: 400 } as any);
+      .mockResolvedValue({ name: "Gyoza", calories: 400, image: "gyoza.jpg" } as any);
     const plan = buildPlan();
     (MealPlan.findOne as jest.Mock).mockResolvedValue(plan);
 
@@ -34,8 +34,9 @@ describe("mealPlannerService.replaceMeal", () => {
       "222",
     );
 
-    expect(day?.dinner).toEqual({ recipeId: "222", name: "Gyoza", calories: 400 });
+    expect(day?.dinner).toEqual({ recipeId: "222", name: "Gyoza", calories: 400, image: "gyoza.jpg" });
     expect(plan.nutritionSummary.calories).toBe(700); // 100 + 200 + 400
+    expect(plan.markModified).toHaveBeenCalledWith('days');
     expect(plan.save).toHaveBeenCalled();
   });
 
