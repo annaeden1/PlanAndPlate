@@ -1,4 +1,3 @@
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import LocalDiningIcon from '@mui/icons-material/LocalDining';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -22,10 +21,8 @@ export function Profile() {
     diet,
     allergies,
     healthGoal,
-    weeklyBudget,
     preferences,
     goal,
-    budget,
     loading,
     saving,
     error,
@@ -42,11 +39,11 @@ export function Profile() {
   const [currentPasswordError, setCurrentPasswordError] = useState<
     string | null
   >(null);
+  const [newPasswordError, setNewPasswordError] = useState<string | null>(null);
 
   const [editedDiet, setEditedDiet] = useState<string[]>([]);
   const [editedAllergies, setEditedAllergies] = useState<string[]>([]);
   const [editedGoal, setEditedGoal] = useState('');
-  const [editedBudget, setEditedBudget] = useState('');
   const [preferencesEditError, setPreferencesEditError] = useState<
     string | null
   >(null);
@@ -78,6 +75,7 @@ export function Profile() {
     setNewPassword('');
     setAccountEditError(null);
     setCurrentPasswordError(null);
+    setNewPasswordError(null);
     setIsAccountEditOpen(true);
   };
 
@@ -85,11 +83,6 @@ export function Profile() {
     setEditedDiet(diet?.length ? [diet[0]] : []);
     setEditedAllergies(allergies || []);
     setEditedGoal(healthGoal || '');
-    setEditedBudget(
-      weeklyBudget !== undefined && weeklyBudget !== null
-        ? String(weeklyBudget)
-        : '',
-    );
     setPreferencesEditError(null);
     setIsPreferencesEditOpen(true);
   };
@@ -102,6 +95,7 @@ export function Profile() {
 
     setAccountEditError(null);
     setCurrentPasswordError(null);
+    setNewPasswordError(null);
 
     const trimmedUsername = editedUsername.trim();
     const usernameChanged = trimmedUsername !== username.trim();
@@ -115,6 +109,11 @@ export function Profile() {
     }
 
     if (passwordChangeRequested) {
+      if (newPassword.length < 6) {
+        setNewPasswordError('Password must be at least 6 characters long');
+        return;
+      }
+
       const passwordResult = await updatePassword({
         oldPassword,
         newPassword,
@@ -148,20 +147,10 @@ export function Profile() {
   const handleSavePreferences = async () => {
     setPreferencesEditError(null);
 
-    const parsedBudget = editedBudget.trim()
-      ? Number.parseFloat(editedBudget)
-      : undefined;
-
-    if (parsedBudget !== undefined && Number.isNaN(parsedBudget)) {
-      setPreferencesEditError('Weekly budget must be a valid number');
-      return;
-    }
-
     const result = await updatePreferenceSettings({
       diet: editedDiet.slice(0, 1),
       allergies: editedAllergies,
       healthGoal: editedGoal,
-      weeklyBudget: parsedBudget,
     });
 
     if (!result.success) {
@@ -227,7 +216,7 @@ export function Profile() {
                 <ActionRow
                   icon={<PersonIcon />}
                   title="Edit Preferences"
-                  subtitle="Update diets, allergies, goal, and weekly budget"
+                  subtitle="Update diets, allergies, and goal"
                   textColor="primary.main"
                   onClick={openEditPreferences}
                   hideChevron
@@ -254,14 +243,6 @@ export function Profile() {
                   iconBgColor="rgba(255, 143, 90, 0.1)"
                   title="Health Goals"
                   subtitle={goal}
-                  topDivider
-                />
-                <ActionRow
-                  icon={<AttachMoneyIcon />}
-                  iconColor="#fbbf24"
-                  iconBgColor="rgba(251, 191, 36, 0.1)"
-                  title="Weekly Budget"
-                  subtitle={budget}
                   topDivider
                 />
               </Card>
@@ -304,6 +285,7 @@ export function Profile() {
         newPassword={newPassword}
         accountEditError={accountEditError}
         currentPasswordError={currentPasswordError}
+        newPasswordError={newPasswordError}
         canSaveProfile={canSaveProfile}
         onClose={() => !saving && setIsAccountEditOpen(false)}
         onUsernameChange={setEditedUsername}
@@ -312,8 +294,19 @@ export function Profile() {
           if (currentPasswordError) {
             setCurrentPasswordError(null);
           }
+          if (accountEditError) {
+            setAccountEditError(null);
+          }
         }}
-        onNewPasswordChange={setNewPassword}
+        onNewPasswordChange={(value) => {
+          setNewPassword(value);
+          if (newPasswordError) {
+            setNewPasswordError(null);
+          }
+          if (accountEditError) {
+            setAccountEditError(null);
+          }
+        }}
         onSave={handleSaveAccount}
       />
 
@@ -323,14 +316,12 @@ export function Profile() {
         editedDiet={editedDiet}
         editedAllergies={editedAllergies}
         editedGoal={editedGoal}
-        editedBudget={editedBudget}
         preferencesEditError={preferencesEditError}
         canSavePreferences={canSavePreferences}
         onClose={() => !saving && setIsPreferencesEditOpen(false)}
         onDietChange={setEditedDiet}
         onAllergiesChange={setEditedAllergies}
         onGoalChange={setEditedGoal}
-        onBudgetChange={setEditedBudget}
         onSave={handleSavePreferences}
       />
     </Box>

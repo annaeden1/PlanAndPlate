@@ -17,6 +17,8 @@ interface AuthFormProps {
   onSubmit: (e: React.FormEvent, data: any) => void;
   emailError?: boolean;
   emailHelperText?: string;
+  passwordError?: boolean;
+  passwordHelperText?: string;
 }
 
 export function AuthForm({
@@ -24,6 +26,8 @@ export function AuthForm({
   onSubmit,
   emailError = false,
   emailHelperText = '',
+  passwordError = false,
+  passwordHelperText = '',
 }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -82,6 +86,8 @@ export function AuthForm({
         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
         required
         sx={{ mb: '1rem' }}
+        error={passwordError}
+        helperText={passwordHelperText}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">

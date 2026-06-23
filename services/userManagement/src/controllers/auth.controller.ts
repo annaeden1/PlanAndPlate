@@ -18,6 +18,12 @@ const signup = async (req: Request, res: Response) => {
       .json({ error: 'name, email and password are required' });
   }
 
+  if (password.length < 6) {
+    return res
+      .status(400)
+      .json({ error: 'Password must be at least 6 characters long' });
+  }
+
   try {
     const encryptedPassword: string = await hashPassword(password);
     const newUser = await createUser({
