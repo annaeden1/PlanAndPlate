@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { userManagementApi } from '@/features/auth/api/auth';
+import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import type { OnboardingData } from '@/shared';
 import { getUserId } from '../../../shared/utils/userId';
 import type { UserProfile } from '@/features/profile/types/profile';
@@ -191,9 +192,10 @@ export const useUserProfile = (): UserProfile => {
       }
 
       try {
-        const [accountData, preferencesData] = await Promise.all([
+        const [accountData, preferencesData, statsData] = await Promise.all([
           userManagementApi.getAccountData(userId, token),
           userManagementApi.getPreferences(userId, token),
+          mealPlannerApi.getUserStats(userId),
         ]);
 
         const userPreferences = preferencesData.userPreferences || {};
@@ -233,6 +235,8 @@ export const useUserProfile = (): UserProfile => {
           loading: false,
           saving: false,
           error: null,
+          mealsLogged: statsData.mealsLogged ?? 0,
+          weeksActive: statsData.weeksActive ?? 0,
           updateAccount,
           updatePassword,
           updatePreferenceSettings,

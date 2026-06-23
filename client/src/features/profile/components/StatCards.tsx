@@ -1,6 +1,11 @@
 import { Box, Typography } from '@mui/material';
 
-export function StatCards() {
+interface StatCardsProps {
+  mealsLogged: number;
+  weeksActive: number;
+}
+
+export function StatCards({ mealsLogged, weeksActive }: StatCardsProps) {
   return (
     <Box
       sx={{
@@ -12,16 +17,14 @@ export function StatCards() {
         borderColor: 'divider',
       }}
     >
-      {/* TODO: currently mock, fetch from server in future tasks*/}
       <Box sx={{ textAlign: 'center' }}>
-        <Typography variant="h4">127</Typography>
+        <Typography variant="h4">{mealsLogged}</Typography>
         <Typography variant="caption" color="text.secondary">
           Meals Logged
         </Typography>
       </Box>
-      {/* TODO: currently mock, fetch from server in future tasks*/}
       <Box sx={{ textAlign: 'center' }}>
-        <Typography variant="h4">18</Typography>
+        <Typography variant="h4">{weeksActive}</Typography>
         <Typography variant="caption" color="text.secondary">
           Weeks Active
         </Typography>

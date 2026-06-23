@@ -11,6 +11,8 @@ export const initialProfileState: UserProfile = {
   loading: true,
   saving: false,
   error: null,
+  mealsLogged: 0,
+  weeksActive: 0,
   updateAccount: async () => ({ success: false, error: 'Not initialized' }),
   updatePassword: async () => ({ success: false, error: 'Not initialized' }),
   updatePreferenceSettings: async () => ({
@@ -30,4 +32,6 @@ export const errorProfileState: Partial<UserProfile> = {
   loading: false,
   saving: false,
   error: 'Failed to load profile',
+  mealsLogged: 0,
+  weeksActive: 0,
 };
