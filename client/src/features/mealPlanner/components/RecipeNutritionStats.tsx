@@ -28,5 +28,10 @@ export const RecipeNutritionStats = ({ recipe }: RecipeNutritionStatsProps) => (
         </Box>
       </Box>
     </Card>
+    {recipe.source === "manual" && (
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: "0.5rem" }}>
+        Nutrition values are AI-estimated and may not be fully accurate.
+      </Typography>
+    )}
   </Box>
 );
