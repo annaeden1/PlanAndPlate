@@ -419,11 +419,14 @@ class MealPlannerService {
   ): Promise<IRecipe> {
     let nutrition = { ...NUTRITION_FALLBACK };
 
+    const isValidNumber = (value: unknown): value is number =>
+      typeof value === "number" && !Number.isNaN(value);
+
     const missingNutrition =
-      recipePayload.calories == null &&
-      recipePayload.protein == null &&
-      recipePayload.fat == null &&
-      recipePayload.carbs == null;
+      !isValidNumber(recipePayload.calories) &&
+      !isValidNumber(recipePayload.protein) &&
+      !isValidNumber(recipePayload.fat) &&
+      !isValidNumber(recipePayload.carbs);
 
     if (missingNutrition) {
       const ingredients = recipePayload.instructions?.ingredients ?? [];
