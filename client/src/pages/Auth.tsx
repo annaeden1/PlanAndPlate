@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Box,
   Card,
@@ -7,12 +7,11 @@ import {
   Alert,
   Collapse,
   IconButton,
-} from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
-import AppleIcon from '@mui/icons-material/Apple';
-import { AuthForm } from '@/features/auth/components/AuthForm';
-import { AuthTabs } from '@/features/auth/components/AuthTabs';
-import { userManagementApi } from '@/features/auth/api/auth';
+} from "@mui/material";
+import { Close as CloseIcon } from "@mui/icons-material";
+import { AuthForm } from "@/features/auth/components/AuthForm";
+import { AuthTabs } from "@/features/auth/components/AuthTabs";
+import { userManagementApi } from "@/features/auth/api/auth";
 
 interface AuthFormData {
   name?: string;
@@ -31,23 +30,23 @@ interface AuthProps {
 
 export function Auth({ onAuthComplete }: AuthProps) {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const [showError, setShowError] = useState(false);
 
   const isDuplicateEmailError =
-    isSignUp && showError && errorMessage === 'Email already exists';
+    isSignUp && showError && errorMessage === "Email already exists";
   const isPasswordLengthError =
     isSignUp &&
     showError &&
-    errorMessage === 'Password must be at least 6 characters long';
+    errorMessage === "Password must be at least 6 characters long";
 
   const handleSubmit = async (e: React.FormEvent, formData: AuthFormData) => {
     e.preventDefault();
     setShowError(false);
-    setErrorMessage('');
+    setErrorMessage("");
 
     if (isSignUp && formData.password.length < 6) {
-      setErrorMessage('Password must be at least 6 characters long');
+      setErrorMessage("Password must be at least 6 characters long");
       setShowError(true);
       return;
     }
@@ -65,12 +64,12 @@ export function Auth({ onAuthComplete }: AuthProps) {
           isSignUp,
         );
       } else {
-        setErrorMessage('Email or password is incorrect');
+        setErrorMessage("Email or password is incorrect");
         setShowError(true);
       }
     } catch {
       setErrorMessage(
-        isSignUp ? 'Email already exists' : 'Email or password is incorrect',
+        isSignUp ? "Email already exists" : "Email or password is incorrect",
       );
       setShowError(true);
     }
@@ -79,49 +78,55 @@ export function Auth({ onAuthComplete }: AuthProps) {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: "100vh",
         background:
-          'linear-gradient(135deg, rgba(62, 180, 137, 0.1) 0%, #ffffff 50%, rgba(255, 143, 90, 0.05) 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        px: '1.5rem',
-        py: '3rem',
+          "linear-gradient(135deg, rgba(62, 180, 137, 0.1) 0%, #ffffff 50%, rgba(255, 143, 90, 0.05) 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        px: "1.5rem",
+        py: "3rem",
       }}
     >
-      <Box sx={{ width: '100%', maxWidth: '28rem' }}>
-        <Box sx={{ textAlign: 'center', mb: '2rem' }}>
+      <Box sx={{ width: "100%", maxWidth: "28rem" }}>
+        <Box sx={{ textAlign: "center", mb: "2rem" }}>
           <Box
             sx={{
-              width: '5rem',
-              height: '5rem',
-              bgcolor: 'primary.main',
-              borderRadius: '1rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              mx: 'auto',
-              mb: '1rem',
+              width: "5rem",
+              height: "5rem",
+              bgcolor: "primary.main",
+              borderRadius: "1rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mx: "auto",
+              mb: "1rem",
               boxShadow: 3,
             }}
           >
-            <AppleIcon
-              sx={{ fontSize: '3rem', color: 'primary.contrastText' }}
-            />
+            <span
+              style={{
+                fontSize: "2.6rem",
+                filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.35)) brightness(1.15)",
+                lineHeight: 1,
+              }}
+            >
+              🍃
+            </span>
           </Box>
           <Typography variant="h1" gutterBottom>
             Plan & Plate
           </Typography>
           <Typography color="text.secondary">
             {isSignUp
-              ? 'Start your healthy eating journey'
-              : 'Welcome back! Ready to eat healthy?'}
+              ? "Start your healthy eating journey"
+              : "Welcome back! Ready to eat healthy?"}
           </Typography>
         </Box>
 
         <Card
           elevation={6}
-          sx={{ p: '2rem', borderRadius: '0.75rem', border: 'none' }}
+          sx={{ p: "2rem", borderRadius: "0.75rem", border: "none" }}
         >
           <CardContent sx={{ p: 0 }}>
             <AuthTabs
@@ -129,11 +134,13 @@ export function Auth({ onAuthComplete }: AuthProps) {
               setIsSignUp={(value: boolean) => {
                 setIsSignUp(value);
                 setShowError(false);
-                setErrorMessage('');
+                setErrorMessage("");
               }}
             />
 
-            <Collapse in={showError && !isDuplicateEmailError && !isPasswordLengthError}>
+            <Collapse
+              in={showError && !isDuplicateEmailError && !isPasswordLengthError}
+            >
               <Alert
                 severity="error"
                 action={
@@ -148,9 +155,9 @@ export function Auth({ onAuthComplete }: AuthProps) {
                 }
                 sx={{
                   mb: 2,
-                  borderRadius: '0.75rem',
+                  borderRadius: "0.75rem",
                   boxShadow: 2,
-                  '& .MuiAlert-message': {
+                  "& .MuiAlert-message": {
                     fontWeight: 500,
                   },
                 }}
@@ -163,9 +170,9 @@ export function Auth({ onAuthComplete }: AuthProps) {
               isSignUp={isSignUp}
               onSubmit={handleSubmit}
               emailError={isDuplicateEmailError}
-              emailHelperText={isDuplicateEmailError ? errorMessage : ''}
+              emailHelperText={isDuplicateEmailError ? errorMessage : ""}
               passwordError={isPasswordLengthError}
-              passwordHelperText={isPasswordLengthError ? errorMessage : ''}
+              passwordHelperText={isPasswordLengthError ? errorMessage : ""}
             />
           </CardContent>
         </Card>
