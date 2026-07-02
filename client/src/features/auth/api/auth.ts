@@ -1,13 +1,13 @@
-import axios from 'axios';
-import type { OnboardingData } from '@/shared';
+import axios from "axios";
+import type { OnboardingData } from "@/shared";
 
 const managementApi = axios.create({
-  baseURL: '/userManagement',
-  headers: { 'Content-Type': 'application/json' },
+  baseURL: "/userManagement",
+  headers: { "Content-Type": "application/json" },
 });
 
 const authApi = axios.create({
-  headers: { 'Content-Type': 'application/json' },
+  headers: { "Content-Type": "application/json" },
 });
 
 export const userManagementApi = {
@@ -65,6 +65,13 @@ export const userManagementApi = {
   ) =>
     managementApi
       .patch(`/${userId}/preferences`, preferences, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((r) => r.data),
+
+  logout: (token: string | null) =>
+    managementApi
+      .post(`/auth/logout`, null, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => r.data),
