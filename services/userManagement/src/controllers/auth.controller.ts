@@ -90,7 +90,7 @@ const logout = async (req: Request, res: Response) => {
   }
 
   const secret: string =
-    process.env.JWT_REFRESH_TOKEN_SECRET || "refresh-secretkey";
+    process.env.JWT_REFRESH_TOKEN_SECRET || "secretkey";
 
   try {
     const decoded: any = jwt.verify(refreshToken, secret);
@@ -126,7 +126,7 @@ const refreshToken = async (req: Request, res: Response) => {
 
   try {
     const secret: string =
-      process.env.JWT_REFRESH_TOKEN_SECRET || "refresh-secretkey";
+      process.env.JWT_REFRESH_TOKEN_SECRET || "secretkey";
     const decoded: any = jwt.verify(refreshToken, secret);
 
     const currUser = await findUserByFilter({ _id: decoded.userId });
@@ -173,9 +173,9 @@ const verify = async (req: AuthRequest, res: Response) => {
 };
 
 const generateToken = (userId: string): Tokens => {
-  const secret: string = process.env.JWT_SECRET || "access-secretkey";
+  const secret: string = process.env.JWT_SECRET || "secretkey";
   const refreshTokenSecret: string =
-    process.env.JWT_REFRESH_TOKEN_SECRET || "refresh-secretkey";
+    process.env.JWT_REFRESH_TOKEN_SECRET || "secretkey";
 
   const exp: number = parseInt(process.env.JWT_EXPIRES_IN || "3600");
   const token: string = jwt.sign({ userId }, secret, {
