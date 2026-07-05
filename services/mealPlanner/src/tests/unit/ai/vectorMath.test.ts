@@ -1,4 +1,4 @@
-import { cosineSimilarity, meanVector } from "../recommendation/vectorMath";
+import { cosineSimilarity, meanVector } from "../../../recommendation/vectorMath";
 
 describe("cosineSimilarity", () => {
   it("returns 1 for identical direction", () => {

@@ -3,7 +3,7 @@ import request from "supertest";
 import path from "path";
 import fs from "fs";
 
-const fileRouter = require("../routes/fileRouter").default;
+const fileRouter = require("../../../routes/fileRouter").default;
 
 const app = express();
 app.use(express.json());

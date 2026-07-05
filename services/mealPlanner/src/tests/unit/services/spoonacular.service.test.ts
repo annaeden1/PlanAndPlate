@@ -4,7 +4,7 @@ import {
   getRecipeDetails,
   getRecipeDetailsBulk,
   searchRecipes
-} from "../services/spoonacularService.service";
+} from "../../../services/spoonacularService.service";
 
 jest.mock("axios");
 

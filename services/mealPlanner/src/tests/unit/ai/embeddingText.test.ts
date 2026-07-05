@@ -1,4 +1,4 @@
-import { buildEmbeddingText, EmbeddingInput } from "../recommendation/embeddingText";
+import { buildEmbeddingText, EmbeddingInput } from "../../../recommendation/embeddingText";
 
 describe("buildEmbeddingText", () => {
   it("combines name, cuisines, dishTypes, diets and up to 8 ingredient names", () => {

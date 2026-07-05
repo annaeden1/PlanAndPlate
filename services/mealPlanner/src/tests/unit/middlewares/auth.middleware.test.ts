@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import express from "express";
 import request from "supertest";
 
-const authMiddleware = require("../middlewares/auth.middleware").default;
+const authMiddleware = require("../../../middlewares/auth.middleware").default;
 
 const app = express();
 app.use(express.json());

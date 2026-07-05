@@ -1,4 +1,4 @@
-import { normalizeUnit } from "../utils/types/units";
+import { normalizeUnit } from "../../../utils/types/units";
 
 describe("normalizeUnit()", () => {
   describe("known aliases", () => {

@@ -2,31 +2,31 @@ import axios from "axios";
 
 jest.mock("axios");
 
-jest.mock("../models/userFavoritesModel", () => ({
+jest.mock("../../../models/userFavoritesModel", () => ({
   __esModule: true,
   UserFavorites: { findOne: jest.fn() },
 }));
 
-jest.mock("../models/recipeModel", () => ({
+jest.mock("../../../models/recipeModel", () => ({
   __esModule: true,
   Recipe: { findOne: jest.fn(), updateOne: jest.fn() },
 }));
 
-jest.mock("../services/spoonacularService.service", () => ({
+jest.mock("../../../services/spoonacularService.service", () => ({
   __esModule: true,
   searchRecipes: jest.fn(),
 }));
 
-jest.mock("../services/mealPlannerService", () => ({
+jest.mock("../../../services/mealPlannerService", () => ({
   __esModule: true,
   default: { getRecipeDetails: jest.fn() },
 }));
 
-import recommendationService from "../recommendation/recommendationService";
-import { Recipe } from "../models/recipeModel";
-import { UserFavorites } from "../models/userFavoritesModel";
-import { searchRecipes } from "../services/spoonacularService.service";
-import { __setAiProvider } from "../ai/aiProvider";
+import recommendationService from "../../../recommendation/recommendationService";
+import { Recipe } from "../../../models/recipeModel";
+import { UserFavorites } from "../../../models/userFavoritesModel";
+import { searchRecipes } from "../../../services/spoonacularService.service";
+import { __setAiProvider, ExplainProfile } from "../../../ai/aiProvider";
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
@@ -80,9 +80,11 @@ beforeEach(() => {
   });
 
   __setAiProvider({
-    embed: async (texts) => texts.map(() => [1, 0]),
-    explain: async (_cuisines, cands) =>
-      Object.fromEntries(cands.map((c) => [c.originRecipeId, `why ${c.originRecipeId}`])),
+    embed: async (texts: string[]) => texts.map(() => [1, 0]),
+    explain: async (_profile: ExplainProfile, cands: any[]) =>
+      Object.fromEntries(
+        cands.map((c: any) => [c.originRecipeId, `why ${c.originRecipeId}`]),
+      ),
   });
 });
 
@@ -107,8 +109,8 @@ describe("recommendationService.getSuggestions", () => {
       "Bearer t",
     );
 
-    expect(result.map((r) => r.originRecipeId)).toEqual(["4", "5"]);
-    expect(result.every((r) => r.why?.startsWith("why "))).toBe(true);
+    expect(result.map((r: any) => r.originRecipeId)).toEqual(["4", "5"]);
+    expect(result.every((r: any) => r.why?.startsWith("why "))).toBe(true);
   });
 
   it("relaxes the search progressively until it finds candidates", async () => {
@@ -125,7 +127,7 @@ describe("recommendationService.getSuggestions", () => {
     );
 
     expect(searchRecipes).toHaveBeenCalledTimes(3);
-    expect(result.map((r) => r.originRecipeId)).toEqual(["4"]);
+    expect(result.map((r: any) => r.originRecipeId)).toEqual(["4"]);
   });
 
   it("never relaxes allergy intolerances across fallback attempts", async () => {

@@ -1,4 +1,4 @@
-import { getAiProvider, NullAiProvider, __setAiProvider } from "../ai/aiProvider";
+import { getAiProvider, NullAiProvider, __setAiProvider } from "../../../ai/aiProvider";
 
 describe("aiProvider - getAiProvider()", () => {
   beforeEach(() => {

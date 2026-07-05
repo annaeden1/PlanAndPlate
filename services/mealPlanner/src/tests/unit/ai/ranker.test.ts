@@ -1,10 +1,18 @@
-import { rankCandidates, RankCandidate } from "../recommendation/ranker";
+import { rankCandidates, RankCandidate } from "../../../recommendation/ranker";
 
 const cand = (id: string, embedding: number[]): RankCandidate => ({
   originRecipeId: id,
   name: `recipe ${id}`,
   embedding,
 });
+// export interface RankCandidate {
+//   originRecipeId: string;
+//   name: string;
+//   image?: string;
+//   calories?: number;
+//   readyInMinutes?: number;
+//   embedding: number[];
+// }
 
 describe("rankCandidates", () => {
   it("orders by cosine similarity to the centroid, descending", () => {
