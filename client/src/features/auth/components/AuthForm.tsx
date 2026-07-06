@@ -2,9 +2,11 @@ import { useState } from 'react';
 import {
   Box,
   Button,
+  Divider,
   IconButton,
   InputAdornment,
   TextField,
+  Typography,
 } from '@mui/material';
 import EmailIcon from '@mui/icons-material/Email';
 import LockIcon from '@mui/icons-material/Lock';
@@ -19,6 +21,7 @@ interface AuthFormProps {
   emailHelperText?: string;
   passwordError?: boolean;
   passwordHelperText?: string;
+  googleLoginButton?: React.ReactNode;
 }
 
 export function AuthForm({
@@ -28,6 +31,7 @@ export function AuthForm({
   emailHelperText = '',
   passwordError = false,
   passwordHelperText = '',
+  googleLoginButton,
 }: AuthFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -116,6 +120,17 @@ export function AuthForm({
       >
         {isSignUp ? 'Create Account' : 'Sign In'}
       </Button>
+
+      {googleLoginButton && (
+        <Box sx={{ mt: 2, width: '100%' }}>
+          <Divider sx={{ mb: 1.5, borderColor: 'grey.300' }}>
+            <Typography variant="body2" color="text.secondary">
+              or continue with
+            </Typography>
+          </Divider>
+          {googleLoginButton}
+        </Box>
+      )}
     </Box>
   );
 }

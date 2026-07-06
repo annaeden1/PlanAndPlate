@@ -13,3 +13,5 @@ authRouter.post('/logout', authController.logout);
 authRouter.post('/refresh-token', authController.refreshToken);
 
 authRouter.get('/verify', authMiddleware, authController.verify);
+
+authRouter.post('/google-signin', authController.googleSignin);

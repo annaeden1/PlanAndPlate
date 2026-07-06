@@ -1,13 +1,14 @@
-import axios from "axios";
-import type { OnboardingData } from "@/shared";
+import axios from 'axios';
+import type { OnboardingData } from '@/shared';
+import type { AuthResponse } from '../types/auth';
 
 const managementApi = axios.create({
-  baseURL: "/userManagement",
-  headers: { "Content-Type": "application/json" },
+  baseURL: '/userManagement',
+  headers: { 'Content-Type': 'application/json' },
 });
 
 const authApi = axios.create({
-  headers: { "Content-Type": "application/json" },
+  headers: { 'Content-Type': 'application/json' },
 });
 
 export const userManagementApi = {
@@ -21,6 +22,11 @@ export const userManagementApi = {
 
   signup: (formData: any) =>
     authApi.post(`/auth/signup`, formData).then((r) => r.data),
+
+  googleSignin: (credential: string) =>
+    authApi
+      .post('/auth/google-signin', { credential })
+      .then((response) => response.data as AuthResponse),
 
   getAccountData: (userId: string, token: string | null) =>
     managementApi
@@ -70,9 +76,13 @@ export const userManagementApi = {
       .then((r) => r.data),
 
   logout: (token: string | null) =>
-    managementApi
-      .post(`/auth/logout`, null, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    authApi
+      .post(
+        `/auth/logout`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
       .then((r) => r.data),
 };
