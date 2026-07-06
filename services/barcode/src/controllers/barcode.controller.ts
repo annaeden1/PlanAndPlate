@@ -55,6 +55,9 @@ export const scanBarcode = async (req: Request, res: Response) => {
     }
 
     if (hasMismatch) {
+      console.log(
+        `Preference mismatch detected for barcode ${barcode}. Building AI alternatives...`,
+      );
       try {
         alternatives = await generateAlternativeSuggestions(
           product,
@@ -64,6 +67,10 @@ export const scanBarcode = async (req: Request, res: Response) => {
       } catch (error) {
         console.log('Could not build alternative suggestions:', error);
       }
+    } else {
+      console.log(
+        `No preference mismatch for barcode ${barcode}. Skipping AI alternatives.`,
+      );
     }
 
     return res.json({
