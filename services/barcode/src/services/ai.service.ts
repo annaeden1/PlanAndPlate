@@ -34,21 +34,15 @@ export class AIService {
 
   constructor(providers?: AlternativeAiProvider[]) {
     this.injectedProviders = providers;
-    const parsedGeminiTimeout = Number(process.env.GEMINI_TIMEOUT_MS);
-    this.geminiTimeoutMs = parsedGeminiTimeout > 0 ? parsedGeminiTimeout : 1500;
+    const parsedProviderTimeout = Number(process.env.AI_PROVIDER_TIMEOUT_MS);
+    this.geminiTimeoutMs =
+      parsedProviderTimeout > 0 ? parsedProviderTimeout : 2500;
   }
 
   private async generateWithTimeout(
     provider: AlternativeAiProvider,
     promptInput: AlternativePromptInput,
   ): Promise<{ text: string | null; timedOut: boolean }> {
-    if (provider.name !== 'gemini') {
-      return {
-        text: await provider.generate(promptInput),
-        timedOut: false,
-      };
-    }
-
     type TimeoutResult = { text: string | null; timedOut: boolean };
 
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
