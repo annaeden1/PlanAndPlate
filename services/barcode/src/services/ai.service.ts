@@ -30,13 +30,14 @@ const hasValidBrand = (brand: string): boolean => {
 
 export class AIService {
   private readonly injectedProviders?: AlternativeAiProvider[];
-  private readonly geminiTimeoutMs: number;
 
   constructor(providers?: AlternativeAiProvider[]) {
     this.injectedProviders = providers;
+  }
+
+  private getProviderTimeoutMs(): number {
     const parsedProviderTimeout = Number(process.env.AI_PROVIDER_TIMEOUT_MS);
-    this.geminiTimeoutMs =
-      parsedProviderTimeout > 0 ? parsedProviderTimeout : 2500;
+    return parsedProviderTimeout > 0 ? parsedProviderTimeout : 2500;
   }
 
   private async generateWithTimeout(
@@ -44,12 +45,13 @@ export class AIService {
     promptInput: AlternativePromptInput,
   ): Promise<{ text: string | null; timedOut: boolean }> {
     type TimeoutResult = { text: string | null; timedOut: boolean };
+    const providerTimeoutMs = this.getProviderTimeoutMs();
 
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
     const timeoutPromise: Promise<TimeoutResult> = new Promise((resolve) => {
       timeoutHandle = setTimeout(() => {
         resolve({ text: null, timedOut: true });
-      }, this.geminiTimeoutMs);
+      }, providerTimeoutMs);
     });
 
     const generatePromise: Promise<TimeoutResult> = provider
@@ -127,7 +129,7 @@ export class AIService {
 
       if (timedOut) {
         console.warn(
-          `AI provider ${provider.name} timed out after ${this.geminiTimeoutMs}ms.${nextProvider ? ` Trying ${nextProvider.name} next.` : ''}`,
+          `AI provider ${provider.name} timed out after ${this.getProviderTimeoutMs()}ms.${nextProvider ? ` Trying ${nextProvider.name} next.` : ''}`,
         );
         failureReasons.push(`${provider.name}: timeout`);
         continue;
