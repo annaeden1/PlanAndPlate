@@ -1,5 +1,4 @@
 import { Box, Typography } from "@mui/material";
-import AppleIcon from "@mui/icons-material/Apple";
 
 interface NavLogoProps {
   onClick?: () => void;
@@ -35,9 +34,22 @@ export const NavLogo = ({ onClick }: NavLogoProps) => {
           transition: "transform 0.18s ease",
         }}
       >
-        <AppleIcon sx={{ color: "#fff", fontSize: "1.4rem" }} />
+        <span
+          style={{
+            fontSize: "1.6rem",
+            filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.35)) brightness(1.15)",
+            lineHeight: 1,
+          }}
+        >
+          🍃
+        </span>
       </Box>
-      <Typography variant="h6" fontWeight={700} color="text.primary" letterSpacing="-0.02em">
+      <Typography
+        variant="h6"
+        fontWeight={700}
+        color="text.primary"
+        letterSpacing="-0.02em"
+      >
         Plan &amp; Plate
       </Typography>
     </Box>
