@@ -81,9 +81,9 @@ beforeEach(() => {
 
   __setAiProvider({
     embed: async (texts: string[]) => texts.map(() => [1, 0]),
-    explain: async (_profile: ExplainProfile, cands: any[]) =>
+    explain: async (_profile: ExplainProfile, cands) =>
       Object.fromEntries(
-        cands.map((c: any) => [c.originRecipeId, `why ${c.originRecipeId}`]),
+        cands.map((c) => [c.originRecipeId, `why ${c.originRecipeId}`]),
       ),
   });
 });
@@ -109,8 +109,8 @@ describe("recommendationService.getSuggestions", () => {
       "Bearer t",
     );
 
-    expect(result.map((r: any) => r.originRecipeId)).toEqual(["4", "5"]);
-    expect(result.every((r: any) => r.why?.startsWith("why "))).toBe(true);
+    expect(result.map((r) => r.originRecipeId)).toEqual(["4", "5"]);
+    expect(result.every((r) => r.why?.startsWith("why "))).toBe(true);
   });
 
   it("relaxes the search progressively until it finds candidates", async () => {
@@ -127,7 +127,7 @@ describe("recommendationService.getSuggestions", () => {
     );
 
     expect(searchRecipes).toHaveBeenCalledTimes(3);
-    expect(result.map((r: any) => r.originRecipeId)).toEqual(["4"]);
+    expect(result.map((r) => r.originRecipeId)).toEqual(["4"]);
   });
 
   it("never relaxes allergy intolerances across fallback attempts", async () => {
