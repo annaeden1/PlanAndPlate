@@ -7,7 +7,7 @@ import { mealPlannerRouter } from "./routes/mealPlannerRouter";
 import fileRouter from "./routes/fileRouter";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
-import { options } from "./utils/swagger";
+import swaggerSpec from "./config/swagger";
 
 dotenv.config();
 
@@ -22,8 +22,7 @@ app.use("/mealPlanner", mealPlannerRouter);
 app.use("/public/photos", express.static("public/photos"));
 app.use("/file", fileRouter);
 
-const specs = swaggerJsDoc(options);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 export const initApp = (): Promise<Express> => {
   const promise = new Promise<Express>((resolve, reject) => {
