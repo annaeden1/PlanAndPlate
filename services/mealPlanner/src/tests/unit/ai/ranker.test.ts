@@ -5,14 +5,6 @@ const cand = (id: string, embedding: number[]): RankCandidate => ({
   name: `recipe ${id}`,
   embedding,
 });
-// export interface RankCandidate {
-//   originRecipeId: string;
-//   name: string;
-//   image?: string;
-//   calories?: number;
-//   readyInMinutes?: number;
-//   embedding: number[];
-// }
 
 describe("rankCandidates", () => {
   it("orders by cosine similarity to the centroid, descending", () => {
