@@ -1,18 +1,19 @@
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import LocalDiningIcon from '@mui/icons-material/LocalDining';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import LogoutIcon from '@mui/icons-material/Logout';
-import PersonIcon from '@mui/icons-material/Person';
-import { Box, Card, Typography } from '@mui/material';
-import { useMemo, useState } from 'react';
-import { ActionRow } from '@/components/common/ActionRow';
-import { PageHeader } from '@/components/common/PageHeader';
-import { EditAccountDialog } from '@/features/profile/components/EditAccountDialog';
-import { EditPreferencesDialog } from '@/features/profile/components/EditPreferencesDialog';
-import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
-import { StatCards } from '@/features/profile/components/StatCards';
-import { useUserProfile } from '@/features/profile/hooks/useUserProfile';
-import { allergiesOptions } from '@/features/preferences/utils/preferencesOptions';
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import LocalDiningIcon from "@mui/icons-material/LocalDining";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import LogoutIcon from "@mui/icons-material/Logout";
+import PersonIcon from "@mui/icons-material/Person";
+import { Box, Card, Typography } from "@mui/material";
+import { useMemo, useState } from "react";
+import { ActionRow } from "@/components/common/ActionRow";
+import { PageHeader } from "@/components/common/PageHeader";
+import { EditAccountDialog } from "@/features/profile/components/EditAccountDialog";
+import { EditPreferencesDialog } from "@/features/profile/components/EditPreferencesDialog";
+import { ProfileHeader } from "@/features/profile/components/ProfileHeader";
+import { StatCards } from "@/features/profile/components/StatCards";
+import { useUserProfile } from "@/features/profile/hooks/useUserProfile";
+import { allergiesOptions } from "@/features/preferences/utils/preferencesOptions";
+import { userManagementApi } from "@/features/auth/api/auth";
 
 export function Profile() {
   const {
@@ -34,9 +35,9 @@ export function Profile() {
   } = useUserProfile();
   const [isAccountEditOpen, setIsAccountEditOpen] = useState(false);
   const [isPreferencesEditOpen, setIsPreferencesEditOpen] = useState(false);
-  const [editedUsername, setEditedUsername] = useState('');
-  const [oldPassword, setOldPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
+  const [editedUsername, setEditedUsername] = useState("");
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [accountEditError, setAccountEditError] = useState<string | null>(null);
   const [currentPasswordError, setCurrentPasswordError] = useState<
     string | null
@@ -45,10 +46,11 @@ export function Profile() {
 
   const [editedDiet, setEditedDiet] = useState<string[]>([]);
   const [editedAllergies, setEditedAllergies] = useState<string[]>([]);
-  const [editedGoal, setEditedGoal] = useState('');
+  const [editedGoal, setEditedGoal] = useState("");
   const [preferencesEditError, setPreferencesEditError] = useState<
     string | null
   >(null);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
 
   const canSaveProfile = useMemo(
     () => editedUsername.trim().length > 0 && !saving,
@@ -59,7 +61,7 @@ export function Profile() {
 
   const allergiesDisplay = useMemo(() => {
     if (!allergies?.length) {
-      return 'Not set';
+      return "Not set";
     }
 
     return allergies
@@ -68,13 +70,13 @@ export function Profile() {
           allergiesOptions.find((option) => option.id === value)?.label ||
           value,
       )
-      .join(', ');
+      .join(", ");
   }, [allergies]);
 
   const openEditAccount = () => {
     setEditedUsername(username);
-    setOldPassword('');
-    setNewPassword('');
+    setOldPassword("");
+    setNewPassword("");
     setAccountEditError(null);
     setCurrentPasswordError(null);
     setNewPasswordError(null);
@@ -84,14 +86,14 @@ export function Profile() {
   const openEditPreferences = () => {
     setEditedDiet(diet?.length ? [diet[0]] : []);
     setEditedAllergies(allergies || []);
-    setEditedGoal(healthGoal || '');
+    setEditedGoal(healthGoal || "");
     setPreferencesEditError(null);
     setIsPreferencesEditOpen(true);
   };
 
   const handleSaveAccount = async () => {
     if (!editedUsername.trim()) {
-      setAccountEditError('Username is required');
+      setAccountEditError("Username is required");
       return;
     }
 
@@ -105,14 +107,14 @@ export function Profile() {
 
     if ((oldPassword && !newPassword) || (!oldPassword && newPassword)) {
       setAccountEditError(
-        'To change password, fill both current and new password.',
+        "To change password, fill both current and new password.",
       );
       return;
     }
 
     if (passwordChangeRequested) {
       if (newPassword.length < 6) {
-        setNewPasswordError('Password must be at least 6 characters long');
+        setNewPasswordError("Password must be at least 6 characters long");
         return;
       }
 
@@ -123,7 +125,7 @@ export function Profile() {
 
       if (!passwordResult.success) {
         setCurrentPasswordError(
-          passwordResult.error || 'Failed to update password',
+          passwordResult.error || "Failed to update password",
         );
         return;
       }
@@ -139,7 +141,7 @@ export function Profile() {
     });
 
     if (!result.success) {
-      setAccountEditError(result.error || 'Failed to update profile');
+      setAccountEditError(result.error || "Failed to update profile");
       return;
     }
 
@@ -156,26 +158,41 @@ export function Profile() {
     });
 
     if (!result.success) {
-      setPreferencesEditError(result.error || 'Failed to update preferences');
+      setPreferencesEditError(result.error || "Failed to update preferences");
       return;
     }
 
     setIsPreferencesEditOpen(false);
   };
 
-  const handleSignOut = () => {
-    localStorage.removeItem('access-token');
-    localStorage.removeItem('refresh-token');
-    window.location.reload();
+  const LOGOUT_ERROR_DISPLAY_MS = 2500;
+
+  const handleSignOut = async () => {
+    const refreshToken = localStorage.getItem("refresh-token");
+    setLogoutError(null);
+
+    let reloadDelay = 0;
+    try {
+      await userManagementApi.logout(refreshToken);
+    } catch {
+      setLogoutError(
+        "Sign out failed on the server, but you've been logged out locally.",
+      );
+      reloadDelay = LOGOUT_ERROR_DISPLAY_MS;
+    }
+
+    localStorage.removeItem("access-token");
+    localStorage.removeItem("refresh-token");
+    setTimeout(() => window.location.reload(), reloadDelay);
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', pb: '3rem' }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: "3rem" }}>
       <PageHeader title="Profile" />
 
-      <Box sx={{ px: { xs: '1rem', sm: '1.5rem' }, mt: '-2rem', mb: '1.5rem' }}>
-        <Box sx={{ maxWidth: '80rem', mx: 'auto' }}>
-          <Card elevation={3} sx={{ p: '1.5rem' }}>
+      <Box sx={{ px: { xs: "1rem", sm: "1.5rem" }, mt: "-2rem", mb: "1.5rem" }}>
+        <Box sx={{ maxWidth: "80rem", mx: "auto" }}>
+          <Card elevation={3} sx={{ p: "1.5rem" }}>
             <ProfileHeader username={username} email={email} />
             <StatCards mealsLogged={mealsLogged} weeksActive={weeksActive} />
           </Card>
@@ -184,34 +201,34 @@ export function Profile() {
 
       <Box
         sx={{
-          px: { xs: '1rem', sm: '1.5rem' },
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '1.5rem',
+          px: { xs: "1rem", sm: "1.5rem" },
+          display: "flex",
+          flexDirection: "column",
+          gap: "1.5rem",
         }}
       >
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: '3rem' }}>
+          <Box sx={{ display: "flex", justifyContent: "center", py: "3rem" }}>
             <Typography>Loading profile...</Typography>
           </Box>
         ) : error ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: '3rem' }}>
+          <Box sx={{ display: "flex", justifyContent: "center", py: "3rem" }}>
             <Typography color="error">{error}</Typography>
           </Box>
         ) : (
           <Box
             sx={{
-              maxWidth: '80rem',
-              mx: 'auto',
-              width: '100%',
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: '2rem',
-              alignItems: 'start',
+              maxWidth: "80rem",
+              mx: "auto",
+              width: "100%",
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+              gap: "2rem",
+              alignItems: "start",
             }}
           >
             <Box sx={{ minWidth: 0 }}>
-              <Typography variant="h4" sx={{ mb: '0.75rem', px: '0.25rem' }}>
+              <Typography variant="h4" sx={{ mb: "0.75rem", px: "0.25rem" }}>
                 Your Preferences
               </Typography>
               <Card>
@@ -228,7 +245,7 @@ export function Profile() {
                   iconColor="#4a90d9"
                   iconBgColor="rgba(74, 144, 217, 0.1)"
                   title="Dietary Preferences"
-                  subtitle={preferences.join(', ') || 'Not set'}
+                  subtitle={preferences.join(", ") || "Not set"}
                   topDivider
                 />
                 <ActionRow
@@ -251,7 +268,7 @@ export function Profile() {
             </Box>
 
             <Box sx={{ minWidth: 0 }}>
-              <Typography variant="h4" sx={{ mb: '0.75rem', px: '0.25rem' }}>
+              <Typography variant="h4" sx={{ mb: "0.75rem", px: "0.25rem" }}>
                 Account Settings
               </Typography>
               <Card>
@@ -273,6 +290,15 @@ export function Profile() {
                   topDivider
                   hideChevron
                 />
+                {logoutError && (
+                  <Typography
+                    variant="body2"
+                    color="error"
+                    sx={{ px: "1rem", pb: "0.75rem" }}
+                  >
+                    {logoutError}
+                  </Typography>
+                )}
               </Card>
             </Box>
           </Box>

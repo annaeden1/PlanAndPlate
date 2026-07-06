@@ -1,5 +1,4 @@
 import { Box, LinearProgress, Typography } from "@mui/material";
-import AppleIcon from "@mui/icons-material/Apple";
 
 interface ProgressHeaderProps {
   step: number;
@@ -26,12 +25,22 @@ export function ProgressHeader({ step, totalSteps }: ProgressHeaderProps) {
             boxShadow: 3,
           }}
         >
-          <AppleIcon sx={{ fontSize: "2rem", color: "primary.contrastText" }} />
+          <span
+            style={{
+              fontSize: "2.2rem",
+              filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.35)) brightness(1.15)",
+              lineHeight: 1,
+            }}
+          >
+            🍃
+          </span>
         </Box>
         <Typography variant="h1" sx={{ fontSize: "1.875rem", mb: "0.5rem" }}>
           Plan & Plate
         </Typography>
-        <Typography color="text.secondary">Let's personalize your experience</Typography>
+        <Typography color="text.secondary">
+          Let's personalize your experience
+        </Typography>
       </Box>
 
       <Box sx={{ mb: "2rem" }}>
@@ -48,7 +57,11 @@ export function ProgressHeader({ step, totalSteps }: ProgressHeaderProps) {
             },
           }}
         />
-        <Typography variant="body2" color="text.secondary" sx={{ mt: "0.5rem" }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ mt: "0.5rem" }}
+        >
           Step {step} of {totalSteps}
         </Typography>
       </Box>

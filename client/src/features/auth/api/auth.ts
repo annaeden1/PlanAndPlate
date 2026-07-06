@@ -74,4 +74,15 @@ export const userManagementApi = {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((r) => r.data),
+
+  logout: (token: string | null) =>
+    authApi
+      .post(
+        `/auth/logout`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
+      .then((r) => r.data),
 };
