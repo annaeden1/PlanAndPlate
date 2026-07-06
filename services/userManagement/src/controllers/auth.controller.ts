@@ -8,6 +8,10 @@ import {
   saveUser,
 } from '../dal/authentication.repository';
 import { hashPassword } from '../utils/password';
+import { OAuth2Client } from 'google-auth-library';
+import { user } from '../model/userModel';
+
+const client = new OAuth2Client();
 
 const signup = async (req: Request, res: Response) => {
   const { name, email, password, image, preferences } = req.body;
@@ -184,10 +188,57 @@ const generateToken = (userId: string): Tokens => {
   return { token, refreshToken };
 };
 
+
+const googleSignin = async (req: Request, res: Response) => {
+  console.log(
+    'Received Google login request with credential:',
+    req.body.credential,
+  );
+
+  try {
+    const loginTicket = await client.verifyIdToken({
+      idToken: req.body.credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = loginTicket.getPayload();
+    const email = payload?.email;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email not found in Google token' });
+    }
+
+    const existingUser = await user.findOne({ email });
+    const isNewUser = !existingUser;
+    console.log('Google login - found user:', existingUser);
+
+    let currUser = existingUser;
+    if (!currUser) {
+      currUser = await user.create({
+        name: payload?.name || 'Google User',
+        email,
+        passwordHash: ' ',
+        image: payload?.picture,
+      });
+    }
+
+    const tokens: Tokens = generateToken(currUser._id.toString());
+    currUser.tokens.push(tokens.refreshToken);
+    await currUser.save();
+    res.status(200).json({ tokens, isNewUser });
+  } catch (err) {
+    return res
+      .status(400)
+      .json({ error: 'Failed to login with Google', details: err });
+  }
+};
+
+
 export default {
   signup,
   signin,
   logout,
   refreshToken,
   verify,
+  googleSignin
 };
