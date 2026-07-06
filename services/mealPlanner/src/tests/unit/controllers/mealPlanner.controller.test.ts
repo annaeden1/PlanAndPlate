@@ -1,16 +1,20 @@
 import express from "express";
 import request from "supertest";
 
+const USER_ID = "user-1";
+const ANOTHER_USER_ID = "user-1-abc";
+const UNKNOWN_USER_ID = "unknown-id";
+
 jest.mock("../../../middlewares/auth.middleware", () => ({
   __esModule: true,
   default: (req: any, _res: any, next: any) => {
-    req.user = { _id: "user-1" };
+    req.user = { _id: USER_ID };
     next();
   },
 }));
 
 const mockUpdatedRecipe = {
-  originRecipeId: "user-1-abc",
+  originRecipeId: ANOTHER_USER_ID,
   name: "Updated",
   source: "manual",
 };
@@ -57,6 +61,19 @@ const app = express();
 app.use(express.json());
 app.use("/mealPlanner", mealPlannerRouter);
 
+const MEAL_PLANNER_USERS_URL = "/mealPlanner/users";
+const MEAL_PLANNER_USER_URL = `${MEAL_PLANNER_USERS_URL}/${USER_ID}`;
+const MEAL_PLANS_URL = `${MEAL_PLANNER_USER_URL}/meal-plans`;
+const WEEKLY_MEAL_PLAN_URL = `${MEAL_PLANS_URL}/weekly`;
+const DAILY_MEAL_PLAN_URL = `${MEAL_PLANS_URL}/day`;
+const REPLACE_DAILY_MEAL_PLAN_URL = `${DAILY_MEAL_PLAN_URL}/meal`;
+const FAVORITES_URL = `${MEAL_PLANNER_USER_URL}/favorites`;
+const RECIPES_URL = "/mealPlanner/recipes";
+const RECIPE_URL = `${RECIPES_URL}/recipe-1`;
+const RECIPE_URL_ANOTHER_USER = `${RECIPES_URL}/${ANOTHER_USER_ID}`;
+const RECIPE_URL_UNKNOWN_USER = `${RECIPES_URL}/${UNKNOWN_USER_ID}`;
+const STATS_URL = `${MEAL_PLANNER_USER_URL}/stats`;
+
 describe("MealPlannerController Endpoints", () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -69,7 +86,7 @@ describe("MealPlannerController Endpoints", () => {
         id: "plan-1",
       });
       const res = await request(app)
-        .post("/mealPlanner/users/user-1/meal-plans/weekly")
+        .post(WEEKLY_MEAL_PLAN_URL)
         .query({ date: "2023-01-01" });
       expect(res.status).toBe(201);
       expect(res.body).toEqual({ id: "plan-1" });
@@ -77,7 +94,7 @@ describe("MealPlannerController Endpoints", () => {
 
     it("returns 400 if userId is missing", async () => {
       const res = await request(app).post(
-        "/mealPlanner/users/%20/meal-plans/weekly",
+        `${MEAL_PLANNER_USERS_URL}/%20/meal-plans/weekly`,
       );
       expect(res.status).toBe(400);
     });
@@ -86,9 +103,7 @@ describe("MealPlannerController Endpoints", () => {
       (mealPlannerService.createWeeklyPlan as jest.Mock).mockRejectedValue(
         new Error("err"),
       );
-      const res = await request(app).post(
-        "/mealPlanner/users/user-1/meal-plans/weekly",
-      );
+      const res = await request(app).post(WEEKLY_MEAL_PLAN_URL);
       expect(res.status).toBe(500);
     });
   });
@@ -99,22 +114,20 @@ describe("MealPlannerController Endpoints", () => {
         id: "plan-1",
       });
       const res = await request(app)
-        .get("/mealPlanner/users/user-1/meal-plans")
+        .get(MEAL_PLANS_URL)
         .query({ date: "2023-01-01" });
       expect(res.status).toBe(200);
     });
 
     it("returns 400 if date is missing", async () => {
-      const res = await request(app).get(
-        "/mealPlanner/users/user-1/meal-plans",
-      );
+      const res = await request(app).get(MEAL_PLANS_URL);
       expect(res.status).toBe(400);
     });
 
     it("returns 404 if not found", async () => {
       (mealPlannerService.getWeeklyPlan as jest.Mock).mockResolvedValue(null);
       const res = await request(app)
-        .get("/mealPlanner/users/user-1/meal-plans")
+        .get(MEAL_PLANS_URL)
         .query({ date: "2023-01-01" });
       expect(res.status).toBe(404);
     });
@@ -124,7 +137,7 @@ describe("MealPlannerController Endpoints", () => {
         new Error("err"),
       );
       const res = await request(app)
-        .get("/mealPlanner/users/user-1/meal-plans")
+        .get(MEAL_PLANS_URL)
         .query({ date: "2023-01-01" });
       expect(res.status).toBe(500);
     });
@@ -136,22 +149,20 @@ describe("MealPlannerController Endpoints", () => {
         meals: [],
       });
       const res = await request(app)
-        .get("/mealPlanner/users/user-1/meal-plans/day")
+        .get(DAILY_MEAL_PLAN_URL)
         .query({ date: "2023-01-01" });
       expect(res.status).toBe(200);
     });
 
     it("returns 400 if date missing", async () => {
-      const res = await request(app).get(
-        "/mealPlanner/users/user-1/meal-plans/day",
-      );
+      const res = await request(app).get(DAILY_MEAL_PLAN_URL);
       expect(res.status).toBe(400);
     });
 
     it("returns 404 if not found", async () => {
       (mealPlannerService.getDailyPlan as jest.Mock).mockResolvedValue(null);
       const res = await request(app)
-        .get("/mealPlanner/users/user-1/meal-plans/day")
+        .get(DAILY_MEAL_PLAN_URL)
         .query({ date: "2023-01-01" });
       expect(res.status).toBe(404);
     });
@@ -161,7 +172,7 @@ describe("MealPlannerController Endpoints", () => {
         new Error("err"),
       );
       const res = await request(app)
-        .get("/mealPlanner/users/user-1/meal-plans/day")
+        .get(DAILY_MEAL_PLAN_URL)
         .query({ date: "2023-01-01" });
       expect(res.status).toBe(500);
     });
@@ -172,12 +183,12 @@ describe("MealPlannerController Endpoints", () => {
       (mealPlannerService.getRecipeDetails as jest.Mock).mockResolvedValue({
         id: "recipe-1",
       });
-      const res = await request(app).get("/mealPlanner/recipes/recipe-1");
+      const res = await request(app).get(RECIPE_URL);
       expect(res.status).toBe(200);
     });
 
     it("returns 400 if id invalid", async () => {
-      const res = await request(app).get("/mealPlanner/recipes/%20");
+      const res = await request(app).get(`${RECIPES_URL}/%20`);
       expect(res.status).toBe(400);
     });
 
@@ -185,7 +196,7 @@ describe("MealPlannerController Endpoints", () => {
       (mealPlannerService.getRecipeDetails as jest.Mock).mockResolvedValue(
         null,
       );
-      const res = await request(app).get("/mealPlanner/recipes/recipe-1");
+      const res = await request(app).get(RECIPE_URL);
       expect(res.status).toBe(404);
     });
 
@@ -193,7 +204,7 @@ describe("MealPlannerController Endpoints", () => {
       (mealPlannerService.getRecipeDetails as jest.Mock).mockRejectedValue(
         new Error("err"),
       );
-      const res = await request(app).get("/mealPlanner/recipes/recipe-1");
+      const res = await request(app).get(RECIPE_URL);
       expect(res.status).toBe(500);
     });
   });
@@ -209,7 +220,7 @@ describe("MealPlannerController Endpoints", () => {
       (mealPlannerService.getManualRecipes as jest.Mock).mockRejectedValue(
         new Error("err"),
       );
-      const res = await request(app).get("/mealPlanner/recipes/manual");
+      const res = await request(app).get(`${RECIPES_URL}/manual`);
       expect(res.status).toBe(500);
     });
   });
@@ -219,19 +230,17 @@ describe("MealPlannerController Endpoints", () => {
       (mealPlannerService.createManualRecipe as jest.Mock).mockResolvedValue({
         id: "recipe-1",
       });
-      const res = await request(app)
-        .post("/mealPlanner/recipes")
-        .send({ name: "Cake" });
+      const res = await request(app).post(RECIPES_URL).send({ name: "Cake" });
       expect(res.status).toBe(201);
     });
 
     it("returns 400 if payload invalid", async () => {
-      const res = await request(app).post("/mealPlanner/recipes").send("");
+      const res = await request(app).post(RECIPES_URL).send("");
       expect(res.status).toBe(400);
     });
 
     it("returns 400 if name missing", async () => {
-      const res = await request(app).post("/mealPlanner/recipes").send({});
+      const res = await request(app).post(RECIPES_URL).send({});
       expect(res.status).toBe(400);
     });
 
@@ -239,9 +248,7 @@ describe("MealPlannerController Endpoints", () => {
       (mealPlannerService.createManualRecipe as jest.Mock).mockRejectedValue(
         new Error("err"),
       );
-      const res = await request(app)
-        .post("/mealPlanner/recipes")
-        .send({ name: "Cake" });
+      const res = await request(app).post(RECIPES_URL).send({ name: "Cake" });
       expect(res.status).toBe(500);
     });
   });
@@ -251,14 +258,12 @@ describe("MealPlannerController Endpoints", () => {
       (mealPlannerService.toggleRecipeLike as jest.Mock).mockResolvedValue({
         liked: true,
       });
-      const res = await request(app).patch(
-        "/mealPlanner/recipes/recipe-1/like",
-      );
+      const res = await request(app).patch(`${RECIPE_URL}/like`);
       expect(res.status).toBe(200);
     });
 
     it("returns 400 if invalid id", async () => {
-      const res = await request(app).patch("/mealPlanner/recipes/%20/like");
+      const res = await request(app).patch(`${RECIPES_URL}/%20/like`);
       expect(res.status).toBe(400);
     });
 
@@ -266,9 +271,7 @@ describe("MealPlannerController Endpoints", () => {
       (mealPlannerService.toggleRecipeLike as jest.Mock).mockRejectedValue(
         new Error("err"),
       );
-      const res = await request(app).patch(
-        "/mealPlanner/recipes/recipe-1/like",
-      );
+      const res = await request(app).patch(`${RECIPE_URL}/like`);
       expect(res.status).toBe(500);
     });
   });
@@ -276,12 +279,14 @@ describe("MealPlannerController Endpoints", () => {
   describe("GET /users/:userId/favorites", () => {
     it("returns 200 with favorites", async () => {
       (mealPlannerService.getLikedRecipes as jest.Mock).mockResolvedValue([]);
-      const res = await request(app).get("/mealPlanner/users/user-1/favorites");
+      const res = await request(app).get(FAVORITES_URL);
       expect(res.status).toBe(200);
     });
 
     it("returns 400 if userId missing", async () => {
-      const res = await request(app).get("/mealPlanner/users/%20/favorites");
+      const res = await request(app).get(
+        `${MEAL_PLANNER_USERS_URL}/%20/favorites`,
+      );
       expect(res.status).toBe(400);
     });
 
@@ -289,7 +294,7 @@ describe("MealPlannerController Endpoints", () => {
       (mealPlannerService.getLikedRecipes as jest.Mock).mockRejectedValue(
         new Error("err"),
       );
-      const res = await request(app).get("/mealPlanner/users/user-1/favorites");
+      const res = await request(app).get(FAVORITES_URL);
       expect(res.status).toBe(500);
     });
   });
@@ -297,7 +302,7 @@ describe("MealPlannerController Endpoints", () => {
   describe("PATCH /mealPlanner/users/:userId/meal-plans/day/meal", () => {
     it("replaces the slot and returns the updated day", async () => {
       const res = await request(app)
-        .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
+        .patch(REPLACE_DAILY_MEAL_PLAN_URL)
         .send({ date: "2026-05-31", mealType: "dinner", newRecipeId: "222" });
 
       expect(res.status).toBe(200);
@@ -312,35 +317,35 @@ describe("MealPlannerController Endpoints", () => {
 
     it("returns 400 when required fields are missing", async () => {
       const res = await request(app)
-        .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
+        .patch(REPLACE_DAILY_MEAL_PLAN_URL)
         .send({ mealType: "dinner" }); // missing date and newRecipeId
       expect(res.status).toBe(400);
     });
 
     it("returns 400 for an invalid mealType", async () => {
       const res = await request(app)
-        .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
+        .patch(REPLACE_DAILY_MEAL_PLAN_URL)
         .send({ date: "2026-05-31", mealType: "brunch", newRecipeId: "222" });
       expect(res.status).toBe(400);
     });
 
     it("returns 400 for an invalid date", async () => {
       const res = await request(app)
-        .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
+        .patch(REPLACE_DAILY_MEAL_PLAN_URL)
         .send({ date: "not-a-date", mealType: "dinner", newRecipeId: "222" });
       expect(res.status).toBe(400);
     });
 
     it("returns 403 when userId does not match the authenticated user", async () => {
       const res = await request(app)
-        .patch("/mealPlanner/users/other-user/meal-plans/day/meal")
+        .patch(`${MEAL_PLANNER_USERS_URL}/other-user/meal-plans/day/meal`)
         .send({ date: "2026-05-31", mealType: "dinner", newRecipeId: "222" });
       expect(res.status).toBe(403);
     });
 
     it("returns 404 when the plan/day is missing", async () => {
       const res = await request(app)
-        .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
+        .patch(REPLACE_DAILY_MEAL_PLAN_URL)
         .send({ date: "2026-05-31", mealType: "lunch", newRecipeId: "222" });
       expect(res.status).toBe(404);
     });
@@ -350,7 +355,7 @@ describe("MealPlannerController Endpoints", () => {
         new Error("DB error"),
       );
       const res = await request(app)
-        .patch("/mealPlanner/users/user-1/meal-plans/day/meal")
+        .patch(REPLACE_DAILY_MEAL_PLAN_URL)
         .send({ date: "2026-05-31", mealType: "dinner", newRecipeId: "222" });
       expect(res.status).toBe(500);
     });
@@ -363,7 +368,7 @@ describe("MealPlannerController Endpoints", () => {
       );
 
       const res = await request(app)
-        .put("/mealPlanner/recipes/user-1-abc")
+        .put(RECIPE_URL_ANOTHER_USER)
         .send({ name: "Updated" });
 
       expect(res.status).toBe(200);
@@ -381,7 +386,7 @@ describe("MealPlannerController Endpoints", () => {
       );
 
       const res = await request(app)
-        .put("/mealPlanner/recipes/unknown-id")
+        .put(RECIPE_URL_UNKNOWN_USER)
         .send({ name: "X" });
 
       expect(res.status).toBe(404);
@@ -393,7 +398,7 @@ describe("MealPlannerController Endpoints", () => {
       );
 
       const res = await request(app)
-        .put("/mealPlanner/recipes/user-1-abc")
+        .put(RECIPE_URL_ANOTHER_USER)
         .send({ name: "Hack" });
 
       expect(res.status).toBe(403);
@@ -405,7 +410,7 @@ describe("MealPlannerController Endpoints", () => {
       );
 
       const res = await request(app)
-        .put("/mealPlanner/recipes/user-1-abc")
+        .put(RECIPE_URL_ANOTHER_USER)
         .send({ name: "X" });
 
       expect(res.status).toBe(500);
@@ -418,12 +423,12 @@ describe("MealPlannerController Endpoints", () => {
         true,
       );
 
-      const res = await request(app).delete("/mealPlanner/recipes/user-1-abc");
+      const res = await request(app).delete(RECIPE_URL_ANOTHER_USER);
 
       expect(res.status).toBe(204);
       expect(mealPlannerService.deleteManualRecipe).toHaveBeenCalledWith(
-        "user-1-abc",
-        "user-1",
+        ANOTHER_USER_ID,
+        USER_ID,
       );
     });
 
@@ -432,7 +437,7 @@ describe("MealPlannerController Endpoints", () => {
         false,
       );
 
-      const res = await request(app).delete("/mealPlanner/recipes/unknown-id");
+      const res = await request(app).delete(RECIPE_URL_UNKNOWN_USER);
 
       expect(res.status).toBe(404);
     });
@@ -442,7 +447,7 @@ describe("MealPlannerController Endpoints", () => {
         new Error("FORBIDDEN"),
       );
 
-      const res = await request(app).delete("/mealPlanner/recipes/user-1-abc");
+      const res = await request(app).delete(RECIPE_URL_ANOTHER_USER);
 
       expect(res.status).toBe(403);
     });
@@ -452,7 +457,7 @@ describe("MealPlannerController Endpoints", () => {
         new Error("DB error"),
       );
 
-      const res = await request(app).delete("/mealPlanner/recipes/user-1-abc");
+      const res = await request(app).delete(RECIPE_URL_ANOTHER_USER);
 
       expect(res.status).toBe(500);
     });
@@ -460,15 +465,17 @@ describe("MealPlannerController Endpoints", () => {
 
   describe("GET /mealPlanner/users/:userId/stats", () => {
     it("returns user stats for the authenticated user", async () => {
-      const res = await request(app).get("/mealPlanner/users/user-1/stats");
+      const res = await request(app).get(STATS_URL);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ weeksActive: 4, mealsLogged: 32 });
-      expect(mealPlannerService.getUserStats).toHaveBeenCalledWith("user-1");
+      expect(mealPlannerService.getUserStats).toHaveBeenCalledWith(USER_ID);
     });
 
     it("returns 403 when requesting stats for a different user", async () => {
-      const res = await request(app).get("/mealPlanner/users/other-user/stats");
+      const res = await request(app).get(
+        `${MEAL_PLANNER_USERS_URL}/other-user/stats`,
+      );
 
       expect(res.status).toBe(403);
       expect(res.body.error).toBe("Forbidden");
@@ -480,7 +487,7 @@ describe("MealPlannerController Endpoints", () => {
         new Error("DB Connection Error"),
       );
 
-      const res = await request(app).get("/mealPlanner/users/user-1/stats");
+      const res = await request(app).get(STATS_URL);
 
       expect(res.status).toBe(500);
       expect(res.body.error).toBe("Failed to fetch user stats");
