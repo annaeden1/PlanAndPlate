@@ -1,8 +1,11 @@
-import { getAiProvider, NullAiProvider, __setAiProvider } from "../../../ai/aiProvider";
+import {
+  getAiProvider,
+  NullAiProvider,
+  __setAiProvider,
+} from "../../../ai/aiProvider";
 
 describe("aiProvider - getAiProvider()", () => {
   beforeEach(() => {
-    // Reset the cached provider between tests
     __setAiProvider(null);
     delete process.env.AI_PROVIDER;
     delete process.env.GEMINI_API_KEY;
