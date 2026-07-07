@@ -23,13 +23,12 @@ const mockPromptInput: AlternativePromptInput = {
 };
 
 describe('GeminiProvider', () => {
-  const mockGenerateContent = jest.fn<
-    (prompt?: unknown) => Promise<{ response: { text: () => string } }>
-  >();
+  const mockGenerateContent =
+    jest.fn<
+      (prompt?: unknown) => Promise<{ response: { text: () => string } }>
+    >();
   const mockGetGenerativeModel = jest.fn<
-    (
-      config?: unknown,
-    ) => { generateContent: typeof mockGenerateContent }
+    (config?: unknown) => { generateContent: typeof mockGenerateContent }
   >(() => ({
     generateContent: mockGenerateContent,
   }));

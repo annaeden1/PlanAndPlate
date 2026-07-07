@@ -23,9 +23,7 @@ const mockPromptInput: AlternativePromptInput = {
 };
 
 describe('CohereProvider', () => {
-  const mockChat = jest.fn<
-    (request?: unknown) => Promise<{ text: string }>
-  >();
+  const mockChat = jest.fn<(request?: unknown) => Promise<{ text: string }>>();
 
   beforeEach(() => {
     jest.clearAllMocks();
