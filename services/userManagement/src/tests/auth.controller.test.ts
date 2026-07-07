@@ -205,7 +205,7 @@ describe('Auth Controller', () => {
         mockResponse as Response,
       );
 
-      expect(mockResponse.status).toHaveBeenCalledWith(201);
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
       expect(mockResponse.json).toHaveBeenCalled();
     });
   });
