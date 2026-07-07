@@ -1,8 +1,8 @@
-import { buildTasteProfile, TasteRecipe } from "../recommendation/tasteProfile";
-import { AiProvider } from "../ai/aiProvider";
+import { buildTasteProfile, TasteRecipe } from "../../../recommendation/tasteProfile";
+import { AiProvider } from "../../../ai/aiProvider";
 
 const fakeProvider = (vec: number[]): AiProvider => ({
-  embed: async (texts) => texts.map(() => vec),
+  embed: async (texts: string[]) => texts.map(() => vec),
 });
 
 const recipe = (over: Partial<TasteRecipe> = {}): TasteRecipe => ({
@@ -48,7 +48,7 @@ describe("buildTasteProfile", () => {
       likedRecipes: [recipe(), recipe(), recipe()],
       currentRecipe: recipe(),
       prefs: {},
-      provider: { embed: async (t) => t.map(() => []) },
+      provider: { embed: async (t: string[]) => t.map(() => []) },
     });
     expect(profile.centroid).toEqual([]);
   });

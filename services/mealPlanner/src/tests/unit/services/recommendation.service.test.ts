@@ -2,31 +2,31 @@ import axios from "axios";
 
 jest.mock("axios");
 
-jest.mock("../models/userFavoritesModel", () => ({
+jest.mock("../../../models/userFavoritesModel", () => ({
   __esModule: true,
   UserFavorites: { findOne: jest.fn() },
 }));
 
-jest.mock("../models/recipeModel", () => ({
+jest.mock("../../../models/recipeModel", () => ({
   __esModule: true,
   Recipe: { findOne: jest.fn(), updateOne: jest.fn() },
 }));
 
-jest.mock("../services/spoonacularService.service", () => ({
+jest.mock("../../../services/spoonacularService.service", () => ({
   __esModule: true,
   searchRecipes: jest.fn(),
 }));
 
-jest.mock("../services/mealPlannerService", () => ({
+jest.mock("../../../services/mealPlannerService", () => ({
   __esModule: true,
   default: { getRecipeDetails: jest.fn() },
 }));
 
-import recommendationService from "../recommendation/recommendationService";
-import { Recipe } from "../models/recipeModel";
-import { UserFavorites } from "../models/userFavoritesModel";
-import { searchRecipes } from "../services/spoonacularService.service";
-import { __setAiProvider } from "../ai/aiProvider";
+import recommendationService from "../../../recommendation/recommendationService";
+import { Recipe } from "../../../models/recipeModel";
+import { UserFavorites } from "../../../models/userFavoritesModel";
+import { searchRecipes } from "../../../services/spoonacularService.service";
+import { __setAiProvider, ExplainProfile } from "../../../ai/aiProvider";
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
@@ -80,9 +80,11 @@ beforeEach(() => {
   });
 
   __setAiProvider({
-    embed: async (texts) => texts.map(() => [1, 0]),
-    explain: async (_cuisines, cands) =>
-      Object.fromEntries(cands.map((c) => [c.originRecipeId, `why ${c.originRecipeId}`])),
+    embed: async (texts: string[]) => texts.map(() => [1, 0]),
+    explain: async (_profile: ExplainProfile, cands) =>
+      Object.fromEntries(
+        cands.map((c) => [c.originRecipeId, `why ${c.originRecipeId}`]),
+      ),
   });
 });
 

@@ -1,9 +1,9 @@
-import { AiProvider } from "../ai/aiProvider";
+import { AiProvider } from "../../../ai/aiProvider";
 import {
   buildNutritionPrompt,
   NutritionEstimate,
   NutritionRecipeInput,
-} from "../ai/nutritionPrompt";
+} from "../../../ai/nutritionPrompt";
 
 // ────────────────────────────────────────────────────────
 // 1.  buildNutritionPrompt — content checks
@@ -141,7 +141,7 @@ describe("estimateNutrition — provider behaviour", () => {
 
   it("NullAiProvider does NOT expose estimateNutrition", async () => {
     // NullAiProvider should not have the method (it is optional on the interface)
-    const { NullAiProvider } = await import("../ai/aiProvider");
+    const { NullAiProvider } = await import("../../../ai/aiProvider");
     const nullProvider = new NullAiProvider() as AiProvider;
     expect(nullProvider.estimateNutrition).toBeUndefined();
   });
