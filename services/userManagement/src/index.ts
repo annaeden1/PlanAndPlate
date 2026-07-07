@@ -4,6 +4,8 @@ import express, { Express } from 'express';
 import mongoose from 'mongoose';
 import { authRouter } from './routes/auth.routes';
 import { userManagementRouter } from './routes/userManagement.routes';
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './config/swagger';
 
 dotenv.config();
 
@@ -13,6 +15,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use('/auth', authRouter);
 app.use('/userManagement', userManagementRouter);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 export const initApp = (): Promise<Express> => {
   const promise = new Promise<Express>((resolve, reject) => {

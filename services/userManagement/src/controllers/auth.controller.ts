@@ -79,7 +79,7 @@ const signin = async (req: Request, res: Response) => {
 
     await saveUser(currUser);
 
-    res.status(201).json({ tokens });
+    res.status(200).json({ tokens });
   } catch (err) {
     return res.status(500).json({ error: "Failed to login", details: err });
   }
