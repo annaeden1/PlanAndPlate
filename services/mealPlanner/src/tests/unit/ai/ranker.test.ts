@@ -1,4 +1,4 @@
-import { rankCandidates, RankCandidate } from "../recommendation/ranker";
+import { rankCandidates, RankCandidate } from "../../../recommendation/ranker";
 
 const cand = (id: string, embedding: number[]): RankCandidate => ({
   originRecipeId: id,

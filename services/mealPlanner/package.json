@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "tsc && jest --runInBand --detectOpenHandles --forceExit",
+    "test": "tsc && node --localstorage-file=./jest-localstorage.json node_modules/jest/bin/jest.js --runInBand --detectOpenHandles --forceExit",
     "start": "tsc && node --env-file=.env ./dist/src/server.js",
     "lint": "eslint . --ext .ts",
     "dev": "nodemon ./src/server.ts",

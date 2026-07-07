@@ -23,6 +23,7 @@ export interface ProductMatchContext {
 export interface UserPreferences {
   diet?: string[];
   allergies?: string[];
+  healthGoal?: string;
 }
 
 export interface PreferenceMatch {

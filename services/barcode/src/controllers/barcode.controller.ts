@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 import * as openFoodFactsService from '../services/openFoodFactsService';
 import { checkPreferenceMatches } from '../services/preferenceMatchService';
+import { generateAlternativeSuggestions } from '../services/alternativeProductsService';
+import { type ProductAlternative } from '../utils/types/alternatives';
 import {
   type PreferenceMatch,
   type UserPreferences,
@@ -28,6 +30,10 @@ export const scanBarcode = async (req: Request, res: Response) => {
 
     // Get user preferences from user management service
     let preferenceMatches: PreferenceMatch[] = [];
+    let userPreferences: UserPreferences = {};
+    let alternatives: ProductAlternative[] = [];
+    let hasMismatch = false;
+
     try {
       const userManagementUrl =
         process.env.USER_MANAGEMENT_URL || 'http://localhost:8000';
@@ -39,16 +45,38 @@ export const scanBarcode = async (req: Request, res: Response) => {
         },
       );
 
-      const userPreferences: UserPreferences =
-        preferencesResponse.data.userPreferences || {};
+      userPreferences = preferencesResponse.data.userPreferences || {};
       preferenceMatches = checkPreferenceMatches(product, userPreferences);
+      hasMismatch = preferenceMatches.some(
+        (match) => match.status === 'mismatch',
+      );
     } catch (error) {
       console.log('Could not fetch user preferences:', error);
+    }
+
+    if (hasMismatch) {
+      console.log(
+        `Preference mismatch detected for barcode ${barcode}. Building AI alternatives...`,
+      );
+      try {
+        alternatives = await generateAlternativeSuggestions(
+          product,
+          userPreferences,
+          preferenceMatches,
+        );
+      } catch (error) {
+        console.log('Could not build alternative suggestions:', error);
+      }
+    } else {
+      console.log(
+        `No preference mismatch for barcode ${barcode}. Skipping AI alternatives.`,
+      );
     }
 
     return res.json({
       nutritionData: product,
       preferenceMatches,
+      alternatives,
     });
   } catch (error) {
     return res

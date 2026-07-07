@@ -22,4 +22,6 @@ export interface ProductNutrition {
   labels_tags?: string[];
   traces?: string;
   traces_tags?: string[];
+  countries?: string;
+  countries_tags?: string[];
 }

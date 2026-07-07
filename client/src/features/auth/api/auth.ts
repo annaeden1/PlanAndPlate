@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { OnboardingData } from '@/shared';
+import type { AuthResponse } from '../types/auth';
 
 const managementApi = axios.create({
   baseURL: '/userManagement',
@@ -21,6 +22,11 @@ export const userManagementApi = {
 
   signup: (formData: any) =>
     authApi.post(`/auth/signup`, formData).then((r) => r.data),
+
+  googleSignin: (credential: string) =>
+    authApi
+      .post('/auth/google-signin', { credential })
+      .then((response) => response.data as AuthResponse),
 
   getAccountData: (userId: string, token: string | null) =>
     managementApi
@@ -67,5 +73,16 @@ export const userManagementApi = {
       .patch(`/${userId}/preferences`, preferences, {
         headers: { Authorization: `Bearer ${token}` },
       })
+      .then((r) => r.data),
+
+  logout: (token: string | null) =>
+    authApi
+      .post(
+        `/auth/logout`,
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      )
       .then((r) => r.data),
 };

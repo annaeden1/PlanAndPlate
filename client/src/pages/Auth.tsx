@@ -9,10 +9,11 @@ import {
   IconButton,
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import AppleIcon from '@mui/icons-material/Apple';
 import { AuthForm } from '@/features/auth/components/AuthForm';
 import { AuthTabs } from '@/features/auth/components/AuthTabs';
 import { userManagementApi } from '@/features/auth/api/auth';
+import { GoogleLogin } from '@react-oauth/google';
+import type { CredentialResponse } from '@react-oauth/google';
 
 interface AuthFormData {
   name?: string;
@@ -76,6 +77,39 @@ export function Auth({ onAuthComplete }: AuthProps) {
     }
   };
 
+  const handleGoogleLogin = async (credentialResponse: CredentialResponse) => {
+    setShowError(false);
+    setErrorMessage('');
+
+    if (!credentialResponse.credential) {
+      setErrorMessage('Google sign-in was cancelled or failed.');
+      setShowError(true);
+      return;
+    }
+
+    try {
+      const response = await userManagementApi.googleSignin(
+        credentialResponse.credential,
+      );
+
+      if (response.tokens) {
+        onAuthComplete(
+          {
+            accessToken: response.tokens.token,
+            refreshToken: response.tokens.refreshToken,
+          },
+          response.isNewUser ?? false,
+        );
+      } else {
+        setErrorMessage('Google sign-in failed. Please try again.');
+        setShowError(true);
+      }
+    } catch {
+      setErrorMessage('Google sign-in failed. Please try again.');
+      setShowError(true);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -105,9 +139,16 @@ export function Auth({ onAuthComplete }: AuthProps) {
               boxShadow: 3,
             }}
           >
-            <AppleIcon
-              sx={{ fontSize: '3rem', color: 'primary.contrastText' }}
-            />
+            <span
+              style={{
+                fontSize: '2.6rem',
+                filter:
+                  'drop-shadow(0 1px 4px rgba(0,0,0,0.35)) brightness(1.15)',
+                lineHeight: 1,
+              }}
+            >
+              🍃
+            </span>
           </Box>
           <Typography variant="h1" gutterBottom>
             Plan & Plate
@@ -133,7 +174,9 @@ export function Auth({ onAuthComplete }: AuthProps) {
               }}
             />
 
-            <Collapse in={showError && !isDuplicateEmailError && !isPasswordLengthError}>
+            <Collapse
+              in={showError && !isDuplicateEmailError && !isPasswordLengthError}
+            >
               <Alert
                 severity="error"
                 action={
@@ -166,6 +209,30 @@ export function Auth({ onAuthComplete }: AuthProps) {
               emailHelperText={isDuplicateEmailError ? errorMessage : ''}
               passwordError={isPasswordLengthError}
               passwordHelperText={isPasswordLengthError ? errorMessage : ''}
+              googleLoginButton={
+                <Box
+                  sx={{
+                    '& > div': {
+                      display: 'flex',
+                      justifyContent: 'center',
+                    },
+                  }}
+                >
+                  <GoogleLogin
+                    onSuccess={handleGoogleLogin}
+                    onError={() => {
+                      setErrorMessage(
+                        'Google sign-in failed. Please try again.',
+                      );
+                      setShowError(true);
+                    }}
+                    text="continue_with"
+                    width="100%"
+                    theme="outline"
+                    size="large"
+                  />
+                </Box>
+              }
             />
           </CardContent>
         </Card>

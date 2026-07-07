@@ -14,7 +14,7 @@ export const mealPlannerRouter = express.Router();
 
 /**
  * @swagger
- * /users/{userId}/meal-plans/weekly?date=:
+ * /users/{userId}/meal-plans/weekly:
  *   post:
  *     summary: Create a new weekly meal plan for a user from a given start date from the API
  *     tags: [MealPlanner]
@@ -46,7 +46,7 @@ export const mealPlannerRouter = express.Router();
  *         description: Bad Request - Invalid input data
  *       500:
  *         description: Internal Server Error - Server error while creating meal plan
- **/
+ */
 mealPlannerRouter.post(
   "/users/:userId/meal-plans/weekly",
   authMiddleware,
@@ -55,7 +55,7 @@ mealPlannerRouter.post(
 
 /**
  * @swagger
- * /users/{userId}/meal-plans?date=:
+ * /users/{userId}/meal-plans:
  *   get:
  *     summary: Get the weekly meal plan for a user for a specific week from DB
  *     tags: [MealPlanner]
@@ -79,7 +79,7 @@ mealPlannerRouter.post(
  *         description: Not Found - User or meal plan not found
  *       500:
  *         description: Internal Server Error - Server error while retrieving meal plan
- **/
+ */
 mealPlannerRouter.get(
   "/users/:userId/meal-plans",
   authMiddleware,
@@ -88,7 +88,7 @@ mealPlannerRouter.get(
 
 /**
  * @swagger
- * /users/{userId}/meal-plans/day?date=:
+ * /users/{userId}/meal-plans/day:
  *   get:
  *     summary: Get the daily meal plan for a user for a specific date from DB
  *     tags: [MealPlanner]
@@ -113,7 +113,7 @@ mealPlannerRouter.get(
  *         description: Not Found - User or meal plan not found
  *       500:
  *         description: Internal Server Error - Server error while retrieving meal plan
- **/
+ */
 mealPlannerRouter.get(
   "/users/:userId/meal-plans/day",
   authMiddleware,
@@ -178,7 +178,7 @@ mealPlannerRouter.get(
  *         description: Unauthorized
  *       500:
  *         description: Internal Server Error - Failed to create manual recipe
- **/
+ */
 mealPlannerRouter.post(
   "/recipes",
   authMiddleware,
@@ -210,7 +210,7 @@ mealPlannerRouter.post(
  *         description: Recipe not found
  *       500:
  *         description: Failed to update manual recipe
- **/
+ */
 mealPlannerRouter.put(
   "/recipes/:recipeId",
   authMiddleware,
@@ -242,7 +242,7 @@ mealPlannerRouter.put(
  *         description: Recipe not found
  *       500:
  *         description: Failed to delete manual recipe
- **/
+ */
 mealPlannerRouter.delete(
   "/recipes/:recipeId",
   authMiddleware,
@@ -262,7 +262,7 @@ mealPlannerRouter.delete(
  *         description: Unauthorized
  *       500:
  *         description: Internal Server Error - Failed to retrieve manual recipes
- **/
+ */
 mealPlannerRouter.get(
   "/recipes/manual",
   authMiddleware,
@@ -290,7 +290,7 @@ mealPlannerRouter.get(
  *         description: Not Found - Recipe not found
  *       500:
  *         description: Internal Server Error - Server error while retrieving recipe details
- **/
+ */
 mealPlannerRouter.get(
   "/recipes/:recipeId",
   authMiddleware,
