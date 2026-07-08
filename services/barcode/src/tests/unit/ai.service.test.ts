@@ -4,7 +4,7 @@ import { type AlternativeAiProvider } from '../../ai/aiProvider';
 import { type SuggestedAlternative } from '../../utils/types/alternatives';
 import { type AlternativePromptInput } from '../../utils/types/prompts';
 
-const BASE_PROMPT_INPUT: AlternativePromptInput = {
+const basePromptInput: AlternativePromptInput = {
   productName: 'Chocolate Bar',
   brand: 'BrandX',
   originalProductCountries: ['United States'],
@@ -13,6 +13,52 @@ const BASE_PROMPT_INPUT: AlternativePromptInput = {
   userHealthGoals: ['lowSugar'],
   validationIssues: ['dairy free failed'],
 };
+
+const darkChocolateAlternative: SuggestedAlternative = {
+  productName: 'Dark Chocolate 90%',
+  brand: 'Lindt',
+  reason: 'No dairy ingredients listed',
+};
+
+const oatChocolateAlternative: SuggestedAlternative = {
+  productName: 'Oat Chocolate Bar',
+  brand: 'Nomo',
+  reason: 'Dairy-free alternative',
+};
+
+const validAlternative: SuggestedAlternative = {
+  productName: 'Valid Bar',
+  brand: 'RealBrand',
+  reason: 'Fits user preferences',
+};
+
+const filteredAlternativesInput: Array<Partial<SuggestedAlternative>> = [
+  validAlternative,
+  {
+    productName: 'Rejected Generic',
+    brand: 'Generic',
+    reason: 'Bad brand',
+  },
+  {
+    productName: '',
+    brand: 'NoName',
+    reason: 'Missing product name',
+  },
+  {
+    productName: 'Missing reason',
+    brand: 'BrandY',
+    reason: '',
+  },
+];
+
+const bulkAlternativesInput: SuggestedAlternative[] = [
+  { productName: 'A1', brand: 'B1', reason: 'R1' },
+  { productName: 'A2', brand: 'B2', reason: 'R2' },
+  { productName: 'A3', brand: 'B3', reason: 'R3' },
+  { productName: 'A4', brand: 'B4', reason: 'R4' },
+  { productName: 'A5', brand: 'B5', reason: 'R5' },
+  { productName: 'A6', brand: 'B6', reason: 'R6' },
+];
 
 const createProvider = (
   name: string,
@@ -37,27 +83,15 @@ describe('AIService - Unit Tests', () => {
   it('uses fallback provider when primary returns empty response', async () => {
     const primary = createProvider('primary', async () => null);
     const fallback = createProvider('fallback', async () =>
-      buildAlternativesResponse([
-        {
-          productName: 'Dark Chocolate 90%',
-          brand: 'Lindt',
-          reason: 'No dairy ingredients listed',
-        },
-      ]),
+      buildAlternativesResponse([darkChocolateAlternative]),
     );
 
     const service = new AIService([primary, fallback]);
-    const result = await service.generateAlternativeProducts(BASE_PROMPT_INPUT);
+    const result = await service.generateAlternativeProducts(basePromptInput);
 
     expect(primary.generate).toHaveBeenCalledTimes(1);
     expect(fallback.generate).toHaveBeenCalledTimes(1);
-    expect(result).toEqual([
-      {
-        productName: 'Dark Chocolate 90%',
-        brand: 'Lindt',
-        reason: 'No dairy ingredients listed',
-      },
-    ]);
+    expect(result).toEqual([darkChocolateAlternative]);
   });
 
   it('uses fallback provider when primary times out', async () => {
@@ -72,75 +106,35 @@ describe('AIService - Unit Tests', () => {
     );
 
     const fallback = createProvider('fallback', async () =>
-      buildAlternativesResponse([
-        {
-          productName: 'Oat Chocolate Bar',
-          brand: 'Nomo',
-          reason: 'Dairy-free alternative',
-        },
-      ]),
+      buildAlternativesResponse([oatChocolateAlternative]),
     );
 
     const service = new AIService([slowPrimary, fallback]);
-    const result = await service.generateAlternativeProducts(BASE_PROMPT_INPUT);
+    const result = await service.generateAlternativeProducts(basePromptInput);
 
     expect(slowPrimary.generate).toHaveBeenCalledTimes(1);
     expect(fallback.generate).toHaveBeenCalledTimes(1);
-    expect(result[0].productName).toBe('Oat Chocolate Bar');
+    expect(result[0].productName).toBe(oatChocolateAlternative.productName);
   });
 
   it('filters invalid alternatives and keeps only valid brand/product/reason entries', async () => {
     const provider = createProvider('provider-1', async () =>
-      buildAlternativesResponse([
-        {
-          productName: 'Valid Bar',
-          brand: 'RealBrand',
-          reason: 'Fits user preferences',
-        },
-        {
-          productName: 'Rejected Generic',
-          brand: 'Generic',
-          reason: 'Bad brand',
-        },
-        {
-          productName: '',
-          brand: 'NoName',
-          reason: 'Missing product name',
-        },
-        {
-          productName: 'Missing reason',
-          brand: 'BrandY',
-          reason: '',
-        },
-      ]),
+      buildAlternativesResponse(filteredAlternativesInput),
     );
 
     const service = new AIService([provider]);
-    const result = await service.generateAlternativeProducts(BASE_PROMPT_INPUT);
+    const result = await service.generateAlternativeProducts(basePromptInput);
 
-    expect(result).toEqual([
-      {
-        productName: 'Valid Bar',
-        brand: 'RealBrand',
-        reason: 'Fits user preferences',
-      },
-    ]);
+    expect(result).toEqual([validAlternative]);
   });
 
   it('returns at most five alternatives', async () => {
     const provider = createProvider('provider-1', async () =>
-      buildAlternativesResponse([
-        { productName: 'A1', brand: 'B1', reason: 'R1' },
-        { productName: 'A2', brand: 'B2', reason: 'R2' },
-        { productName: 'A3', brand: 'B3', reason: 'R3' },
-        { productName: 'A4', brand: 'B4', reason: 'R4' },
-        { productName: 'A5', brand: 'B5', reason: 'R5' },
-        { productName: 'A6', brand: 'B6', reason: 'R6' },
-      ]),
+      buildAlternativesResponse(bulkAlternativesInput),
     );
 
     const service = new AIService([provider]);
-    const result = await service.generateAlternativeProducts(BASE_PROMPT_INPUT);
+    const result = await service.generateAlternativeProducts(basePromptInput);
 
     expect(result).toHaveLength(5);
     expect(result.map((item) => item.productName)).toEqual([
@@ -164,7 +158,7 @@ describe('AIService - Unit Tests', () => {
     );
 
     const service = new AIService([providerOne, providerTwo]);
-    const result = await service.generateAlternativeProducts(BASE_PROMPT_INPUT);
+    const result = await service.generateAlternativeProducts(basePromptInput);
 
     expect(result).toEqual([]);
   });
