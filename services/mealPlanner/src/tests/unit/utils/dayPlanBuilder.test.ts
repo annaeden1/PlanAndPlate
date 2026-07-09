@@ -4,11 +4,11 @@ import {
   buildWeek,
   SLOT_FRACTIONS,
   SlotSpec,
-} from "../utils/dayPlanBuilder";
+} from "../../../utils/dayPlanBuilder";
 import {
   ComplexSearchParams,
   ComplexSearchRecipe,
-} from "../utils/types/spoonacularTypes";
+} from "../../../utils/types/spoonacularTypes";
 
 // Build a fake recipe with a given protein/calorie amount.
 const recipe = (

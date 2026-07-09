@@ -5,7 +5,7 @@ import {
   ACTIVITY_MULTIPLIERS,
   GOAL_MODIFIERS,
   type BodyStats,
-} from '../utils/calorieCalculator';
+} from '../../../utils/calorieCalculator';
 
 // Reference values cross-checked against calculator.net (Mifflin-St Jeor).
 // These lock the goal-driven engine: given body stats + a goal, the app must

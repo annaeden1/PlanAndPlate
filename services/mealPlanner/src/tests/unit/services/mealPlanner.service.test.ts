@@ -183,20 +183,87 @@ describe("MealPlannerService Tests", () => {
   });
 
   describe("createWeeklyPlan", () => {
-    it("should create weekly plan", async () => {
+    const nutritionRecipe = (protein: number, calories: number) => ({
+      id: Math.floor(Math.random() * 1e6),
+      title: "meal",
+      nutrition: {
+        nutrients: [
+          { name: "Protein", amount: protein, unit: "g", percentOfDailyNeeds: 0 },
+          { name: "Calories", amount: calories, unit: "kcal", percentOfDailyNeeds: 0 },
+        ],
+      },
+    });
+
+    beforeEach(() => {
+      (Recipe.find as jest.Mock).mockResolvedValue([]);
+      (Recipe.insertMany as jest.Mock).mockResolvedValue([]);
       (axios.get as jest.Mock).mockResolvedValue({
-        data: { preferences: { diet: ["vegan"] } },
+        data: {
+          userPreferences: {
+            allergies: ["peanuts"],
+            diet: "vegetarian",
+            bodyStats: {
+              weightKg: 70,
+              heightCm: 175,
+              age: 30,
+              gender: "male",
+              activityLevel: "moderate",
+              unitSystem: "metric",
+            },
+            healthGoal: "gain_muscle",
+          },
+        },
       });
-      (spoonacularService.generateMealPlan as jest.Mock).mockResolvedValue({
-        week: {},
-      });
+    });
+
+    it("builds 7 days x 3 meals and marks proteinTargetMet true when floors met", async () => {
+      (spoonacularService.searchRecipesByNutrition as jest.Mock).mockImplementation(
+        (p: any) => Promise.resolve([nutritionRecipe((p.minProtein ?? 0) + 30, 700)]),
+      );
       const mockSave = jest.fn();
       (MealPlan as any).mockImplementation((opts: any) => ({
         ...opts,
         save: mockSave,
       }));
-      const plan = await mealPlannerService.createWeeklyPlan("user-1");
+
+      const plan = await mealPlannerService.createWeeklyPlan(
+        "user-1",
+        "2026-06-17",
+        "tok",
+      );
+
       expect(mockSave).toHaveBeenCalled();
+      expect(plan.days).toHaveLength(7);
+      plan.days.forEach((d: any) => {
+        expect(d.breakfast.recipeId).not.toBe("0");
+        expect(d.lunch.recipeId).not.toBe("0");
+        expect(d.dinner.recipeId).not.toBe("0");
+        expect(d.proteinTargetMet).toBe(true);
+      });
+    });
+
+    it("flags proteinTargetMet false when no recipe meets the floor", async () => {
+      (spoonacularService.searchRecipesByNutrition as jest.Mock).mockImplementation(
+        (p: any) =>
+          (p.minProtein ?? 0) > 0
+            ? Promise.resolve([])
+            : Promise.resolve([nutritionRecipe(5, 700)]),
+      );
+      const mockSave = jest.fn();
+      (MealPlan as any).mockImplementation((opts: any) => ({
+        ...opts,
+        save: mockSave,
+      }));
+
+      const plan = await mealPlannerService.createWeeklyPlan(
+        "user-1",
+        "2026-06-17",
+        "tok",
+      );
+
+      plan.days.forEach((d: any) => {
+        expect(d.proteinTargetMet).toBe(false);
+      });
     });
   });
 
