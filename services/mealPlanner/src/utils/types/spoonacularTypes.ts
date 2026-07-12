@@ -97,7 +97,7 @@ export type RecipeResponse = {
       score: number;
       link: string;
     }[];
-  }; // Not used in our app, but included for completeness
+  }; 
   instructions: string;
   analyzedInstructions: {
     name: string;
@@ -136,7 +136,6 @@ export type ComplexSearchParams = {
   number?: number;
 };
 
-// A single recipe returned by recipes/complexSearch with addRecipeNutrition=true.
 export type ComplexSearchRecipe = {
   id: number;
   title: string;
@@ -153,8 +152,6 @@ export type ComplexSearchResponse = {
   totalResults: number;
 };
 
-// Search function shape injected into the day-plan builder (dependency injection
-// so the pure builder logic can be unit-tested without hitting Spoonacular).
 export type SearchRecipesFn = (
   params: ComplexSearchParams,
 ) => Promise<ComplexSearchRecipe[]>;
@@ -173,6 +170,46 @@ export type DayResult = {
   slots: SlotResult[];
   proteinTargetMet: boolean;
 };
+
+export type SlotSpec = ComplexSearchParams & {
+  slot: SlotName;
+  type: MealType;
+  minProtein: number;
+  minCalories: number;
+  maxCalories: number;
+};
+
+export type DietOpts = {
+  diet?: string;
+  excludeIngredients?: string;
+};
+
+export type WeekTargets = DietOpts & {
+  proteinGramsPerDay: number;
+  targetCalories: number;
+};
+
+export interface SpoonacularSearchParams {
+  cuisines?: string[];
+  diet?: string;
+  intolerances?: string;
+  mealType?: string;
+  recipesCount?: number;
+  minCalories?: number;
+  maxCalories?: number;
+  minProtein?: number;
+}
+
+export interface SpoonacularSearchResult {
+  id: number;
+  title: string;
+  image?: string;
+  readyInMinutes?: number;
+  cuisines?: string[];
+  dishTypes?: string[];
+  diets?: string[];
+  nutrition?: { nutrients: { name: string; amount: number }[] };
+}
 
 export type recipeNutrients = {
   name: string;

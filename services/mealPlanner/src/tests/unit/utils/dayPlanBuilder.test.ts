@@ -3,11 +3,11 @@ import {
   findMealsForSlotType,
   buildWeek,
   SLOT_FRACTIONS,
-  SlotSpec,
 } from "../../../utils/dayPlanBuilder";
 import {
   ComplexSearchParams,
   ComplexSearchRecipe,
+  SlotSpec,
 } from "../../../utils/types/spoonacularTypes";
 
 // Build a fake recipe with a given protein/calorie amount.

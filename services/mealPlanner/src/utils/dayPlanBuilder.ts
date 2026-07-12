@@ -2,10 +2,11 @@ import {
   ComplexSearchParams,
   ComplexSearchRecipe,
   DayResult,
-  MealType,
   SearchRecipesFn,
   SlotName,
   SlotResult,
+  SlotSpec,
+  WeekTargets,
 } from "./types/spoonacularTypes";
 
 // Daily targets split 30 / 40 / 30 across breakfast / lunch / dinner.
@@ -15,14 +16,6 @@ const SLOT_NAMES: SlotName[] = ["breakfast", "lunch", "dinner"];
 
 // Calorie band tolerance around each slot's calorie share (±20%).
 const CALORIE_TOLERANCE = 0.2;
-
-export type SlotSpec = ComplexSearchParams & {
-  slot: SlotName;
-  type: MealType;
-  minProtein: number;
-  minCalories: number;
-  maxCalories: number;
-};
 
 export const splitDailyTargets = (
   proteinGramsPerDay: number,
@@ -86,19 +79,9 @@ export const findMealsForSlotType = async (
   return [];
 };
 
-export type DietOpts = {
-  diet?: string;
-  excludeIngredients?: string;
-};
-
 const DAYS_PER_WEEK = 7;
 
-const SLOT_QUERY_COUNT = 10;
-
-export type WeekTargets = DietOpts & {
-  proteinGramsPerDay: number;
-  targetCalories: number;
-};
+const SLOT_QUERY_COUNT = 7;
 
 export const buildWeek = async (
   targets: WeekTargets,

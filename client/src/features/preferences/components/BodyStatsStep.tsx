@@ -69,7 +69,7 @@ export function BodyStatsStep({ value, onChange }: BodyStatsStepProps) {
       gender: gender || undefined,
       unitSystem: unit,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [unit, kg, cm, lb, ft, inch, age, gender]);
 
   const handleUnitChange = (next: UnitSystem | null) => {

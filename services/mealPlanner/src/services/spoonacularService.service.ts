@@ -4,6 +4,8 @@ import {
   ComplexSearchRecipe,
   ComplexSearchResponse,
   RecipeResponse,
+  SpoonacularSearchParams,
+  SpoonacularSearchResult,
 } from "../utils/types/spoonacularTypes";
 
 // recipes/complexSearch with addRecipeNutrition=true: returns recipes plus inline
@@ -47,28 +49,6 @@ export const getRecipeDetails = async (
   const response = await axios.get(url);
   return response.data;
 };
-
-export interface SpoonacularSearchParams {
-  cuisines?: string[];
-  diet?: string;
-  intolerances?: string;
-  mealType?: string;
-  recipesCount?: number;
-  minCalories?: number;
-  maxCalories?: number;
-  minProtein?: number;
-}
-
-export interface SpoonacularSearchResult {
-  id: number;
-  title: string;
-  image?: string;
-  readyInMinutes?: number;
-  cuisines?: string[];
-  dishTypes?: string[];
-  diets?: string[];
-  nutrition?: { nutrients: { name: string; amount: number }[] };
-}
 
 const DEFAULT_RECIPES_COUNT = 12;
 
