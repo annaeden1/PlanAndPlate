@@ -6,4 +6,6 @@ jest-localstorage.json*
 .ls-tmp*
 *.log
 CLAUDE.md
+*.md
+PROJECT.md
 /services/mealPlanner/public/photos/

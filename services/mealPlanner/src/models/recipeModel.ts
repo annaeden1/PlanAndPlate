@@ -32,6 +32,7 @@ export interface IRecipe {
   dishTypes?: string[];
   embedding?: number[];
   instructions?: IRecipeInstructions;
+  fetchedWithExclusions?: string[];
 }
 
 const recipeSchema = new mongoose.Schema({
@@ -50,6 +51,7 @@ const recipeSchema = new mongoose.Schema({
   cuisines: [{ type: String }],
   dishTypes: [{ type: String }],
   embedding: { type: [Number], default: undefined },
+  fetchedWithExclusions: [{ type: String }],
   instructions: {
     steps: [{ type: String }],
     ingredients: [{

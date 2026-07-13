@@ -3,16 +3,37 @@ import mongoose from "mongoose";
 import { MealPlan, IMealPlan, IMealPlanDay } from "../models/mealPlanModel";
 import { Recipe, IRecipe } from "../models/recipeModel";
 import { UserFavorites } from "../models/userFavoritesModel";
+import { getRecipeDetails as getSpoonacularRecipe } from "./spoonacularService.service";
 import {
-  generateMealPlan,
-  getRecipeDetails as getSpoonacularRecipe,
-  getRecipeDetailsBulk,
-} from "./spoonacularService.service";
+  makeCachedSearch,
+  normalizeAllergyList,
+} from "./cachedRecipeSearch";
 import { normalizeUnit } from "../utils/types/units";
-import { nutrients } from "../utils/types/spoonacularTypes";
+import {
+  nutrients,
+  ComplexSearchRecipe,
+  SlotResult,
+} from "../utils/types/spoonacularTypes";
+import { calcTargets, BodyStats } from "../utils/calorieCalculator";
+import { buildWeek } from "../utils/dayPlanBuilder";
 import { getAiProvider } from "../ai/aiProvider";
 
 const NUTRITION_FALLBACK = { calories: 400, protein: 20, fat: 15, carbs: 45 };
+
+const NO_REPEAT_PLAN_COUNT = 3;
+
+const nutrientAmount = (recipe: ComplexSearchRecipe, name: string): number =>
+  recipe.nutrition?.nutrients?.find((n) => n.name === name)?.amount ?? 0;
+
+const slotToMeal = (slot?: SlotResult) =>
+  slot
+    ? {
+        recipeId: String(slot.recipe.id),
+        name: slot.recipe.title,
+        calories: Math.round(slot.calories),
+        image: slot.recipe.image ?? "",
+      }
+    : { recipeId: "0", name: "", calories: 0, image: "" };
 
 interface ParsedUserPreferences {
   /** First diet value — used when an API accepts only one (e.g. Spoonacular). */
@@ -22,6 +43,7 @@ interface ParsedUserPreferences {
   allergies: string;
   healthGoal?: string;
   weeklyBudget?: number;
+  bodyStats?: Partial<BodyStats>;
 }
 
 class MealPlannerService {
@@ -31,150 +53,114 @@ class MealPlannerService {
     token?: string,
   ): Promise<IMealPlan & any> {
     const refDate = date ? new Date(date) : new Date();
+    if (isNaN(refDate.getTime())) {
+      throw new Error(`Invalid date: ${date}`);
+    }
     const weekStart = new Date(refDate);
     weekStart.setDate(refDate.getDate() - refDate.getDay());
 
     const userPreferences = await this.getUserPreferences(userId, token);
 
-    const weeklyPlanFromAPI = await generateMealPlan(
-      userPreferences.primaryDiet,
-      userPreferences.allergies,
+    const targets = calcTargets(
+      userPreferences.bodyStats,
+      userPreferences.healthGoal ?? "",
     );
 
-    const allRecipeIds: number[] = [];
-    Object.values(weeklyPlanFromAPI.week).forEach((day: any) => {
-      if (day.meals) {
-        day.meals.forEach((meal: any) => {
-          allRecipeIds.push(meal.id);
-        });
-      }
+    const recentRecipeIds = await this.getRecentRecipeIds(
+      userId,
+      NO_REPEAT_PLAN_COUNT,
+    );
+    const exclusions = normalizeAllergyList(userPreferences.allergies);
+    const search = makeCachedSearch({
+      recentRecipeIds,
+      allergies: userPreferences.allergies,
     });
 
-    const caloriesMap: { [key: number]: number } = {};
-    const missingIds: number[] = [];
-
-    await Promise.all(
-      allRecipeIds.map(async (id) => {
-        const saved = await Recipe.findOne({ originRecipeId: id.toString() });
-        if (saved) {
-          caloriesMap[id] = saved.calories ?? 0;
-        } else {
-          missingIds.push(id);
-        }
-      }),
+    const week = await buildWeek(
+      {
+        proteinGramsPerDay: targets?.proteinGramsPerDay ?? 0,
+        targetCalories: targets?.targetCalories ?? 0,
+        diet: userPreferences.primaryDiet || undefined,
+        excludeIngredients: userPreferences.allergies || undefined,
+      },
+      search,
     );
 
-    if (missingIds.length > 0) {
-      const bulkResults = await getRecipeDetailsBulk(missingIds.join(","));
-      bulkResults.forEach((recipe: any) => {
-        const caloriesNutrient = recipe.nutrition?.nutrients?.find(
-          (n: any) => n.name === "Calories",
-        );
-        caloriesMap[recipe.id] = caloriesNutrient ? caloriesNutrient.amount : 0;
-      });
+    const allSlots: SlotResult[] = week.flatMap((day) => day.slots);
+    const existing = await Recipe.find({
+      originRecipeId: { $in: allSlots.map((s) => String(s.recipe.id)) },
+    });
+    const existingIds = new Set(existing.map((r) => r.originRecipeId));
+    const toInsert = new Map<string, ComplexSearchRecipe>();
+    for (const slot of allSlots) {
+      const id = String(slot.recipe.id);
+      if (!existingIds.has(id) && !toInsert.has(id)) {
+        toInsert.set(id, slot.recipe);
+      }
+    }
+    if (toInsert.size > 0) {
+      await Recipe.insertMany(
+        Array.from(toInsert.values()).map((r) => ({
+          originRecipeId: String(r.id),
+          source: "spoonacular",
+          name: r.title,
+          image: r.image,
+          calories: nutrientAmount(r, "Calories"),
+          protein: nutrientAmount(r, "Protein"),
+          fat: nutrientAmount(r, "Fat"),
+          carbs: nutrientAmount(r, "Carbohydrates"),
+          diets: r.diets ?? [],
+          fetchedWithExclusions: exclusions,
+        })),
+        { ordered: false },
+      );
     }
 
-    const daysOfWeek = [
-      "sunday",
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-    ];
-    const spoonacularDays = [
-      "monday",
-      "tuesday",
-      "wednesday",
-      "thursday",
-      "friday",
-      "saturday",
-      "sunday",
-    ];
+    const missedDays = week.filter((d) => !d.proteinTargetMet).length;
+    if (missedDays > 0 && (targets?.proteinGramsPerDay ?? 0) > 0) {
+      console.warn(
+        `Protein target not met for ${missedDays}/7 days (user ${userId}, floor ${targets?.proteinGramsPerDay}g/day).`,
+      );
+    }
 
-    const days = daysOfWeek.map((dayName, index) => {
-      const spoonacularDayIndex = (index + 6) % 7; // Shift to align Sunday first
-      const spoonacularDay = spoonacularDays[spoonacularDayIndex];
-      const dayData = weeklyPlanFromAPI.week[spoonacularDay];
-
+    const days = week.map((day, index) => {
       const dateObj = new Date(weekStart);
       dateObj.setDate(weekStart.getDate() + index);
       const dateStr = dateObj.toISOString().split("T")[0];
 
-      const meals = dayData?.meals || [];
+      const bySlot = (name: string) =>
+        day.slots.find((s) => s.slot === name);
+
       return {
         date: dateStr,
-        breakfast: meals[0]
-          ? {
-              recipeId: meals[0].id,
-              name: meals[0].title,
-              calories: caloriesMap[meals[0].id] || 0,
-              image: meals[0].image,
-            }
-          : { recipeId: 0, name: "", calories: 0, image: "" },
-        lunch: meals[1]
-          ? {
-              recipeId: meals[1].id,
-              name: meals[1].title,
-              calories: caloriesMap[meals[1].id] || 0,
-              image: meals[1].image,
-            }
-          : { recipeId: 0, name: "", calories: 0, image: "" },
-        dinner: meals[2]
-          ? {
-              recipeId: meals[2].id,
-              name: meals[2].title,
-              calories: caloriesMap[meals[2].id] || 0,
-              image: meals[2].image,
-            }
-          : { recipeId: 0, name: "", calories: 0, image: "" },
+        breakfast: slotToMeal(bySlot("breakfast")),
+        lunch: slotToMeal(bySlot("lunch")),
+        dinner: slotToMeal(bySlot("dinner")),
+        proteinTargetMet: day.proteinTargetMet,
       };
     });
 
-    let sourceNutrients: nutrients = {
-      calories: 0,
-      protein: 0,
-      fat: 0,
-      carbohydrates: 0,
-    };
-    daysOfWeek.forEach((dayName, index) => {
-      const spoonacularDayIndex = (index + 6) % 7;
-      const spoonacularDay = spoonacularDays[spoonacularDayIndex];
-      sourceNutrients = {
-        calories:
-          sourceNutrients.calories +
-          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.calories || 0),
-        protein:
-          sourceNutrients.protein +
-          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.protein || 0),
-        fat:
-          sourceNutrients.fat +
-          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.fat || 0),
-        carbohydrates:
-          sourceNutrients.carbohydrates +
-          (weeklyPlanFromAPI.week[spoonacularDay]?.nutrients.carbohydrates ||
-            0),
-      };
-    });
+    const summary: nutrients = week.reduce(
+      (acc, day) => {
+        day.slots.forEach((s) => {
+          acc.calories += s.calories;
+          acc.protein += s.protein;
+          acc.fat += nutrientAmount(s.recipe, "Fat");
+          acc.carbohydrates += nutrientAmount(s.recipe, "Carbohydrates");
+        });
+        return acc;
+      },
+      { calories: 0, protein: 0, fat: 0, carbohydrates: 0 } as nutrients,
+    );
 
     const mealPlan = new MealPlan({
       userId,
       days,
       nutritionSummary: {
-        calories:
-          sourceNutrients.calories ||
-          days.reduce(
-            (sum, day) =>
-              sum +
-              (day.breakfast?.calories || 0) +
-              (day.lunch?.calories || 0) +
-              (day.dinner?.calories || 0),
-            0,
-          ),
-        protein: sourceNutrients.protein || 0,
-        fat: sourceNutrients.fat || 0,
-        carbs: sourceNutrients.carbohydrates || 0,
+        calories: Math.round(summary.calories),
+        protein: Math.round(summary.protein),
+        fat: Math.round(summary.fat),
+        carbs: Math.round(summary.carbohydrates),
       },
     });
 
@@ -381,6 +367,38 @@ class MealPlannerService {
     return recipes.map((r) => ({ ...r.toObject(), isLiked: true }));
   }
 
+  private async getRecentRecipeIds(
+    userId: string,
+    count: number,
+  ): Promise<string[]> {
+    try {
+      const plans = (await MealPlan.find({ userId })) ?? [];
+      const recent = [...plans]
+        .sort((a, b) => {
+          const aDate = a.days?.[0]?.date
+            ? new Date(a.days[0].date).getTime()
+            : 0;
+          const bDate = b.days?.[0]?.date
+            ? new Date(b.days[0].date).getTime()
+            : 0;
+          return bDate - aDate;
+        })
+        .slice(0, count);
+
+      const ids = recent.flatMap((plan) =>
+        (plan.days ?? []).flatMap((day) =>
+          [day.breakfast, day.lunch, day.dinner]
+            .map((meal) => String(meal?.recipeId ?? ""))
+            .filter((id) => id !== "" && id !== "0"),
+        ),
+      );
+      return [...new Set(ids)];
+    } catch (err) {
+      console.warn("Could not load recent recipeIds for no-repeat:", err);
+      return [];
+    }
+  }
+
   private async getUserPreferences(
     userId: string,
     authHeader?: string,
@@ -409,6 +427,7 @@ class MealPlannerService {
       allergies: allergiesList.join(", "),
       healthGoal: raw.healthGoal ?? undefined,
       weeklyBudget: raw.weeklyBudget ?? undefined,
+      bodyStats: raw.bodyStats ?? undefined,
     };
   }
 

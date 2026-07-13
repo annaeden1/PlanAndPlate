@@ -97,7 +97,7 @@ export type RecipeResponse = {
       score: number;
       link: string;
     }[];
-  }; // Not used in our app, but included for completeness
+  }; 
   instructions: string;
   analyzedInstructions: {
     name: string;
@@ -117,25 +117,6 @@ export type RecipeResponse = {
   spoonacularScore: number;
 };
 
-export type MealPlanResponse = {
-  week: {
-    [day: string]: {
-      meals: meal[];
-      nutrients: nutrients;
-    };
-  };
-};
-
-type meal = {
-  id: number;
-  image: string;
-  imageType: string;
-  title: string;
-  readyInMinutes: number;
-  servings: number;
-  sourceUrl: string;
-};
-
 export type nutrients = {
   calories: number;
   protein: number;
@@ -143,7 +124,96 @@ export type nutrients = {
   carbohydrates: number;
 };
 
-type recipeNutrients = {
+export type MealType = "breakfast" | "main course";
+
+export type ComplexSearchParams = {
+  type?: MealType;
+  minProtein?: number;
+  minCalories?: number;
+  maxCalories?: number;
+  diet?: string;
+  excludeIngredients?: string;
+  number?: number;
+  offset?: number;
+};
+
+export type ComplexSearchRecipe = {
+  id: number;
+  title: string;
+  image?: string;
+  diets?: string[];
+  nutrition: {
+    nutrients: recipeNutrients[];
+  };
+};
+
+export type ComplexSearchResponse = {
+  results: ComplexSearchRecipe[];
+  offset: number;
+  number: number;
+  totalResults: number;
+};
+
+export type SearchRecipesFn = (
+  params: ComplexSearchParams,
+) => Promise<ComplexSearchRecipe[]>;
+
+export type SlotName = "breakfast" | "lunch" | "dinner";
+
+export type SlotResult = {
+  slot: SlotName;
+  recipe: ComplexSearchRecipe;
+  protein: number;
+  calories: number;
+  proteinFloorMet: boolean;
+};
+
+export type DayResult = {
+  slots: SlotResult[];
+  proteinTargetMet: boolean;
+};
+
+export type SlotSpec = ComplexSearchParams & {
+  slot: SlotName;
+  type: MealType;
+  minProtein: number;
+  minCalories: number;
+  maxCalories: number;
+};
+
+export type DietOpts = {
+  diet?: string;
+  excludeIngredients?: string;
+};
+
+export type WeekTargets = DietOpts & {
+  proteinGramsPerDay: number;
+  targetCalories: number;
+};
+
+export interface SpoonacularSearchParams {
+  cuisines?: string[];
+  diet?: string;
+  intolerances?: string;
+  mealType?: string;
+  recipesCount?: number;
+  minCalories?: number;
+  maxCalories?: number;
+  minProtein?: number;
+}
+
+export interface SpoonacularSearchResult {
+  id: number;
+  title: string;
+  image?: string;
+  readyInMinutes?: number;
+  cuisines?: string[];
+  dishTypes?: string[];
+  diets?: string[];
+  nutrition?: { nutrients: { name: string; amount: number }[] };
+}
+
+export type recipeNutrients = {
   name: string;
   amount: number;
   unit: string;

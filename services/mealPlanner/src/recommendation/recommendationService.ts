@@ -2,11 +2,11 @@ import axios from "axios";
 import { Recipe } from "../models/recipeModel";
 import { UserFavorites } from "../models/userFavoritesModel";
 import { getAiProvider } from "../ai/aiProvider";
+import { searchRecipes } from "../services/spoonacularService.service";
 import {
-  searchRecipes,
   SpoonacularSearchParams,
   SpoonacularSearchResult,
-} from "../services/spoonacularService.service";
+} from "../utils/types/spoonacularTypes";
 import mealPlannerService from "../services/mealPlannerService";
 import { buildTasteProfile, TasteRecipe, MIN_LIKES } from "./tasteProfile";
 import { buildEmbeddingText } from "./embeddingText";
