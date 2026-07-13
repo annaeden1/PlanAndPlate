@@ -197,6 +197,8 @@ describe("MealPlannerService Tests", () => {
     beforeEach(() => {
       (Recipe.find as jest.Mock).mockResolvedValue([]);
       (Recipe.insertMany as jest.Mock).mockResolvedValue([]);
+      (Recipe.aggregate as jest.Mock).mockResolvedValue([]); // cache miss
+      (MealPlan.find as jest.Mock).mockResolvedValue([]); // no plan history
       (axios.get as jest.Mock).mockResolvedValue({
         data: {
           userPreferences: {
@@ -240,6 +242,76 @@ describe("MealPlannerService Tests", () => {
         expect(d.dinner.recipeId).not.toBe("0");
         expect(d.proteinTargetMet).toBe(true);
       });
+
+      // Cached rows must be valid (source is required) and carry the
+      // provenance fields used by cache-first search.
+      const inserted = (Recipe.insertMany as jest.Mock).mock.calls[0][0];
+      expect(inserted.length).toBeGreaterThan(0);
+      for (const row of inserted) {
+        expect(row.source).toBe("spoonacular");
+        expect(row.diets).toEqual([]);
+        expect(row.fetchedWithExclusions).toEqual(["peanuts"]);
+      }
+    });
+
+    it("serves slots from the recipe cache without calling Spoonacular", async () => {
+      const cachedDoc = (id: string) => ({
+        originRecipeId: id,
+        source: "spoonacular",
+        name: `cached-${id}`,
+        image: `${id}.jpg`,
+        calories: 600,
+        protein: 60,
+        fat: 20,
+        carbs: 50,
+        diets: [],
+      });
+      (Recipe.aggregate as jest.Mock).mockResolvedValue(
+        Array.from({ length: 7 }, (_, i) => cachedDoc(String(100 + i))),
+      );
+      const mockSave = jest.fn();
+      (MealPlan as any).mockImplementation((opts: any) => ({
+        ...opts,
+        save: mockSave,
+      }));
+
+      const plan = await mealPlannerService.createWeeklyPlan(
+        "user-1",
+        "2026-06-17",
+        "tok",
+      );
+
+      expect(spoonacularService.searchRecipesByNutrition).not.toHaveBeenCalled();
+      expect(plan.days).toHaveLength(7);
+      expect(plan.days[0].breakfast.name).toMatch(/^cached-/);
+    });
+
+    it("excludes recipes from the user's recent plans", async () => {
+      (MealPlan.find as jest.Mock).mockResolvedValue([
+        {
+          days: [
+            {
+              date: "2026-06-10",
+              breakfast: { recipeId: "42" },
+              lunch: { recipeId: "0" },
+              dinner: { recipeId: "43" },
+            },
+          ],
+        },
+      ]);
+      (spoonacularService.searchRecipesByNutrition as jest.Mock).mockImplementation(
+        (p: any) => Promise.resolve([nutritionRecipe((p.minProtein ?? 0) + 30, 700)]),
+      );
+      const mockSave = jest.fn();
+      (MealPlan as any).mockImplementation((opts: any) => ({
+        ...opts,
+        save: mockSave,
+      }));
+
+      await mealPlannerService.createWeeklyPlan("user-1", "2026-06-17", "tok");
+
+      const match = (Recipe.aggregate as jest.Mock).mock.calls[0][0][0].$match;
+      expect(match.originRecipeId).toEqual({ $nin: ["42", "43"] });
     });
 
     it("flags proteinTargetMet false when no recipe meets the floor", async () => {

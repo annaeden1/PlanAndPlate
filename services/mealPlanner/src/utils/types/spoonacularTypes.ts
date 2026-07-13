@@ -134,12 +134,14 @@ export type ComplexSearchParams = {
   diet?: string;
   excludeIngredients?: string;
   number?: number;
+  offset?: number;
 };
 
 export type ComplexSearchRecipe = {
   id: number;
   title: string;
   image?: string;
+  diets?: string[];
   nutrition: {
     nutrients: recipeNutrients[];
   };

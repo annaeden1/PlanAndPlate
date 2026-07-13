@@ -3,10 +3,11 @@ import mongoose from "mongoose";
 import { MealPlan, IMealPlan, IMealPlanDay } from "../models/mealPlanModel";
 import { Recipe, IRecipe } from "../models/recipeModel";
 import { UserFavorites } from "../models/userFavoritesModel";
+import { getRecipeDetails as getSpoonacularRecipe } from "./spoonacularService.service";
 import {
-  getRecipeDetails as getSpoonacularRecipe,
-  searchRecipesByNutrition,
-} from "./spoonacularService.service";
+  makeCachedSearch,
+  normalizeAllergyList,
+} from "./cachedRecipeSearch";
 import { normalizeUnit } from "../utils/types/units";
 import {
   nutrients,
@@ -18,6 +19,8 @@ import { buildWeek } from "../utils/dayPlanBuilder";
 import { getAiProvider } from "../ai/aiProvider";
 
 const NUTRITION_FALLBACK = { calories: 400, protein: 20, fat: 15, carbs: 45 };
+
+const NO_REPEAT_PLAN_COUNT = 3;
 
 const nutrientAmount = (recipe: ComplexSearchRecipe, name: string): number =>
   recipe.nutrition?.nutrients?.find((n) => n.name === name)?.amount ?? 0;
@@ -63,6 +66,16 @@ class MealPlannerService {
       userPreferences.healthGoal ?? "",
     );
 
+    const recentRecipeIds = await this.getRecentRecipeIds(
+      userId,
+      NO_REPEAT_PLAN_COUNT,
+    );
+    const exclusions = normalizeAllergyList(userPreferences.allergies);
+    const search = makeCachedSearch({
+      recentRecipeIds,
+      allergies: userPreferences.allergies,
+    });
+
     const week = await buildWeek(
       {
         proteinGramsPerDay: targets?.proteinGramsPerDay ?? 0,
@@ -70,7 +83,7 @@ class MealPlannerService {
         diet: userPreferences.primaryDiet || undefined,
         excludeIngredients: userPreferences.allergies || undefined,
       },
-      searchRecipesByNutrition,
+      search,
     );
 
     const allSlots: SlotResult[] = week.flatMap((day) => day.slots);
@@ -89,12 +102,15 @@ class MealPlannerService {
       await Recipe.insertMany(
         Array.from(toInsert.values()).map((r) => ({
           originRecipeId: String(r.id),
+          source: "spoonacular",
           name: r.title,
           image: r.image,
           calories: nutrientAmount(r, "Calories"),
           protein: nutrientAmount(r, "Protein"),
           fat: nutrientAmount(r, "Fat"),
           carbs: nutrientAmount(r, "Carbohydrates"),
+          diets: r.diets ?? [],
+          fetchedWithExclusions: exclusions,
         })),
         { ordered: false },
       );
@@ -349,6 +365,38 @@ class MealPlannerService {
     });
 
     return recipes.map((r) => ({ ...r.toObject(), isLiked: true }));
+  }
+
+  private async getRecentRecipeIds(
+    userId: string,
+    count: number,
+  ): Promise<string[]> {
+    try {
+      const plans = (await MealPlan.find({ userId })) ?? [];
+      const recent = [...plans]
+        .sort((a, b) => {
+          const aDate = a.days?.[0]?.date
+            ? new Date(a.days[0].date).getTime()
+            : 0;
+          const bDate = b.days?.[0]?.date
+            ? new Date(b.days[0].date).getTime()
+            : 0;
+          return bDate - aDate;
+        })
+        .slice(0, count);
+
+      const ids = recent.flatMap((plan) =>
+        (plan.days ?? []).flatMap((day) =>
+          [day.breakfast, day.lunch, day.dinner]
+            .map((meal) => String(meal?.recipeId ?? ""))
+            .filter((id) => id !== "" && id !== "0"),
+        ),
+      );
+      return [...new Set(ids)];
+    } catch (err) {
+      console.warn("Could not load recent recipeIds for no-repeat:", err);
+      return [];
+    }
   }
 
   private async getUserPreferences(

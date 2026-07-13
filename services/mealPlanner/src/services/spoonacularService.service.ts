@@ -32,6 +32,7 @@ export const searchRecipesByNutrition = async (
   if (params.maxCalories !== undefined)
     query.set("maxCalories", String(Math.round(params.maxCalories)));
   if (params.number !== undefined) query.set("number", String(params.number));
+  if (params.offset !== undefined) query.set("offset", String(params.offset));
 
   const url = `https://api.spoonacular.com/recipes/complexSearch?${query.toString()}`;
   console.log("Spoonacular complexSearch URL:", url.replace(apiKey, "***"));

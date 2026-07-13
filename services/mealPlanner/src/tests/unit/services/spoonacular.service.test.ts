@@ -93,6 +93,16 @@ describe("SpoonacularService Tests", () => {
       expect(url).not.toContain("diet=");
       expect(url).not.toContain("type=");
       expect(url).not.toContain("excludeIngredients=");
+      expect(url).not.toContain("offset=");
+    });
+
+    it("passes offset when provided", async () => {
+      (axios.get as jest.Mock).mockResolvedValue({ data: { results: [] } });
+
+      await searchRecipesByNutrition({ minProtein: 10, offset: 14 });
+
+      const url: string = (axios.get as jest.Mock).mock.calls[0][0];
+      expect(url).toContain("offset=14");
     });
 
     it("throws when API key missing", async () => {
