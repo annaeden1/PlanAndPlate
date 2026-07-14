@@ -1,6 +1,8 @@
 import { useGroceryList } from "@/context/GroceryListContext";
 import { AddItemDialog } from "@/features/groceryList/components/AddItemDialog";
+import { ComparePricesDrawer } from "@/features/groceryList/components/ComparePricesDrawer";
 import { GroceryItemCard } from "@/features/groceryList/components/GroceryItemCard";
+import { usePriceComparison } from "@/features/groceryList/hooks/usePriceComparison";
 import type {
   Category,
   GroceryItem,
@@ -10,6 +12,7 @@ import { CATEGORY_EMOJIS } from "@/features/groceryList/utils/categoryEmojis";
 import AddIcon from "@mui/icons-material/Add";
 import CheckIcon from "@mui/icons-material/Check";
 import SearchIcon from "@mui/icons-material/Search";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import {
   Alert,
   Box,
@@ -39,6 +42,8 @@ export const GroceryList = () => {
   } = useGroceryList();
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const compare = usePriceComparison();
 
   const filteredGroups = useMemo(() => {
     if (!searchQuery) return groups;
@@ -153,6 +158,21 @@ export const GroceryList = () => {
             >
               Add Item
             </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              color="primary"
+              startIcon={<StorefrontIcon />}
+              onClick={compare.compare}
+              disabled={totalItems === 0}
+              sx={{
+                borderRadius: "1rem",
+                py: "0.75rem",
+                fontWeight: "bold",
+              }}
+            >
+              Compare Prices
+            </Button>
           </Box>
         </Box>
 
@@ -222,6 +242,14 @@ export const GroceryList = () => {
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onAdd={addItem}
+      />
+
+      <ComparePricesDrawer
+        open={compare.open}
+        loading={compare.loading}
+        error={compare.error}
+        result={compare.result}
+        onClose={compare.close}
       />
 
       {/* FAB operates on the full list, not just filtered view — intentional */}

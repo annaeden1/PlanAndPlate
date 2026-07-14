@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as GroceryController from '../controllers/groceryList.controller';
+import * as PriceComparisonController from '../controllers/priceComparison.controller';
 import authMiddleware from '../middlewares/auth.middleware';
 
 const router = Router();
@@ -230,5 +231,36 @@ router.delete('/users/:userId/products/:productName', GroceryController.removePr
  *         description: Grocery list cleared
  */
 router.delete('/users/:userId/products', GroceryController.clearGroceryList);
+
+/**
+ * @swagger
+ * /grocerylist/users/{userId}/price-comparison:
+ *   get:
+ *     summary: Compare the grocery list total across supermarket chains
+ *     description: >
+ *       Resolves each unchecked grocery item to a product at every supported
+ *       chain (רמי לוי, שופרסל, יוחננוף, אושר עד) and returns per-chain totals
+ *       ranked cheapest first, including estimated delivery fees. Totals are an
+ *       estimate only (promotions and club prices are not included). Items that
+ *       could not be priced at a chain are listed in that chain's `missing`.
+ *     tags: [GroceryList]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Price comparison result (estimate)
+ *       404:
+ *         description: Grocery list is empty
+ *       502:
+ *         description: Supermarket catalog or AI matching unavailable
+ */
+router.get(
+  '/users/:userId/price-comparison',
+  PriceComparisonController.getPriceComparison,
+);
 
 export default router;
