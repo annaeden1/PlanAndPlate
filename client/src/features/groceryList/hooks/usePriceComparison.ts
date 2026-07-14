@@ -14,6 +14,7 @@ export function usePriceComparison() {
   const compare = async () => {
     setOpen(true);
     setError(null);
+    setResult(null);
 
     const userId = getUserId();
     if (!userId) {

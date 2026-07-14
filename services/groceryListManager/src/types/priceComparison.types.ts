@@ -16,6 +16,10 @@ export interface ChainAdapter {
     fee: number; // ILS, 0 when the chain has no online delivery
     note?: string; // e.g. service fees, or "in-store prices"
   };
+  // False when the chain's catalog can't be searched by EAN (its codes are
+  // internal, e.g. Shufersal). Lets the pricer skip a getByBarcode that would
+  // almost always miss and go straight to the name-search fallback.
+  barcodeSearchable?: boolean;
   search(term: string): Promise<ChainProduct[]>;
   getByCode(code: string): Promise<ChainProduct | null>;
   // Look up a product by its EAN barcode. Returns null when the chain does
@@ -29,6 +33,9 @@ export interface ResolvedMatch {
   code: string;
   matchedName: string;
   confidence: number; // 0..1 from the LLM pick
+  // The priced product, present only on a fresh (non-cached) resolution — the
+  // search already fetched it, so the caller can skip a redundant getByCode.
+  product?: ChainProduct;
 }
 
 export interface ComparedItem {

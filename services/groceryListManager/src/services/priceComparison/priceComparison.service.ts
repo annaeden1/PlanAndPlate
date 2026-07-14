@@ -7,6 +7,7 @@ import {
   ComparedItem,
   PriceComparisonResult,
 } from '../../types/priceComparison.types';
+import { mapLimit } from '../../utils/concurrency';
 import { CHAIN_ADAPTERS } from './chains';
 import {
   CanonicalMatch,
@@ -15,9 +16,9 @@ import {
   resolveItemForChain,
 } from './resolver.service';
 
-// Chain used to resolve the one canonical product per item. Must expose
-// barcodes on its catalog (Rami Levy's product code IS the barcode).
 const REFERENCE_CHAIN_ID = 'rami-levy';
+
+const ITEM_RESOLUTION_CONCURRENCY = 5;
 
 interface ItemContext {
   item: GroceryItem;
@@ -30,15 +31,10 @@ const DISCLAIMER =
 
 const round2 = (n: number): number => Math.round(n * 100) / 100;
 
-// Each chain's LLM pick runs independently, so the "same" grocery item can
-// resolve to different package sizes at different chains (e.g. 2L vs 1L
-// milk). That shows up as a unit-price outlier, not a real price difference.
-// Flag it instead of forcing identical packaging across chains.
 const OUTLIER_RATIO = 1.5;
 const OUTLIER_NOTE =
   'ייתכן שהמוצר שנמצא כאן הוא בגודל אריזה שונה (בדרך כלל גדול יותר) מאשר ברשתות האחרות, ולכן המחיר גבוה יותר';
 
-/** Flags items whose unit price is far above the median for that item across chains. */
 const flagPackageSizeOutliers = (chains: ChainComparison[]): void => {
   const pricesByItem = new Map<string, number[]>();
   for (const chain of chains) {
@@ -54,7 +50,11 @@ const flagPackageSizeOutliers = (chains: ChainComparison[]): void => {
       const prices = pricesByItem.get(item.itemName);
       if (!prices || prices.length < 2) continue;
       const sorted = [...prices].sort((a, b) => a - b);
-      const median = sorted[Math.floor(sorted.length / 2)];
+      const mid = Math.floor(sorted.length / 2);
+      const median =
+        sorted.length % 2 === 0
+          ? (sorted[mid - 1] + sorted[mid]) / 2
+          : sorted[mid];
       if (median > 0 && item.unitPrice > median * OUTLIER_RATIO) {
         item.note = OUTLIER_NOTE;
       }
@@ -66,7 +66,7 @@ const toComparedItem = (
   item: GroceryItem,
   product: { name: string; code: string; price: number },
 ): ComparedItem => {
-  const packagesAssumed = 1; // v1 simplification — see design doc §2 QUANTIFY
+  const packagesAssumed = 1; 
   return {
     itemName: item.name,
     matchedProductName: product.name,
@@ -93,15 +93,21 @@ const priceItemAtChain = async (
     if (chain.id === REFERENCE_CHAIN_ID && canonical.referenceProduct) {
       return toComparedItem(item, canonical.referenceProduct);
     }
-    const byBarcode = await chain.getByBarcode(canonical.barcode);
-    if (byBarcode) return toComparedItem(item, byBarcode);
+    // Skip the barcode lookup on chains whose catalog isn't EAN-searchable
+    // (e.g. Shufersal) — it would almost always miss. Go to the name fallback.
+    if (chain.barcodeSearchable !== false) {
+      const byBarcode = await chain.getByBarcode(canonical.barcode);
+      if (byBarcode) return toComparedItem(item, byBarcode);
+    }
   }
 
   // Fallback: this chain doesn't stock the barcode — resolve it on its own.
   if (!hebrewQuery) return null;
   const match = await resolveItemForChain(item, chain, hebrewQuery);
   if (!match) return null;
-  const product = await chain.getByCode(match.code);
+  // A fresh resolution already fetched the product (with its live price);
+  // only fall back to getByCode on a cache hit, where the price isn't in hand.
+  const product = match.product ?? (await chain.getByCode(match.code));
   return product ? toComparedItem(item, product) : null;
 };
 
@@ -156,15 +162,17 @@ export const comparePrices = async (
 
   // Per item: translate once, then resolve one canonical product (1 LLM pick)
   // whose barcode is reused to price every chain. Both are shared across chains.
-  const contexts: ItemContext[] = await Promise.all(
-    toBuy.map(async (item): Promise<ItemContext> => {
+  const contexts: ItemContext[] = await mapLimit(
+    toBuy,
+    ITEM_RESOLUTION_CONCURRENCY,
+    async (item): Promise<ItemContext> => {
       const hebrewQuery = await getHebrewQuery(item.name.toLowerCase().trim());
       const canonical =
         hebrewQuery && referenceChain
           ? await resolveCanonical(item, referenceChain, hebrewQuery)
           : null;
       return { item, hebrewQuery, canonical };
-    }),
+    },
   );
 
   const chains = await Promise.all(

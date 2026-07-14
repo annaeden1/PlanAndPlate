@@ -45,6 +45,8 @@ export const shufersalAdapter: ChainAdapter = {
   displayName: 'שופרסל',
   // Delivery 35.90 + 15 service fee on orders under 750, verified 2026-07-13.
   delivery: { fee: 50.9, note: 'כולל דמי שירות 15 ₪ להזמנות עד 750 ₪' },
+  // Codes are internal (P_...), not EANs — barcode lookup almost always misses.
+  barcodeSearchable: false,
 
   search: searchResults,
 

@@ -190,5 +190,6 @@ export const resolveItemForChain = async (
     code: row.storedCode,
     matchedName: row.matchedName,
     confidence: row.confidence,
+    ...(row.product ? { product: row.product } : {}),
   };
 };

@@ -233,10 +233,13 @@ describe('resolveItemForChain', () => {
     const result = await resolveItemForChain(item, chain, 'חלב');
 
     expect(chain.search).toHaveBeenCalledWith('חלב');
+    // Fresh resolution returns the priced product so the pricer can skip a
+    // redundant getByCode.
     expect(result).toEqual({
       code: '7290001794852',
       matchedName: 'חלב טרי 3% 1 ליטר רמי לוי',
       confidence: 0.9,
+      product: milkProduct,
     });
     expect(mockedPriceMatch.findOneAndUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ itemName: 'whole milk', chainId: 'rami-levy' }),

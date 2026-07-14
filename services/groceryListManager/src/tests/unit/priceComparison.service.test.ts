@@ -125,6 +125,41 @@ describe('comparePrices', () => {
     expect(mockedResolver.resolveItemForChain).toHaveBeenCalledTimes(1);
   });
 
+  it('reuses the fresh-resolution product instead of re-fetching by code', async () => {
+    listWith([groceryItem('milk')]);
+    mockedResolver.resolveCanonical.mockResolvedValue(null); // force fallback
+    mockedResolver.resolveItemForChain.mockResolvedValue({
+      code: 'FB',
+      matchedName: 'חלב',
+      confidence: 0.9,
+      product: product('FB', 9), // search already returned the priced product
+    });
+    const chain = makeChain('rami-levy', 'רמי לוי', 35.9); // no byCode map
+    setChains(chain);
+
+    const result = await comparePrices('u1');
+
+    expect(result.chains[0].items[0].unitPrice).toBe(9);
+    expect(chain.getByCode).not.toHaveBeenCalled();
+  });
+
+  it('skips getByBarcode on a chain whose catalog is not barcode-searchable', async () => {
+    listWith([groceryItem('milk')]);
+    // Canonical resolves (BC), but this chain can't be searched by EAN, so the
+    // barcode lookup must be skipped and the name-search fallback used.
+    const chain = makeChain('shufersal', 'שופרסל', 50.9, {
+      byBarcode: { BC: 7 }, // would match, but must never be called
+      byCode: { FB: 9 }, // fallback price
+    });
+    chain.barcodeSearchable = false;
+    setChains(chain);
+
+    const result = await comparePrices('u1');
+
+    expect(chain.getByBarcode).not.toHaveBeenCalled();
+    expect(result.chains[0].items[0].unitPrice).toBe(9);
+  });
+
   it('marks the item missing when both barcode and fallback fail', async () => {
     listWith([groceryItem('milk')]);
     setChains(

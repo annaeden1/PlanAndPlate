@@ -129,13 +129,19 @@ export const refreshChainCatalog = async (
   const items = parsePriceFullXml(xml);
   if (items.length === 0) throw new Error(`transparency feed: empty snapshot ${fname}`);
 
+  // A snapshot can list the same ItemCode twice; the unique {chainId, code}
+  // index would make insertMany reject. Dedupe (last row wins) before insert.
+  const byCode = new Map<string, ParsedItem>();
+  for (const item of items) byCode.set(item.code, item);
+  const unique = [...byCode.values()];
+
   const now = new Date();
   await ChainCatalogItem.deleteMany({ chainId });
   await ChainCatalogItem.insertMany(
-    items.map((i) => ({ ...i, chainId, updatedAt: now })),
+    unique.map((i) => ({ ...i, chainId, updatedAt: now })),
     { ordered: false },
   );
-  return items.length;
+  return unique.length;
 };
 
 /** In-flight refresh per chain, so concurrent requests share one download. */
