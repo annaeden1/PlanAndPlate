@@ -1,11 +1,10 @@
 import { Schema, model } from 'mongoose';
 
-/** A catalog snapshot row ingested from a transparency-law price feed. */
 export interface ChainCatalogItemDoc {
   chainId: string;
-  code: string; // ItemCode (EAN barcode)
-  name: string; // Hebrew product name
-  price: number; // ILS
+  code: string;
+  name: string;
+  price: number;
   updatedAt: Date;
 }
 

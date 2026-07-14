@@ -1,6 +1,5 @@
 import { Box, Chip, Typography } from "@mui/material";
 
-/** The items a chain couldn't price, shown as muted chips. Renders nothing when empty. */
 export function MissingItemsList({ names }: { names: string[] }) {
   if (names.length === 0) return null;
 

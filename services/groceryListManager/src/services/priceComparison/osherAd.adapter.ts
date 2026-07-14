@@ -2,11 +2,6 @@ import { ChainCatalogItem } from '../../models/chainCatalogItem.model';
 import { ChainAdapter, ChainProduct } from '../../types/priceComparison.types';
 import { ensureFreshCatalog } from './transparencyFeed.service';
 
-/**
- * Osher Ad has no online store (as of 2026-07); prices come from its
- * transparency-law feed snapshot ingested into MongoDB.
- */
-
 const CHAIN_ID = 'osher-ad';
 const PORTAL_USERNAME = 'osherad';
 const MAX_RESULTS = 20;
@@ -27,12 +22,10 @@ const toChainProduct = (doc: {
 export const osherAdAdapter: ChainAdapter = {
   id: CHAIN_ID,
   displayName: 'אושר עד',
-  // No online delivery service — these are in-store shelf prices.
   delivery: { fee: 0, note: 'מחירי חנות — אין משלוח אונליין' },
 
   search: async (term: string): Promise<ChainProduct[]> => {
     await ensureFreshCatalog(CHAIN_ID, PORTAL_USERNAME);
-    // Every word of the term must appear in the product name.
     const clauses = term
       .split(/\s+/)
       .filter(Boolean)
@@ -51,7 +44,6 @@ export const osherAdAdapter: ChainAdapter = {
     return doc ? toChainProduct(doc) : null;
   },
 
-  // Feed ItemCode is the EAN, so barcode lookup is the same as code lookup.
   getByBarcode: async (barcode: string): Promise<ChainProduct | null> => {
     await ensureFreshCatalog(CHAIN_ID, PORTAL_USERNAME);
     const doc = await ChainCatalogItem.findOne({

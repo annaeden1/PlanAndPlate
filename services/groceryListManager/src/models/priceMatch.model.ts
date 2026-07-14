@@ -1,10 +1,10 @@
 import { Schema, model } from 'mongoose';
 
 export interface PriceMatchDoc {
-  itemName: string; // normalized English grocery item name
-  chainId: string; // which supermarket chain this match is for
-  hebrewQuery: string; // Gemini's Hebrew search term (kept for debugging/reuse)
-  code: string | null; // chain product code; null = negative cache (known unresolvable)
+  itemName: string;
+  chainId: string;
+  hebrewQuery: string;
+  code: string | null;
   matchedName: string | null;
   confidence: number;
   resolvedAt: Date;

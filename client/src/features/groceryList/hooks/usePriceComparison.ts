@@ -4,7 +4,6 @@ import type { PriceComparisonResult } from "../types/priceComparison";
 import { getUserId } from "@/shared/utils/userId";
 import { getErrorMessage } from "@/shared/utils/errorMessage";
 
-/** Owns the price-comparison drawer state and the fetch that fills it. */
 export function usePriceComparison() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);

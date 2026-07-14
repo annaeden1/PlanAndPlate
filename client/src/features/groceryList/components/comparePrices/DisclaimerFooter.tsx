@@ -1,6 +1,5 @@
 import { Alert, Typography } from "@mui/material";
 
-/** Estimate disclaimer + "prices as of" timestamp shown under the chain list. */
 export function DisclaimerFooter({
   disclaimer,
   pricesAsOf,

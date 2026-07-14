@@ -5,7 +5,7 @@ const GRAPHQL_URL = 'https://api.yochananof.co.il/graphql';
 const REQUEST_TIMEOUT_MS = 10_000;
 
 interface RawYohananofProduct {
-  sku?: string; // full EAN barcode
+  sku?: string;
   name?: string;
   price_range?: { minimum_price?: { final_price?: { value?: number } } };
 }
@@ -19,7 +19,7 @@ const toChainProduct = (raw: RawYohananofProduct): ChainProduct | null => {
   if (typeof price !== 'number' || !raw.sku) return null;
   return {
     code: raw.sku,
-    barcode: raw.sku, // Magento sku here is the EAN
+    barcode: raw.sku,
     name: raw.name ?? '',
     price,
   };
@@ -43,13 +43,11 @@ const runQuery = async (query: string): Promise<ChainProduct[]> => {
     .filter((p): p is ChainProduct => p !== null);
 };
 
-// Escape double quotes/backslashes so a term can't break out of the GraphQL string.
 const quote = (s: string): string => JSON.stringify(s);
 
 export const yohananofAdapter: ChainAdapter = {
   id: 'yohananof',
   displayName: 'יוחננוף',
-  // Fee not published on-site; industry standard 35.90 as of 2026-07 (TheMarker).
   delivery: { fee: 35.9, note: 'דמי משלוח משוערים' },
 
   search: (term: string) =>
@@ -64,7 +62,6 @@ export const yohananofAdapter: ChainAdapter = {
     return results.find((p) => p.code === code) ?? null;
   },
 
-  // Magento sku is the EAN, so a barcode lookup is a filtered sku query.
   getByBarcode: async (barcode: string): Promise<ChainProduct | null> => {
     const results = await runQuery(
       `{ products(filter: {sku: {eq: ${quote(barcode)}}}) { ${PRODUCT_FIELDS} } }`,

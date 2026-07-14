@@ -20,11 +20,6 @@ interface ComparePricesDrawerProps {
   onClose: () => void;
 }
 
-/**
- * The genuinely cheapest chain = lowest total among baskets that priced every
- * item (no missing). An incomplete basket's low total isn't comparable, so it
- * never wins the badge. Returns null when no chain has a complete basket.
- */
 const cheapestChainId = (result: PriceComparisonResult): string | null => {
   const complete = result.chains.filter(
     (c) => c.items.length > 0 && c.missing.length === 0,

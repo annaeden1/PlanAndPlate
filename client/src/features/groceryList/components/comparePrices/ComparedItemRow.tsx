@@ -3,7 +3,6 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import type { ComparedItem } from "../../types/priceComparison";
 import { shekel } from "../../utils/priceFormat";
 
-/** One priced grocery line: original name, the chain's matched product, price, and any note. */
 export function ComparedItemRow({ item }: { item: ComparedItem }) {
   return (
     <Box>

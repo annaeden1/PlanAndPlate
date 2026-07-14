@@ -1,8 +1,3 @@
-/**
- * Like Promise.all(items.map(fn)) but runs at most `limit` tasks at once.
- * Keeps result order aligned with the input. Used to cap the burst of external
- * catalog + LLM calls when pricing a large grocery list.
- */
 export const mapLimit = async <T, R>(
   items: T[],
   limit: number,

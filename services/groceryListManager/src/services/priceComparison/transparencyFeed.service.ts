@@ -2,15 +2,9 @@ import axios from 'axios';
 import { gunzipSync } from 'zlib';
 import { ChainCatalogItem } from '../../models/chainCatalogItem.model';
 
-/**
- * Ingests price data published under Israel's price-transparency law
- * (חוק שקיפות מחירים) from the publishedprices.co.il portal.
- * Used for chains without a usable online-store API (Osher Ad).
- */
-
 const PORTAL = 'https://url.publishedprices.co.il';
 const REQUEST_TIMEOUT_MS = 60_000;
-const SNAPSHOT_TTL_MS = 24 * 60 * 60 * 1000; // refresh daily
+const SNAPSHOT_TTL_MS = 24 * 60 * 60 * 1000;
 
 interface ParsedItem {
   code: string;
@@ -18,7 +12,6 @@ interface ParsedItem {
   price: number;
 }
 
-/** Extracts ItemCode/ItemName/ItemPrice from a PriceFull XML document. */
 export const parsePriceFullXml = (xml: string): ParsedItem[] => {
   const items: ParsedItem[] = [];
   const itemBlocks = xml.match(/<Item>[\s\S]*?<\/Item>/g) ?? [];
@@ -40,7 +33,6 @@ export const parsePriceFullXml = (xml: string): ParsedItem[] => {
 const extractCsrf = (html: string): string | null =>
   html.match(/name="csrftoken" content="([^"]+)"/)?.[1] ?? null;
 
-/** Merges Set-Cookie headers into a cookie string; same-named cookies are replaced. */
 const mergeCookies = (
   current: string,
   setCookie: string[] | undefined,
@@ -57,7 +49,6 @@ const mergeCookies = (
     .join('; ');
 };
 
-/** Logs into the portal for a chain user and returns a session cookie. */
 const login = async (username: string): Promise<string> => {
   const loginPage = await axios.get(`${PORTAL}/login`, {
     timeout: REQUEST_TIMEOUT_MS,
@@ -76,12 +67,10 @@ const login = async (username: string): Promise<string> => {
       timeout: REQUEST_TIMEOUT_MS,
     },
   );
-  // The portal rotates the session cookie on login — replace, never append.
   cookies = mergeCookies(cookies, res.headers['set-cookie']);
   return cookies;
 };
 
-/** Finds the newest PriceFull file name for the logged-in chain. */
 const findLatestPriceFull = async (cookies: string): Promise<string> => {
   const filePage = await axios.get(`${PORTAL}/file`, {
     headers: { Cookie: cookies },
@@ -101,8 +90,6 @@ const findLatestPriceFull = async (cookies: string): Promise<string> => {
     .filter((n) => n.startsWith('PriceFull'));
   if (names.length === 0) throw new Error('transparency portal: no PriceFull files');
 
-  // File names embed a timestamp (…-YYYYMMDD-HHMMSS.gz); lexicographic max
-  // of the date part picks the newest snapshot regardless of store id.
   return names.sort((a, b) =>
     (a.split('-').slice(-2).join('-')).localeCompare(b.split('-').slice(-2).join('-')),
   )[names.length - 1];
@@ -115,10 +102,9 @@ const downloadXml = async (cookies: string, fname: string): Promise<string> => {
     timeout: REQUEST_TIMEOUT_MS,
   });
   const xml = gunzipSync(Buffer.from(res.data)).toString('utf-8');
-  return xml.charCodeAt(0) === 0xfeff ? xml.slice(1) : xml; // strip BOM
+  return xml.charCodeAt(0) === 0xfeff ? xml.slice(1) : xml;
 };
 
-/** Downloads the latest PriceFull snapshot and replaces the chain's catalog rows. */
 export const refreshChainCatalog = async (
   chainId: string,
   portalUsername: string,
@@ -129,8 +115,6 @@ export const refreshChainCatalog = async (
   const items = parsePriceFullXml(xml);
   if (items.length === 0) throw new Error(`transparency feed: empty snapshot ${fname}`);
 
-  // A snapshot can list the same ItemCode twice; the unique {chainId, code}
-  // index would make insertMany reject. Dedupe (last row wins) before insert.
   const byCode = new Map<string, ParsedItem>();
   for (const item of items) byCode.set(item.code, item);
   const unique = [...byCode.values()];
@@ -144,7 +128,6 @@ export const refreshChainCatalog = async (
   return unique.length;
 };
 
-/** In-flight refresh per chain, so concurrent requests share one download. */
 const refreshInFlight = new Map<string, Promise<number>>();
 
 export const ensureFreshCatalog = async (

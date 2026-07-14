@@ -13,7 +13,6 @@ const getClient = (): GoogleGenerativeAI => {
   return client;
 };
 
-/** Sends a prompt, expects a JSON response. Returns raw text or null on failure. */
 export const generateJson = async (prompt: string): Promise<string | null> => {
   try {
     const model = getClient().getGenerativeModel({

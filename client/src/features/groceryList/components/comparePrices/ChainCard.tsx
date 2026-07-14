@@ -13,7 +13,6 @@ const CHAIN_EMOJI: Record<ChainId, string> = {
   "osher-ad": "🔵",
 };
 
-/** One supermarket's priced basket: header, delivery, item lines, and missing items. */
 export function ChainCard({
   chain,
   isCheapest,

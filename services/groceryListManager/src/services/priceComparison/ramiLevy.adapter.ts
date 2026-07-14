@@ -2,7 +2,7 @@ import axios from 'axios';
 import { ChainAdapter, ChainProduct } from '../../types/priceComparison.types';
 
 const CATALOG_URL = 'https://www.rami-levy.co.il/api/catalog';
-const ONLINE_STORE_ID = '331'; // online store; prices are uniform across stores
+const ONLINE_STORE_ID = '331';
 const REQUEST_TIMEOUT_MS = 10_000;
 
 interface RawCatalogProduct {
@@ -23,7 +23,7 @@ const toChainProduct = (raw: RawCatalogProduct): ChainProduct | null => {
   const price = raw.price?.price;
   if (typeof price !== 'number' || !raw.barcode) return null;
   return {
-    code: String(raw.barcode), // Rami Levy's catalog is queryable by barcode
+    code: String(raw.barcode),
     barcode: String(raw.barcode),
     name: raw.name ?? raw.gs?.internal_product_description ?? '',
     price,
@@ -45,7 +45,6 @@ const searchCatalog = async (query: string): Promise<ChainProduct[]> => {
 export const ramiLevyAdapter: ChainAdapter = {
   id: 'rami-levy',
   displayName: 'רמי לוי',
-  // Online delivery fee, verified 2026-07-13 (raised May 2026, no minimum order).
   delivery: { fee: 35.9 },
 
   search: searchCatalog,
@@ -55,7 +54,6 @@ export const ramiLevyAdapter: ChainAdapter = {
     return results.find((p) => p.code === code) ?? null;
   },
 
-  // Rami Levy's catalog is queryable by barcode (code === barcode).
   getByBarcode: async (barcode: string): Promise<ChainProduct | null> => {
     const results = await searchCatalog(barcode);
     return results.find((p) => p.barcode === barcode) ?? null;

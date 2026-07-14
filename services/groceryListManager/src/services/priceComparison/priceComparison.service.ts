@@ -66,7 +66,7 @@ const toComparedItem = (
   item: GroceryItem,
   product: { name: string; code: string; price: number },
 ): ComparedItem => {
-  const packagesAssumed = 1; 
+  const packagesAssumed = 1;
   return {
     itemName: item.name,
     matchedProductName: product.name,
@@ -77,41 +77,27 @@ const toComparedItem = (
   };
 };
 
-/**
- * Prices one item at one chain. Tries the shared canonical barcode first
- * (no LLM); only falls back to a per-chain name search + LLM pick when the
- * barcode isn't stocked here. Returns null when the item can't be priced.
- */
 const priceItemAtChain = async (
   chain: ChainAdapter,
   { item, hebrewQuery, canonical }: ItemContext,
 ): Promise<ComparedItem | null> => {
-  // Fast path: reuse the canonical product, no LLM call.
   if (canonical) {
-    // The reference chain already fetched this product while resolving the
-    // canonical — reuse it instead of searching a second time.
     if (chain.id === REFERENCE_CHAIN_ID && canonical.referenceProduct) {
       return toComparedItem(item, canonical.referenceProduct);
     }
-    // Skip the barcode lookup on chains whose catalog isn't EAN-searchable
-    // (e.g. Shufersal) — it would almost always miss. Go to the name fallback.
     if (chain.barcodeSearchable !== false) {
       const byBarcode = await chain.getByBarcode(canonical.barcode);
       if (byBarcode) return toComparedItem(item, byBarcode);
     }
   }
 
-  // Fallback: this chain doesn't stock the barcode — resolve it on its own.
   if (!hebrewQuery) return null;
   const match = await resolveItemForChain(item, chain, hebrewQuery);
   if (!match) return null;
-  // A fresh resolution already fetched the product (with its live price);
-  // only fall back to getByCode on a cache hit, where the price isn't in hand.
   const product = match.product ?? (await chain.getByCode(match.code));
   return product ? toComparedItem(item, product) : null;
 };
 
-/** Prices the basket at one chain. Never throws — a failing chain reports all items missing. */
 const compareChain = async (
   chain: ChainAdapter,
   items: ItemContext[],
@@ -160,8 +146,6 @@ export const comparePrices = async (
     (c) => c.id === REFERENCE_CHAIN_ID,
   );
 
-  // Per item: translate once, then resolve one canonical product (1 LLM pick)
-  // whose barcode is reused to price every chain. Both are shared across chains.
   const contexts: ItemContext[] = await mapLimit(
     toBuy,
     ITEM_RESOLUTION_CONCURRENCY,
@@ -181,8 +165,6 @@ export const comparePrices = async (
 
   flagPackageSizeOutliers(chains);
 
-  // Complete baskets first (fewest missing items), then cheapest.
-  // An incomplete basket's low total is not comparable to a full one.
   chains.sort(
     (a, b) => a.missing.length - b.missing.length || a.total - b.total,
   );
