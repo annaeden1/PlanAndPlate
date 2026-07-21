@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ChainAdapter, ChainProduct } from '../../types/priceComparison.types';
+import { parsePackageSize } from '../../utils/packageSize';
 
 const SEARCH_URL = 'https://www.shufersal.co.il/online/he/search/results';
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -18,12 +19,15 @@ interface SearchResponse {
 const toChainProduct = (raw: RawShufersalProduct): ChainProduct | null => {
   const price = raw.price?.value;
   if (typeof price !== 'number' || !raw.code) return null;
+  // sku sometimes holds a valid 12-13 digit barcode (UPC/EAN)
   const sku = raw.sku ?? '';
+  const name = raw.name ?? '';
   return {
     code: raw.code,
     barcode: /^\d{12,13}$/.test(sku) ? sku : null,
-    name: raw.name ?? '',
+    name,
     price,
+    ...parsePackageSize(name),
   };
 };
 

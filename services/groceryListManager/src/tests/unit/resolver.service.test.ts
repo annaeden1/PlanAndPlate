@@ -3,15 +3,15 @@ import {
   resolveCanonical,
   resolveItemForChain,
 } from '../../services/priceComparison/resolver.service';
-import { PriceMatch } from '../../models/priceMatch.model';
+import { ProductMatch } from '../../models/productMatch.model';
 import * as gemini from '../../services/priceComparison/gemini.client';
 import { GroceryItem } from '../../types/groceryList.types';
 import { ChainAdapter } from '../../types/priceComparison.types';
 
-jest.mock('../../models/priceMatch.model');
+jest.mock('../../models/productMatch.model');
 jest.mock('../../services/priceComparison/gemini.client');
 
-const mockedPriceMatch = PriceMatch as jest.Mocked<typeof PriceMatch>;
+const mockedProductMatch = ProductMatch as jest.Mocked<typeof ProductMatch>;
 const mockedGemini = gemini as jest.Mocked<typeof gemini>;
 
 const item: GroceryItem = {
@@ -51,7 +51,7 @@ describe('getHebrewQuery', () => {
   beforeEach(() => jest.resetAllMocks());
 
   it('reuses a cached translation from any chain', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockReturnValue({
+    (mockedProductMatch.findOne as jest.Mock).mockReturnValue({
       select: jest.fn().mockResolvedValue({ hebrewQuery: 'חלב' }),
     });
 
@@ -60,7 +60,7 @@ describe('getHebrewQuery', () => {
   });
 
   it('translates via Gemini on cache miss', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockReturnValue({
+    (mockedProductMatch.findOne as jest.Mock).mockReturnValue({
       select: jest.fn().mockResolvedValue(null),
     });
     mockedGemini.generateJson.mockResolvedValue('{"query": "חלב"}');
@@ -69,7 +69,7 @@ describe('getHebrewQuery', () => {
   });
 
   it('returns null on Gemini failure', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockReturnValue({
+    (mockedProductMatch.findOne as jest.Mock).mockReturnValue({
       select: jest.fn().mockResolvedValue(null),
     });
     mockedGemini.generateJson.mockResolvedValue(null);
@@ -81,11 +81,11 @@ describe('getHebrewQuery', () => {
 describe('resolveCanonical', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    (mockedPriceMatch.findOneAndUpdate as jest.Mock).mockResolvedValue({});
+    (mockedProductMatch.findOneAndUpdate as jest.Mock).mockResolvedValue({});
   });
 
   it('returns cached canonical without searching or calling Gemini', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue({
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue({
       chainId: '__canonical__',
       code: '7290001794852',
       matchedName: 'חלב טרי 3% 1 ליטר רמי לוי',
@@ -103,7 +103,7 @@ describe('resolveCanonical', () => {
   });
 
   it('returns null on fresh cached negative canonical', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue({
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue({
       chainId: '__canonical__',
       code: null,
       resolvedAt: new Date(),
@@ -115,7 +115,7 @@ describe('resolveCanonical', () => {
 
   it('re-resolves when the negative cache is stale', async () => {
     const old = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue({
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue({
       chainId: '__canonical__',
       code: null,
       resolvedAt: old,
@@ -132,7 +132,7 @@ describe('resolveCanonical', () => {
   });
 
   it('searches the reference chain, picks, and caches the barcode', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue(null);
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue(null);
     mockedGemini.generateJson.mockResolvedValue(
       '{"code": "7290001794852", "confidence": 0.9}',
     );
@@ -146,7 +146,7 @@ describe('resolveCanonical', () => {
       matchedName: 'חלב טרי 3% 1 ליטר רמי לוי',
       referenceProduct: milkProduct, // fresh resolution carries the product for reuse
     });
-    expect(mockedPriceMatch.findOneAndUpdate).toHaveBeenCalledWith(
+    expect(mockedProductMatch.findOneAndUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ chainId: '__canonical__' }),
       expect.objectContaining({
         $set: expect.objectContaining({ code: '7290001794852' }),
@@ -156,7 +156,7 @@ describe('resolveCanonical', () => {
   });
 
   it('returns null when the chosen candidate has no barcode', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue(null);
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue(null);
     mockedGemini.generateJson.mockResolvedValue(
       '{"code": "x1", "confidence": 0.9}',
     );
@@ -165,15 +165,15 @@ describe('resolveCanonical', () => {
     ]);
 
     expect(await resolveCanonical(item, chain, 'חלב')).toBeNull();
-    expect(mockedPriceMatch.findOneAndUpdate).not.toHaveBeenCalled();
+    expect(mockedProductMatch.findOneAndUpdate).not.toHaveBeenCalled();
   });
 
   it('caches a negative canonical when the reference search is empty', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue(null);
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue(null);
     const chain = makeChain([]);
 
     expect(await resolveCanonical(item, chain, 'אבקת חד קרן')).toBeNull();
-    expect(mockedPriceMatch.findOneAndUpdate).toHaveBeenCalledWith(
+    expect(mockedProductMatch.findOneAndUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ chainId: '__canonical__' }),
       expect.objectContaining({ $set: expect.objectContaining({ code: null }) }),
       expect.anything(),
@@ -184,11 +184,11 @@ describe('resolveCanonical', () => {
 describe('resolveItemForChain', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    (mockedPriceMatch.findOneAndUpdate as jest.Mock).mockResolvedValue({});
+    (mockedProductMatch.findOneAndUpdate as jest.Mock).mockResolvedValue({});
   });
 
   it('returns cached match without searching or calling Gemini', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue({
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue({
       itemName: 'whole milk',
       chainId: 'rami-levy',
       code: '7290001794852',
@@ -209,7 +209,7 @@ describe('resolveItemForChain', () => {
   });
 
   it('returns null on fresh cached negative match', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue({
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue({
       itemName: 'whole milk',
       chainId: 'rami-levy',
       code: null,
@@ -224,7 +224,7 @@ describe('resolveItemForChain', () => {
   });
 
   it('searches, picks and caches on cache miss', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue(null);
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue(null);
     mockedGemini.generateJson.mockResolvedValue(
       '{"code": "7290001794852", "confidence": 0.9}',
     );
@@ -241,7 +241,7 @@ describe('resolveItemForChain', () => {
       confidence: 0.9,
       product: milkProduct,
     });
-    expect(mockedPriceMatch.findOneAndUpdate).toHaveBeenCalledWith(
+    expect(mockedProductMatch.findOneAndUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ itemName: 'whole milk', chainId: 'rami-levy' }),
       expect.objectContaining({
         $set: expect.objectContaining({
@@ -255,22 +255,22 @@ describe('resolveItemForChain', () => {
   });
 
   it('rejects a code the LLM invented (not in candidates)', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue(null);
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue(null);
     mockedGemini.generateJson.mockResolvedValue(
       '{"code": "9999999999999", "confidence": 0.9}',
     );
     const chain = makeChain([milkProduct]);
 
     expect(await resolveItemForChain(item, chain, 'חלב')).toBeNull();
-    expect(mockedPriceMatch.findOneAndUpdate).not.toHaveBeenCalled();
+    expect(mockedProductMatch.findOneAndUpdate).not.toHaveBeenCalled();
   });
 
   it('caches a negative result when search returns nothing', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue(null);
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue(null);
     const chain = makeChain([]);
 
     expect(await resolveItemForChain(item, chain, 'אבקת חד קרן')).toBeNull();
-    expect(mockedPriceMatch.findOneAndUpdate).toHaveBeenCalledWith(
+    expect(mockedProductMatch.findOneAndUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ itemName: 'whole milk', chainId: 'rami-levy' }),
       expect.objectContaining({ $set: expect.objectContaining({ code: null }) }),
       expect.anything(),
@@ -278,11 +278,11 @@ describe('resolveItemForChain', () => {
   });
 
   it('returns null without caching when the pick call fails (transient)', async () => {
-    (mockedPriceMatch.findOne as jest.Mock).mockResolvedValue(null);
+    (mockedProductMatch.findOne as jest.Mock).mockResolvedValue(null);
     mockedGemini.generateJson.mockResolvedValue(null);
     const chain = makeChain([milkProduct]);
 
     expect(await resolveItemForChain(item, chain, 'חלב')).toBeNull();
-    expect(mockedPriceMatch.findOneAndUpdate).not.toHaveBeenCalled();
+    expect(mockedProductMatch.findOneAndUpdate).not.toHaveBeenCalled();
   });
 });

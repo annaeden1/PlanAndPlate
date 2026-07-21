@@ -1,6 +1,9 @@
 import { Schema, model } from 'mongoose';
 
-export interface PriceMatchDoc {
+// Cache of a resolved grocery item -> chain product mapping. It stores the
+// match (code/barcode + name + confidence), never a price — prices are always
+// fetched live from the chain, only the expensive LLM resolution is cached.
+export interface ProductMatchDoc {
   itemName: string;
   chainId: string;
   hebrewQuery: string;
@@ -10,7 +13,7 @@ export interface PriceMatchDoc {
   resolvedAt: Date;
 }
 
-const PriceMatchSchema = new Schema<PriceMatchDoc>({
+const ProductMatchSchema = new Schema<ProductMatchDoc>({
   itemName: { type: String, required: true, trim: true, lowercase: true },
   chainId: { type: String, required: true },
   hebrewQuery: { type: String, required: true },
@@ -20,6 +23,6 @@ const PriceMatchSchema = new Schema<PriceMatchDoc>({
   resolvedAt: { type: Date, required: true, default: Date.now },
 });
 
-PriceMatchSchema.index({ itemName: 1, chainId: 1 }, { unique: true });
+ProductMatchSchema.index({ itemName: 1, chainId: 1 }, { unique: true });
 
-export const PriceMatch = model<PriceMatchDoc>('PriceMatch', PriceMatchSchema);
+export const ProductMatch = model<ProductMatchDoc>('ProductMatch', ProductMatchSchema);

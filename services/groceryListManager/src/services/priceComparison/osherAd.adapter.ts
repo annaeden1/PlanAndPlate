@@ -1,5 +1,6 @@
 import { ChainCatalogItem } from '../../models/chainCatalogItem.model';
 import { ChainAdapter, ChainProduct } from '../../types/priceComparison.types';
+import { parsePackageSize } from '../../utils/packageSize';
 import { ensureFreshCatalog } from './transparencyFeed.service';
 
 const CHAIN_ID = 'osher-ad';
@@ -17,6 +18,7 @@ const toChainProduct = (doc: {
   barcode: /^\d{12,13}$/.test(doc.code) ? doc.code : null,
   name: doc.name,
   price: doc.price,
+  ...parsePackageSize(doc.name),
 });
 
 export const osherAdAdapter: ChainAdapter = {

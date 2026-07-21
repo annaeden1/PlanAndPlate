@@ -4,10 +4,12 @@ import { GroceryItem } from '../../types/groceryList.types';
 import {
   ChainAdapter,
   ChainComparison,
+  ChainProduct,
   ComparedItem,
   PriceComparisonResult,
 } from '../../types/priceComparison.types';
 import { mapLimit } from '../../utils/concurrency';
+import { packagesNeeded } from '../../utils/packageSize';
 import { CHAIN_ADAPTERS } from './chains';
 import {
   CanonicalMatch,
@@ -62,11 +64,17 @@ const flagPackageSizeOutliers = (chains: ChainComparison[]): void => {
   }
 };
 
-const toComparedItem = (
-  item: GroceryItem,
-  product: { name: string; code: string; price: number },
-): ComparedItem => {
-  const packagesAssumed = 1;
+const toComparedItem = (item: GroceryItem, product: ChainProduct): ComparedItem => {
+  // Package size is parsed once, in the adapter. Normalize the needed amount to
+  // a whole number of packages; fall back to one when it's unknown or the units
+  // aren't comparable (e.g. a needed count against a by-weight package).
+  const packagesAssumed =
+    product.packageQty && product.packageUnit
+      ? packagesNeeded(item.quantity, item.unit, {
+          packageQty: product.packageQty,
+          packageUnit: product.packageUnit,
+        }) ?? 1
+      : 1;
   return {
     itemName: item.name,
     matchedProductName: product.name,

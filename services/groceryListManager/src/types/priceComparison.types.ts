@@ -5,6 +5,8 @@ export interface ChainProduct {
   barcode: string | null;
   name: string;
   price: number;
+  packageQty?: number;
+  packageUnit?: 'g' | 'kg' | 'ml' | 'l' | 'piece';
 }
 
 export interface ChainAdapter {

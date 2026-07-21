@@ -41,6 +41,8 @@ describe('ramiLevyAdapter', () => {
           barcode: '7290001794852',
           name: 'חלב טרי 3% 1 ליטר רמי לוי',
           price: 7.2,
+          packageQty: 1,
+          packageUnit: 'l',
         },
       ]);
     });

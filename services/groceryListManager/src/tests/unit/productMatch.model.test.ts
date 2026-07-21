@@ -1,8 +1,8 @@
-import { PriceMatch } from '../../models/priceMatch.model';
+import { ProductMatch } from '../../models/productMatch.model';
 
-describe('PriceMatch model', () => {
+describe('ProductMatch model', () => {
   it('lowercases and trims itemName', () => {
-    const doc = new PriceMatch({
+    const doc = new ProductMatch({
       itemName: '  Onion ',
       chainId: 'rami-levy',
       hebrewQuery: 'בצל',
@@ -14,7 +14,7 @@ describe('PriceMatch model', () => {
   });
 
   it('requires chainId', () => {
-    const doc = new PriceMatch({
+    const doc = new ProductMatch({
       itemName: 'onion',
       hebrewQuery: 'בצל',
       code: '7290000000001',
@@ -26,7 +26,7 @@ describe('PriceMatch model', () => {
   });
 
   it('allows null code (negative cache)', () => {
-    const doc = new PriceMatch({
+    const doc = new ProductMatch({
       itemName: 'unicorn dust',
       chainId: 'shufersal',
       hebrewQuery: 'אבקת חד קרן',
@@ -39,7 +39,7 @@ describe('PriceMatch model', () => {
   });
 
   it('defaults resolvedAt to now', () => {
-    const doc = new PriceMatch({
+    const doc = new ProductMatch({
       itemName: 'onion',
       chainId: 'rami-levy',
       hebrewQuery: 'בצל',

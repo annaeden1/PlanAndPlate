@@ -244,6 +244,50 @@ describe('comparePrices', () => {
     expect(shuf.missing).toEqual(['milk']);
   });
 
+  it('normalizes the needed amount into whole packages for the line total', async () => {
+    listWith([{ ...groceryItem('flour'), quantity: 2500, unit: 'g' }]);
+    const sized: ChainProduct = {
+      code: 'BC',
+      barcode: 'BC',
+      name: 'קמח לבן 1 ק"ג',
+      price: 5,
+      packageQty: 1,
+      packageUnit: 'kg',
+    };
+    const chain = makeChain('rami-levy', 'רמי לוי', 0);
+    (chain.getByBarcode as jest.Mock).mockResolvedValue(sized);
+    setChains(chain);
+
+    const result = await comparePrices('u1');
+
+    const line = result.chains[0].items[0];
+    expect(line.packagesAssumed).toBe(3); // 2500 g / 1 kg -> 3 bags
+    expect(line.unitPrice).toBe(5);
+    expect(line.lineTotal).toBe(15);
+    expect(result.chains[0].subtotal).toBe(15);
+  });
+
+  it('assumes a single package when the units are not comparable', async () => {
+    listWith([{ ...groceryItem('eggs'), quantity: 6, unit: 'piece' }]);
+    const sized: ChainProduct = {
+      code: 'BC',
+      barcode: 'BC',
+      name: 'ביצים 1 ק"ג',
+      price: 12,
+      packageQty: 1,
+      packageUnit: 'kg',
+    };
+    const chain = makeChain('rami-levy', 'רמי לוי', 0);
+    (chain.getByBarcode as jest.Mock).mockResolvedValue(sized);
+    setChains(chain);
+
+    const result = await comparePrices('u1');
+
+    const line = result.chains[0].items[0];
+    expect(line.packagesAssumed).toBe(1);
+    expect(line.lineTotal).toBe(12);
+  });
+
   it('skips checked items entirely', async () => {
     listWith([groceryItem('milk', true)]);
     setChains(makeChain('rami-levy', 'רמי לוי', 35.9, { byBarcode: { BC: 7 } }));

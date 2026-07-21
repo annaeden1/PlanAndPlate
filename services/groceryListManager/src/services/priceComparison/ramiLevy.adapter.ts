@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ChainAdapter, ChainProduct } from '../../types/priceComparison.types';
+import { parsePackageSize } from '../../utils/packageSize';
 
 const CATALOG_URL = 'https://www.rami-levy.co.il/api/catalog';
 const ONLINE_STORE_ID = '331';
@@ -22,11 +23,13 @@ interface CatalogResponse {
 const toChainProduct = (raw: RawCatalogProduct): ChainProduct | null => {
   const price = raw.price?.price;
   if (typeof price !== 'number' || !raw.barcode) return null;
+  const name = raw.name ?? raw.gs?.internal_product_description ?? '';
   return {
     code: String(raw.barcode),
     barcode: String(raw.barcode),
-    name: raw.name ?? raw.gs?.internal_product_description ?? '',
+    name,
     price,
+    ...parsePackageSize(name),
   };
 };
 

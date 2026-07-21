@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ChainAdapter, ChainProduct } from '../../types/priceComparison.types';
+import { parsePackageSize } from '../../utils/packageSize';
 
 const GRAPHQL_URL = 'https://api.yochananof.co.il/graphql';
 const REQUEST_TIMEOUT_MS = 10_000;
@@ -17,11 +18,13 @@ interface GraphQLResponse {
 const toChainProduct = (raw: RawYohananofProduct): ChainProduct | null => {
   const price = raw.price_range?.minimum_price?.final_price?.value;
   if (typeof price !== 'number' || !raw.sku) return null;
+  const name = raw.name ?? '';
   return {
     code: raw.sku,
     barcode: raw.sku,
-    name: raw.name ?? '',
+    name,
     price,
+    ...parsePackageSize(name),
   };
 };
 

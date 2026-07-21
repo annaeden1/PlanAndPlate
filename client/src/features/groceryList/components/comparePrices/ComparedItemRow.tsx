@@ -19,6 +19,16 @@ export function ComparedItemRow({ item }: { item: ComparedItem }) {
           >
             {item.matchedProductName}
           </Typography>
+          {item.packagesAssumed > 1 && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              dir="rtl"
+              sx={{ display: "block" }}
+            >
+              {shekel(item.unitPrice)} × {item.packagesAssumed}
+            </Typography>
+          )}
         </Box>
         <Typography variant="body1" fontWeight={600} whiteSpace="nowrap">
           {shekel(item.lineTotal)}

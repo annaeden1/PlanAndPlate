@@ -1,4 +1,4 @@
-import { PriceMatch } from '../../models/priceMatch.model';
+import { ProductMatch } from '../../models/productMatch.model';
 import { GroceryItem } from '../../types/groceryList.types';
 import {
   ChainAdapter,
@@ -49,7 +49,7 @@ const saveMatch = (
   matchedName: string | null,
   confidence: number,
 ) =>
-  PriceMatch.findOneAndUpdate(
+  ProductMatch.findOneAndUpdate(
     { itemName, chainId },
     { $set: { hebrewQuery, code, matchedName, confidence, resolvedAt: new Date() } },
     { upsert: true },
@@ -71,7 +71,7 @@ const resolveMatch = async (
 ): Promise<ResolvedRow | null> => {
   const itemName = item.name.toLowerCase().trim();
 
-  const cached = await PriceMatch.findOne({ itemName, chainId });
+  const cached = await ProductMatch.findOne({ itemName, chainId });
   if (cached && isCacheUsable(cached)) {
     if (!cached.code) return null;
     return {
@@ -110,7 +110,7 @@ const resolveMatch = async (
 };
 
 export const getHebrewQuery = async (itemName: string): Promise<string | null> => {
-  const existing = await PriceMatch.findOne({ itemName }).select({ hebrewQuery: 1 });
+  const existing = await ProductMatch.findOne({ itemName }).select({ hebrewQuery: 1 });
   if (existing?.hebrewQuery) return existing.hebrewQuery;
 
   const queryJson = parseJson<{ query?: string }>(
