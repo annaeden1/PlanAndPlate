@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { GroceryItem, GroceryItemGroup } from '../types/grocery';
+import type { PriceComparisonResult } from '../types/priceComparison';
 
 const api = axios.create({
   baseURL: '/grocerylist',
@@ -53,5 +54,10 @@ export const groceryListApi = {
   updateInventoryQuantity: (userId: string, productName: string, inventoryQuantity: number) =>
     api
       .patch<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}/inventory`, { inventoryQuantity })
+      .then((r) => r.data),
+
+  getPriceComparison: (userId: string) =>
+    api
+      .get<PriceComparisonResult>(`/users/${userId}/price-comparison`)
       .then((r) => r.data),
 };

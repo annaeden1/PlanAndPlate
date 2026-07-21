@@ -7,7 +7,7 @@ import {
 } from "./nutritionPrompt";
 
 const EMBED_MODEL = "gemini-embedding-001"; // text-only, 3072-dim
-const TEXT_MODEL = "gemini-2.0-flash";
+const TEXT_MODEL = "gemini-2.5-flash";
 
 export class GeminiProvider implements AiProvider {
   private ai: GoogleGenAI;
