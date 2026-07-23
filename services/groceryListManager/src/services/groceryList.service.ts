@@ -22,12 +22,52 @@ export const groupByCategory = (items: GroceryItem[]): GroceryItemGroup[] => {
     .sort((a, b) => a.category.localeCompare(b.category));
 };
 
+// Maps spelling/plural variants of a unit to a single canonical form so the
+// same real unit (e.g. "gram" / "grams" / "g") merges into one line item.
+// This canonicalizes spelling only — it never converts magnitudes.
+const UNIT_ALIASES: Record<string, string> = {
+  gram: 'g',
+  grams: 'g',
+  g: 'g',
+  kilogram: 'kg',
+  kilograms: 'kg',
+  kg: 'kg',
+  milligram: 'mg',
+  milligrams: 'mg',
+  mg: 'mg',
+  tablespoon: 'tbsp',
+  tablespoons: 'tbsp',
+  tbsp: 'tbsp',
+  teaspoon: 'tsp',
+  teaspoons: 'tsp',
+  tsp: 'tsp',
+  milliliter: 'ml',
+  milliliters: 'ml',
+  millilitre: 'ml',
+  millilitres: 'ml',
+  ml: 'ml',
+  liter: 'l',
+  liters: 'l',
+  litre: 'l',
+  litres: 'l',
+  l: 'l',
+  piece: 'piece',
+  pieces: 'piece',
+  pcs: 'piece',
+};
+
+export const normalizeUnit = (unit: string): string => {
+  const normalized = String(unit ?? '').toLowerCase().trim();
+  return UNIT_ALIASES[normalized] ?? normalized;
+};
+
 export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
   const map = new Map<string, GroceryItem>();
 
   for (const item of items) {
     const normalizedName = item.name.toLowerCase().trim();
-    const key = `${normalizedName}::${item.unit}`;
+    const normalizedUnit = normalizeUnit(item.unit);
+    const key = `${normalizedName}::${normalizedUnit}`;
 
     if (map.has(key)) {
       const existing = map.get(key)!;
@@ -37,7 +77,7 @@ export const mergeIngredients = (items: GroceryItem[]): GroceryItem[] => {
       map.set(key, {
         name: normalizedName,
         quantity: item.quantity,
-        unit: item.unit,
+        unit: normalizedUnit,
         category: item.category,
         inventoryQuantity: item.inventoryQuantity ?? 0,
         checked: item.checked ?? false,

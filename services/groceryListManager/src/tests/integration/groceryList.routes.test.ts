@@ -1,14 +1,19 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
 import { Express } from 'express';
-import axios from 'axios';
+
+// Bypass JWT auth for integration routing tests — auth is covered by its own unit test.
+jest.mock('../../middlewares/auth.middleware', () => ({
+  __esModule: true,
+  default: (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 import { initApp } from '../../index';
 import { GroceryList } from '../../models/groceryList.model';
+import { Recipe } from '../../models/recipe.model';
 
-jest.mock('axios');
-const mockedAxios = jest.mocked(axios);
-
-const TEST_USER_ID = 'test-user-123';
+// userId is an ObjectId in the schema, so the test user must be a valid ObjectId.
+const TEST_USER_ID = new mongoose.Types.ObjectId().toString();
 
 describe('GroceryList API - Integration Tests', () => {
   let app: Express;
@@ -45,20 +50,19 @@ describe('GroceryList API - Integration Tests', () => {
       expect(res.body[0].items).toHaveLength(1);
       expect(res.body[0].items[0].name).toBe('milk');
     });
-
   });
 
   describe('GET /grocerylist/users/:userId/products/search', () => {
-    it('returns 400 when q query is missing', async () => {
+    it('returns 400 when the name query is missing', async () => {
       const res = await request(app).get(`/grocerylist/users/${TEST_USER_ID}/products/search`);
       expect(res.status).toBe(400);
     });
 
-    it('filters products by name when q query is provided', async () => {
+    it('filters products by name when the name query is provided', async () => {
       await request(app).post(`/grocerylist/users/${TEST_USER_ID}/products`).send({ name: 'apple', quantity: 3, unit: 'piece' });
       await request(app).post(`/grocerylist/users/${TEST_USER_ID}/products`).send({ name: 'banana', quantity: 5, unit: 'piece' });
 
-      const res = await request(app).get(`/grocerylist/users/${TEST_USER_ID}/products/search?q=app`);
+      const res = await request(app).get(`/grocerylist/users/${TEST_USER_ID}/products/search?name=app`);
       expect(res.status).toBe(200);
       expect(res.body).toHaveLength(1);
       expect(res.body[0].name).toBe('apple');
@@ -70,7 +74,7 @@ describe('GroceryList API - Integration Tests', () => {
       const res = await request(app)
         .post(`/grocerylist/users/${TEST_USER_ID}/products`)
         .send({ name: 'milk' });
-      
+
       expect(res.status).toBe(400);
     });
 
@@ -96,7 +100,7 @@ describe('GroceryList API - Integration Tests', () => {
   describe('GET /grocerylist/users/:userId/products/:productName', () => {
     it('returns a specific product', async () => {
       await request(app).post(`/grocerylist/users/${TEST_USER_ID}/products`).send({ name: 'chicken', quantity: 1, unit: 'kg' });
-      
+
       const res = await request(app).get(`/grocerylist/users/${TEST_USER_ID}/products/chicken`);
       expect(res.status).toBe(200);
       expect(res.body.name).toBe('chicken');
@@ -117,7 +121,7 @@ describe('GroceryList API - Integration Tests', () => {
       const res = await request(app).delete(`/grocerylist/users/${TEST_USER_ID}/products/beef`);
       expect(res.status).toBe(200);
       expect(res.body.length).toBeGreaterThan(0);
-      
+
       const beefRes = await request(app).get(`/grocerylist/users/${TEST_USER_ID}/products/beef`);
       expect(beefRes.status).toBe(404);
     });
@@ -137,14 +141,14 @@ describe('GroceryList API - Integration Tests', () => {
 
   describe('PATCH /grocerylist/users/:userId/products/:productName/inventory', () => {
     it('updates inventoryQuantity and returns 200', async () => {
-      await request(app).post(`/grocerylist/users/${TEST_USER_ID}/products`).send({ name: 'milk', quantity: 2, unit: 'l' });
+      await request(app).post(`/grocerylist/users/${TEST_USER_ID}/products`).send({ name: 'milk', quantity: 2, unit: 'l', aisle: 'dairy' });
 
       const res = await request(app)
         .patch(`/grocerylist/users/${TEST_USER_ID}/products/milk/inventory`)
         .send({ inventoryQuantity: 1 });
 
       expect(res.status).toBe(200);
-      const dairyGroup = res.body.find((g: any) => g.category === 'Dairy');
+      const dairyGroup = res.body.find((g: { category: string }) => g.category === 'Dairy');
       expect(dairyGroup.items[0].inventoryQuantity).toBe(1);
     });
 
@@ -174,30 +178,42 @@ describe('GroceryList API - Integration Tests', () => {
   });
 
   describe('POST /grocerylist/users/:userId/recipes/:recipeId/ingredients', () => {
-    it('imports ingredients from Spoonacular into the grocery list', async () => {
-      mockedAxios.get.mockResolvedValue({
-        data: {
-          extendedIngredients: [
+    let recipeId: string;
+
+    beforeAll(async () => {
+      // The service imports from the local Recipe collection (importFromRecipeDB),
+      // so seed a recipe rather than mocking Spoonacular.
+      const recipe = await Recipe.create({
+        name: 'Caprese',
+        instructions: {
+          steps: [],
+          ingredients: [
             { name: 'basil', amount: 2, unit: 'leaves', aisle: 'Produce' },
-            { name: 'mozzarella', amount: 200, unit: 'g', aisle: 'Cheese' },
-          ]
-        }
+            { name: 'mozzarella', amount: 200, unit: 'g', aisle: 'cheese' },
+          ],
+        },
       });
+      recipeId = (recipe._id as mongoose.Types.ObjectId).toString();
+    });
 
-      const res = await request(app).post(`/grocerylist/users/${TEST_USER_ID}/recipes/123/ingredients`).send({});
-      if (res.status !== 201) console.error('Spoonacular test error:', res.body);
+    afterAll(async () => {
+      await Recipe.deleteMany({ name: 'Caprese' });
+    });
+
+    it('imports ingredients from the recipe DB into the grocery list', async () => {
+      const res = await request(app)
+        .post(`/grocerylist/users/${TEST_USER_ID}/recipes/${recipeId}/ingredients`)
+        .send({});
+
       expect(res.status).toBe(201);
-      expect(res.body).toHaveLength(2);
-      
-      const produceGroup = res.body.find((g: any) => g.category === 'Produce');
-      expect(produceGroup.items[0].name).toBe('basil');
-      
-      const dairyGroup = res.body.find((g: any) => g.category === 'Dairy');
-      expect(dairyGroup.items[0].name).toBe('mozzarella');
-      expect(dairyGroup.items[0].quantity).toBe(200);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(expect.stringContaining('api.spoonacular.com/recipes/123/information'));
+      const allItems = res.body.flatMap((g: { items: { name: string; quantity: number }[] }) => g.items);
+      const names = allItems.map((i: { name: string }) => i.name);
+      expect(names).toContain('basil');
+      expect(names).toContain('mozzarella');
+
+      const mozzarella = allItems.find((i: { name: string }) => i.name === 'mozzarella');
+      expect(mozzarella.quantity).toBe(200);
     });
   });
-
 });
