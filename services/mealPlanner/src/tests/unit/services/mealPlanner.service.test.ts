@@ -3,6 +3,7 @@ import { Recipe } from "../../../models/recipeModel";
 import { UserFavorites } from "../../../models/userFavoritesModel";
 import mealPlannerService from "../../../services/mealPlannerService";
 import * as spoonacularService from "../../../services/spoonacularService.service";
+import { __setAiProvider } from "../../../ai/aiProvider";
 import axios from "axios";
 
 jest.mock("../../../models/mealPlanModel");
@@ -152,6 +153,102 @@ describe("MealPlannerService Tests", () => {
     });
   });
 
+  describe("createManualRecipe - AI nutrition estimation", () => {
+    const payload = (): any => ({
+      name: "Soup",
+      instructions: {
+        steps: ["boil"],
+        ingredients: [{ name: "carrot", amount: 2, unit: "piece" }],
+      },
+    });
+
+    beforeEach(() => {
+      jest.spyOn(console, "log").mockImplementation(() => undefined);
+      jest.spyOn(console, "warn").mockImplementation(() => undefined);
+      (Recipe as any).mockImplementation((opts: any) => ({
+        ...opts,
+        save: jest.fn(),
+        toObject: () => opts,
+      }));
+    });
+
+    afterEach(() => __setAiProvider(null));
+
+    it("uses AI-estimated nutrition and the user's preferences as context", async () => {
+      (axios.get as jest.Mock).mockResolvedValue({
+        data: {
+          userPreferences: {
+            diet: ["vegan"],
+            healthGoal: "weight_loss",
+            allergies: ["nuts"],
+          },
+        },
+      });
+      const estimateNutrition = jest
+        .fn()
+        .mockResolvedValue({ calories: 500, protein: 30, fat: 10, carbs: 40 });
+      __setAiProvider({
+        embed: async (t: string[]) => t.map(() => []),
+        estimateNutrition,
+      });
+
+      const recipe: any = await mealPlannerService.createManualRecipe(
+        payload(),
+        "user-1",
+        "tok",
+      );
+
+      expect(estimateNutrition).toHaveBeenCalled();
+      expect(estimateNutrition.mock.calls[0][0].userContext).toEqual({
+        diet: "vegan",
+        healthGoal: "weight_loss",
+        allergies: "nuts",
+      });
+      expect(recipe.calories).toBe(500);
+      expect(recipe.protein).toBe(30);
+    });
+
+    it("falls back to default nutrition when the AI returns null (and prefs fetch fails)", async () => {
+      (axios.get as jest.Mock).mockRejectedValue(new Error("prefs service down"));
+      const estimateNutrition = jest.fn().mockResolvedValue(null);
+      __setAiProvider({
+        embed: async (t: string[]) => t.map(() => []),
+        estimateNutrition,
+      });
+
+      const recipe: any = await mealPlannerService.createManualRecipe(
+        payload(),
+        "user-1",
+      );
+
+      expect(estimateNutrition).toHaveBeenCalled();
+      // Preferences failed to load, so no user context is passed.
+      expect(estimateNutrition.mock.calls[0][0].userContext).toBeUndefined();
+      expect(recipe.calories).not.toBe(500);
+    });
+
+    it("falls back to default nutrition when the AI throws", async () => {
+      (axios.get as jest.Mock).mockResolvedValue({
+        data: { userPreferences: {} },
+      });
+      const estimateNutrition = jest
+        .fn()
+        .mockRejectedValue(new Error("AI provider down"));
+      __setAiProvider({
+        embed: async (t: string[]) => t.map(() => []),
+        estimateNutrition,
+      });
+
+      const recipe: any = await mealPlannerService.createManualRecipe(
+        payload(),
+        "user-1",
+      );
+
+      expect(estimateNutrition).toHaveBeenCalled();
+      expect(recipe).toBeTruthy();
+    });
+  });
+
   describe("getRecipeDetails", () => {
     it("should return recipe details if complete in DB", async () => {
       (Recipe.findOne as jest.Mock).mockResolvedValue({
@@ -159,6 +256,35 @@ describe("MealPlannerService Tests", () => {
         toObject: () => ({ id: "1" }),
       });
       const recipe = await mealPlannerService.getRecipeDetails("1", "user-1");
+      expect(recipe).toEqual({ id: "1", isLiked: false });
+    });
+
+    it("marks isLiked true when the recipe is in the user's favorites", async () => {
+      (Recipe.findOne as jest.Mock).mockResolvedValue({
+        instructions: { steps: ["1"] },
+        toObject: () => ({ id: "1" }),
+      });
+      (UserFavorites.findOne as jest.Mock).mockResolvedValue({
+        likedRecipeIds: ["1", "2"],
+      });
+
+      const recipe = await mealPlannerService.getRecipeDetails("1", "user-1");
+
+      expect(recipe).toEqual({ id: "1", isLiked: true });
+      expect(UserFavorites.findOne).toHaveBeenCalledWith({ userId: "user-1" });
+    });
+
+    it("keeps isLiked false when favorites exist but exclude this recipe", async () => {
+      (Recipe.findOne as jest.Mock).mockResolvedValue({
+        instructions: { steps: ["1"] },
+        toObject: () => ({ id: "1" }),
+      });
+      (UserFavorites.findOne as jest.Mock).mockResolvedValue({
+        likedRecipeIds: ["2", "3"],
+      });
+
+      const recipe = await mealPlannerService.getRecipeDetails("1", "user-1");
+
       expect(recipe).toEqual({ id: "1", isLiked: false });
     });
 

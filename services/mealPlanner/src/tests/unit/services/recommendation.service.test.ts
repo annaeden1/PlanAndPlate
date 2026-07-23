@@ -26,6 +26,7 @@ import recommendationService from "../../../recommendation/recommendationService
 import { Recipe } from "../../../models/recipeModel";
 import { UserFavorites } from "../../../models/userFavoritesModel";
 import { searchRecipes } from "../../../services/spoonacularService.service";
+import mealPlannerService from "../../../services/mealPlannerService";
 import { __setAiProvider, ExplainProfile } from "../../../ai/aiProvider";
 
 const mockedAxios = axios as jest.Mocked<typeof axios>;
@@ -148,5 +149,89 @@ describe("recommendationService.getSuggestions", () => {
     await recommendationService.getSuggestions("user-1", "99", "dinner", 6);
 
     expect(mockedAxios.get).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns an empty list when every search attempt comes back empty", async () => {
+    (searchRecipes as jest.Mock).mockResolvedValue([]);
+
+    const result = await recommendationService.getSuggestions(
+      "user-1",
+      "99",
+      "dinner",
+      6,
+    );
+
+    expect(searchRecipes).toHaveBeenCalledTimes(4);
+    expect(result).toEqual([]);
+  });
+
+  it("falls back to empty preferences when the preferences service fails", async () => {
+    mockedAxios.get.mockRejectedValue(new Error("preferences service down"));
+    (searchRecipes as jest.Mock).mockResolvedValue([candidate(4, "New A")]);
+
+    const result = await recommendationService.getSuggestions(
+      "user-1",
+      "99",
+      "dinner",
+      6,
+    );
+
+    // diet is unknown now, so intolerances is the only guard passed through.
+    expect((searchRecipes as jest.Mock).mock.calls[0][0].intolerances).toBe("");
+    expect(result.map((r) => r.originRecipeId)).toEqual(["4"]);
+  });
+
+  it("loads the current recipe from Spoonacular when it is not cached locally", async () => {
+    (searchRecipes as jest.Mock).mockResolvedValue([candidate(4, "New A")]);
+    // "77" is absent from the local Recipe collection -> fallback fetch.
+    (mealPlannerService.getRecipeDetails as jest.Mock).mockResolvedValue({
+      name: "Fetched Pasta",
+      cuisines: ["Italian"],
+      dishTypes: ["main course"],
+      diets: [],
+      instructions: { ingredients: [{ name: "tomato" }] },
+      embedding: [1, 0],
+      calories: 420,
+    });
+
+    const result = await recommendationService.getSuggestions(
+      "user-1",
+      "77",
+      "dinner",
+      6,
+    );
+
+    expect(mealPlannerService.getRecipeDetails).toHaveBeenCalledWith("77");
+    expect(result.map((r) => r.originRecipeId)).toEqual(["4"]);
+  });
+
+  it("treats the current recipe as empty when the Spoonacular fallback throws", async () => {
+    (searchRecipes as jest.Mock).mockResolvedValue([candidate(4, "New A")]);
+    (mealPlannerService.getRecipeDetails as jest.Mock)
+      .mockResolvedValueOnce(undefined) // the pre-fetch call in getSuggestions
+      .mockRejectedValueOnce(new Error("spoonacular down")); // loadTasteRecipe fallback
+
+    const result = await recommendationService.getSuggestions(
+      "user-1",
+      "77",
+      "dinner",
+      6,
+    );
+
+    expect(result.map((r) => r.originRecipeId)).toEqual(["4"]);
+  });
+
+  it("works without a meal type (no Spoonacular type filter)", async () => {
+    (searchRecipes as jest.Mock).mockResolvedValue([candidate(4, "New A")]);
+
+    const result = await recommendationService.getSuggestions(
+      "user-1",
+      "99",
+      undefined,
+      6,
+    );
+
+    expect((searchRecipes as jest.Mock).mock.calls[0][0].mealType).toBeUndefined();
+    expect(result.map((r) => r.originRecipeId)).toEqual(["4"]);
   });
 });

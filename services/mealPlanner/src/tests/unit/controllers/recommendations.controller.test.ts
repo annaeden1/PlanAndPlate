@@ -20,6 +20,7 @@ jest.mock("../../../recommendation/recommendationService", () => ({
 
 import { mealPlannerRouter } from "../../../routes/mealPlannerRouter";
 import recommendationService from "../../../recommendation/recommendationService";
+import recommendationController from "../../../recommendation/recommendationController";
 
 const app = express();
 app.use(express.json());
@@ -72,6 +73,20 @@ describe("RecommendationController", () => {
     );
     expect(res.status).toBe(500);
     expect(res.body.error).toBe("Failed to get suggestions");
+  });
+
+  it("returns 401 when there is no authenticated user", async () => {
+    // Call the controller directly: the router's auth mock always injects a user.
+    const req: any = { user: undefined, params: { recipeId: "999" }, query: {}, headers: {} };
+    const res: any = {};
+    res.status = jest.fn().mockReturnValue(res);
+    res.json = jest.fn().mockReturnValue(res);
+
+    await recommendationController.getSuggestions(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ error: "Unauthorized" });
+    expect(recommendationService.getSuggestions).not.toHaveBeenCalled();
   });
 
   it("caps limit at 12 when limit exceeds 12", async () => {

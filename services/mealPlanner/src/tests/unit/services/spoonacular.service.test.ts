@@ -43,6 +43,51 @@ describe("SpoonacularService Tests", () => {
       delete process.env.SPOONACULAR_API_KEY;
       await expect(searchRecipes({})).rejects.toThrow();
     });
+
+    it("includes calorie and protein bounds, cuisines, intolerances and mealType when provided", async () => {
+      (axios.get as jest.Mock).mockResolvedValue({ data: { results: [] } });
+
+      await searchRecipes({
+        cuisines: ["italian", "mexican"],
+        diet: "vegan",
+        intolerances: "peanut",
+        mealType: "main course",
+        minCalories: 300,
+        maxCalories: 800,
+        minProtein: 25,
+        recipesCount: 5,
+      });
+
+      const url: string = (axios.get as jest.Mock).mock.calls[0][0];
+      expect(url).toContain("cuisine=italian%2Cmexican");
+      expect(url).toContain("intolerances=peanut");
+      expect(url).toContain("type=main+course");
+      expect(url).toContain("minCalories=300");
+      expect(url).toContain("maxCalories=800");
+      expect(url).toContain("minProtein=25");
+      expect(url).toContain("number=5");
+    });
+
+    it("omits calorie and protein bounds when they are null", async () => {
+      (axios.get as jest.Mock).mockResolvedValue({ data: { results: [] } });
+
+      // The service guards against null at runtime even though the type is number?.
+      await searchRecipes({
+        minCalories: null,
+        maxCalories: null,
+        minProtein: null,
+      } as unknown as Parameters<typeof searchRecipes>[0]);
+
+      const url: string = (axios.get as jest.Mock).mock.calls[0][0];
+      expect(url).not.toContain("minCalories=");
+      expect(url).not.toContain("maxCalories=");
+      expect(url).not.toContain("minProtein=");
+    });
+
+    it("returns [] when the API response has no results array", async () => {
+      (axios.get as jest.Mock).mockResolvedValue({ data: {} });
+      expect(await searchRecipes({})).toEqual([]);
+    });
   });
 
   describe("searchRecipesByNutrition — complexSearch params", () => {
@@ -110,6 +155,17 @@ describe("SpoonacularService Tests", () => {
       await expect(searchRecipesByNutrition({ minProtein: 10 })).rejects.toThrow(
         "SPOONACULAR_API_KEY is not set",
       );
+    });
+
+    it("returns [] and omits all optionals when called with no params", async () => {
+      (axios.get as jest.Mock).mockResolvedValue({ data: {} });
+
+      const out = await searchRecipesByNutrition({});
+
+      expect(out).toEqual([]);
+      const url: string = (axios.get as jest.Mock).mock.calls[0][0];
+      expect(url).not.toContain("minProtein=");
+      expect(url).not.toContain("number=");
     });
   });
 });

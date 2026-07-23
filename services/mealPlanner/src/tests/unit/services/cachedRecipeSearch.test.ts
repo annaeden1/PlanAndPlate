@@ -140,6 +140,71 @@ describe("makeCachedSearch", () => {
     expect(results.map((r) => r.id)).toEqual([1, 3]);
   });
 
+  it("defaults searchApi to the real Spoonacular search when none is injected", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([
+      cachedDoc("11"),
+      cachedDoc("12"),
+      cachedDoc("13"),
+    ]);
+    const search = makeCachedSearch({ recentRecipeIds: [] });
+
+    const results = await search(params);
+
+    expect(results).toHaveLength(3);
+  });
+
+  it("maps missing nutrition fields to 0", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([
+      { originRecipeId: "50", name: "bare", image: "b.jpg", diets: [] },
+    ]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    const results = await search({ number: 1 });
+
+    const nutrients = results[0].nutrition.nutrients;
+    expect(nutrients.find((n) => n.name === "Calories")?.amount).toBe(0);
+    expect(nutrients.find((n) => n.name === "Protein")?.amount).toBe(0);
+    expect(nutrients.find((n) => n.name === "Fat")?.amount).toBe(0);
+    expect(nutrients.find((n) => n.name === "Carbohydrates")?.amount).toBe(0);
+  });
+
+  it("uses the default pool size and a minimal $match when params are omitted", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([]);
+    searchApi.mockResolvedValue([]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    await search({});
+
+    const pipeline = (Recipe.aggregate as jest.Mock).mock.calls[0][0];
+    expect(pipeline[0].$match).toEqual({ source: "spoonacular" });
+    expect(pipeline[1]).toEqual({ $sample: { size: 7 } });
+  });
+
+  it("builds a one-sided calorie filter when only one bound is given", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([]);
+    searchApi.mockResolvedValue([]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    await search({ minCalories: 400 });
+    await search({ maxCalories: 700 });
+
+    const first = (Recipe.aggregate as jest.Mock).mock.calls[0][0][0].$match;
+    const second = (Recipe.aggregate as jest.Mock).mock.calls[1][0][0].$match;
+    expect(first.calories).toEqual({ $gte: 400 });
+    expect(second.calories).toEqual({ $lte: 700 });
+  });
+
+  it("treats a null aggregate result as an empty cache", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue(null);
+    searchApi.mockResolvedValue([apiRecipe(7)]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    const results = await search(params);
+
+    expect(searchApi).toHaveBeenCalledTimes(1);
+    expect(results.map((r) => r.id)).toEqual([7]);
+  });
+
   it("falls back to the API when the cache query throws", async () => {
     (Recipe.aggregate as jest.Mock).mockRejectedValue(new Error("db down"));
     searchApi.mockResolvedValue([apiRecipe(9)]);
