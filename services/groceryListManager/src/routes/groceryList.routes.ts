@@ -19,6 +19,8 @@ router.use(authMiddleware);
  *   get:
  *     summary: Get all products in the grocery list (grouped by category)
  *     tags: [GroceryList]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -37,6 +39,8 @@ router.get('/users/:userId/products', GroceryController.getAllProducts);
  *   get:
  *     summary: Search products by name
  *     tags: [GroceryList]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -61,6 +65,8 @@ router.get('/users/:userId/products/search', GroceryController.searchProducts);
  *   get:
  *     summary: Get a specific product by name
  *     tags: [GroceryList]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -86,6 +92,8 @@ router.get('/users/:userId/products/:productName', GroceryController.getProduct)
  *   post:
  *     summary: Add a product to the grocery list
  *     tags: [GroceryList]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -123,6 +131,8 @@ router.post('/users/:userId/products', GroceryController.addProduct);
  *   post:
  *     summary: Import all ingredients from a recipe into the grocery list
  *     tags: [GroceryList]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -155,6 +165,8 @@ router.post('/users/:userId/recipes/:recipeId/ingredients', GroceryController.im
  *   delete:
  *     summary: Remove a product from the grocery list
  *     tags: [GroceryList]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -178,6 +190,8 @@ router.patch('/users/:userId/products/:productName/toggle', GroceryController.to
  *   patch:
  *     summary: Update the inventory (have) quantity of a specific product
  *     tags: [GroceryList]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -219,6 +233,8 @@ router.delete('/users/:userId/products/:productName', GroceryController.removePr
  *   delete:
  *     summary: Clear the entire grocery list
  *     tags: [GroceryList]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId

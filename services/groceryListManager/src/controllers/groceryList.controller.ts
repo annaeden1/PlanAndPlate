@@ -34,7 +34,8 @@ export const searchProducts = async (req: Request, res: Response): Promise<void>
 export const getProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, productName } = req.params;
-    const item = await GroceryService.getProduct(userId, productName);
+    const { unit } = (req.query ?? {}) as { unit?: string };
+    const item = await GroceryService.getProduct(userId, productName, unit);
     if (!item) {
       res.status(404).json({ error: `Product "${productName}" not found in list` });
       return;
@@ -92,7 +93,8 @@ export const importRecipeIngredients = async (req: Request, res: Response): Prom
 export const removeProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, productName } = req.params;
-    const groups = await GroceryService.removeProduct(userId, productName);
+    const { unit } = (req.query ?? {}) as { unit?: string };
+    const groups = await GroceryService.removeProduct(userId, productName, unit);
     res.status(200).json(groups);
   } catch (err) {
     res.status(500).json({ error: 'Failed to remove product', details: String(err) });
@@ -102,14 +104,14 @@ export const removeProduct = async (req: Request, res: Response): Promise<void> 
 export const removeBoughtItems = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId } = req.params;
-    const { names } = req.body as { names?: string[] };
+    const { items } = req.body as { items?: { name: string; unit: string }[] };
 
-    if (!Array.isArray(names) || names.length === 0) {
-      res.status(400).json({ error: 'names must be a non-empty array' });
+    if (!Array.isArray(items) || items.length === 0) {
+      res.status(400).json({ error: 'items must be a non-empty array' });
       return;
     }
 
-    const groups = await GroceryService.removeBoughtItems(userId, names);
+    const groups = await GroceryService.removeBoughtItems(userId, items);
     res.status(200).json(groups);
   } catch (err) {
     res.status(500).json({ error: 'Failed to remove bought items', details: String(err) });
@@ -119,7 +121,8 @@ export const removeBoughtItems = async (req: Request, res: Response): Promise<vo
 export const toggleItem = async (req: Request, res: Response): Promise<void> => {
   try {
     const { userId, productName } = req.params;
-    const groups = await GroceryService.toggleItem(userId, productName);
+    const { unit } = (req.query ?? {}) as { unit?: string };
+    const groups = await GroceryService.toggleItem(userId, productName, unit);
     res.status(200).json(groups);
   } catch (err) {
     res.status(500).json({ error: 'Failed to toggle item', details: String(err) });
@@ -130,6 +133,7 @@ export const updateInventoryQuantity = async (req: Request, res: Response): Prom
   try {
     const { userId, productName } = req.params;
     const { inventoryQuantity } = req.body as { inventoryQuantity: unknown };
+    const { unit } = (req.query ?? {}) as { unit?: string };
 
     if (typeof inventoryQuantity !== 'number' || isNaN(inventoryQuantity)) {
       res.status(400).json({ error: 'inventoryQuantity is required and must be a number' });
@@ -144,6 +148,7 @@ export const updateInventoryQuantity = async (req: Request, res: Response): Prom
       userId,
       productName.toLowerCase().trim(),
       inventoryQuantity,
+      unit,
     );
     res.status(200).json(groups);
   } catch (err) {

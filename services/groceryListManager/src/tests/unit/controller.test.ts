@@ -100,7 +100,7 @@ describe('GroceryList Controller - Unit Tests', () => {
 
       await GroceryController.getProduct(req, res);
 
-      expect(mockedService.getProduct).toHaveBeenCalledWith('user1', 'milk');
+      expect(mockedService.getProduct).toHaveBeenCalledWith('user1', 'milk', undefined);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockItem);
     });
@@ -269,7 +269,7 @@ describe('GroceryList Controller - Unit Tests', () => {
 
       await GroceryController.removeProduct(req, res);
 
-      expect(mockedService.removeProduct).toHaveBeenCalledWith('user1', 'milk');
+      expect(mockedService.removeProduct).toHaveBeenCalledWith('user1', 'milk', undefined);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockGroups);
     });
@@ -324,7 +324,7 @@ describe('GroceryList Controller - Unit Tests', () => {
 
       await GroceryController.updateInventoryQuantity(req, res);
 
-      expect(mockedService.updateInventoryQuantity).toHaveBeenCalledWith('user1', 'milk', 1);
+      expect(mockedService.updateInventoryQuantity).toHaveBeenCalledWith('user1', 'milk', 1, undefined);
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(mockGroups);
     });
@@ -388,7 +388,7 @@ describe('GroceryList Controller - Unit Tests', () => {
 
       await GroceryController.updateInventoryQuantity(req, res);
 
-      expect(mockedService.updateInventoryQuantity).toHaveBeenCalledWith('user1', 'milk', 2);
+      expect(mockedService.updateInventoryQuantity).toHaveBeenCalledWith('user1', 'milk', 2, undefined);
     });
   });
 });

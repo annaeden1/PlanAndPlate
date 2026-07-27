@@ -131,16 +131,24 @@ export const searchProducts = async (
   return list.items.filter((item) => item.name.includes(query));
 };
 
+// Two items can share a name (e.g. "tomato" bought by the piece and by the kg),
+// but mergeIngredients already guarantees name+unit is unique within a list —
+// so matching on both is how one specific entry gets addressed, not just "the first tomato".
+const matchesItem = (item: GroceryItem, name: string, unit?: string): boolean => {
+  if (item.name !== name) return false;
+  if (unit == null) return true;
+  return normalizeUnit(item.unit) === normalizeUnit(unit);
+};
+
 export const getProduct = async (
   userId: string,
   productName: string,
+  unit?: string,
 ): Promise<GroceryItem | null> => {
   const list = await GroceryList.findOne({ userId });
   if (!list) return null;
-  return (
-    list.items.find((item) => item.name === productName.toLowerCase().trim()) ??
-    null
-  );
+  const normalizedName = productName.toLowerCase().trim();
+  return list.items.find((item) => matchesItem(item, normalizedName, unit)) ?? null;
 };
 
 export const addProducts = async (
@@ -184,11 +192,15 @@ export const importRecipeIngredients = async (
 export const removeProduct = async (
   userId: string,
   productName: string,
+  unit?: string,
 ): Promise<GroceryItemGroup[]> => {
   const normalizedName = productName.toLowerCase().trim();
+  const pullQuery = unit
+    ? { name: normalizedName, unit: normalizeUnit(unit) }
+    : { name: normalizedName };
   const list = await GroceryList.findOneAndUpdate(
     { userId },
-    { $pull: { items: { name: normalizedName } } },
+    { $pull: { items: pullQuery } },
     { new: true },
   );
   return list ? groupByCategory(list.items) : [];
@@ -200,12 +212,15 @@ export const clearGroceryList = async (userId: string): Promise<void> => {
 
 export const removeBoughtItems = async (
   userId: string,
-  names: string[],
+  items: { name: string; unit: string }[],
 ): Promise<GroceryItemGroup[]> => {
-  const normalizedNames = names.map((n) => n.toLowerCase().trim());
+  const conditions = items.map(({ name, unit }) => ({
+    name: name.toLowerCase().trim(),
+    unit: normalizeUnit(unit),
+  }));
   const list = await GroceryList.findOneAndUpdate(
     { userId },
-    { $pull: { items: { name: { $in: normalizedNames } } } },
+    { $pull: { items: { $or: conditions } } },
     { new: true },
   );
   return list ? groupByCategory(list.items) : [];
@@ -214,12 +229,13 @@ export const removeBoughtItems = async (
 export const toggleItem = async (
   userId: string,
   productName: string,
+  unit?: string,
 ): Promise<GroceryItemGroup[]> => {
   const normalizedName = productName.toLowerCase().trim();
   const list = await GroceryList.findOne({ userId });
   if (!list) throw new Error('Grocery list not found');
 
-  const item = list.items.find((i) => i.name === normalizedName);
+  const item = list.items.find((i) => matchesItem(i, normalizedName, unit));
   if (!item) throw new Error(`Product "${productName}" not found`);
 
   item.checked = !item.checked;
@@ -231,12 +247,13 @@ export const updateInventoryQuantity = async (
   userId: string,
   productName: string,
   inventoryQuantity: number,
+  unit?: string,
 ): Promise<GroceryItemGroup[]> => {
   const normalizedName = productName.toLowerCase().trim();
   const list = await GroceryList.findOne({ userId });
   if (!list) throw new NotFoundError('Grocery list not found');
 
-  const item = list.items.find((i) => i.name === normalizedName);
+  const item = list.items.find((i) => matchesItem(i, normalizedName, unit));
   if (!item) throw new NotFoundError(`Product "${productName}" not found`);
 
   item.inventoryQuantity = inventoryQuantity;

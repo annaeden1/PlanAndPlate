@@ -4,11 +4,11 @@ const swaggerSpec = swaggerJsdoc({
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Plan & Plate — Grocery List API',
+      title: 'Plan & Plate — Barcode API',
       version: '1.0.0',
-      description: 'REST API for the Grocery List Manager microservice',
+      description: 'REST API for the Barcode / QR microservice',
     },
-    servers: [{ url: `http://localhost:${process.env.PORT || 8080}` }],
+    servers: [{ url: `http://localhost:${process.env.PORT || 9000}` }],
     components: {
       securitySchemes: {
         bearerAuth: {

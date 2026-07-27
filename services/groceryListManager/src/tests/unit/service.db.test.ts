@@ -259,12 +259,24 @@ describe('clearGroceryList', () => {
 });
 
 describe('removeBoughtItems', () => {
-  it('pulls the normalized names and returns the grouped list', async () => {
+  it('pulls by normalized name+unit pairs and returns the grouped list', async () => {
     mockedGL.findOneAndUpdate.mockResolvedValue({ items: [item()] } as never);
-    const groups = await removeBoughtItems('u1', ['  Bread ', 'EGG']);
+    const groups = await removeBoughtItems('u1', [
+      { name: '  Bread ', unit: 'Piece' },
+      { name: 'EGG', unit: 'kg' },
+    ]);
     expect(mockedGL.findOneAndUpdate).toHaveBeenCalledWith(
       { userId: 'u1' },
-      { $pull: { items: { name: { $in: ['bread', 'egg'] } } } },
+      {
+        $pull: {
+          items: {
+            $or: [
+              { name: 'bread', unit: 'piece' },
+              { name: 'egg', unit: 'kg' },
+            ],
+          },
+        },
+      },
       { new: true },
     );
     expect(groups).toHaveLength(1);
@@ -272,7 +284,7 @@ describe('removeBoughtItems', () => {
 
   it('returns [] when no list is returned', async () => {
     mockedGL.findOneAndUpdate.mockResolvedValue(null as never);
-    expect(await removeBoughtItems('u1', ['bread'])).toEqual([]);
+    expect(await removeBoughtItems('u1', [{ name: 'bread', unit: 'piece' }])).toEqual([]);
   });
 });
 
@@ -297,5 +309,17 @@ describe('toggleItem', () => {
     expect(target.checked).toBe(true);
     expect(save).toHaveBeenCalled();
     expect(groups).toHaveLength(1);
+  });
+
+  it('only toggles the entry matching both name and unit when duplicates exist', async () => {
+    const tomatoPiece = item({ name: 'tomato', unit: 'piece', checked: false });
+    const tomatoKg = item({ name: 'tomato', unit: 'kg', checked: false });
+    const save = jest.fn().mockResolvedValue(undefined);
+    mockedGL.findOne.mockResolvedValue({ items: [tomatoPiece, tomatoKg], save } as never);
+
+    await toggleItem('u1', 'tomato', 'kg');
+
+    expect(tomatoPiece.checked).toBe(false);
+    expect(tomatoKg.checked).toBe(true);
   });
 });

@@ -1,7 +1,9 @@
 import express, { Express } from 'express';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
+import swaggerUi from 'swagger-ui-express';
 import { barcodeRouter } from './routes/barcode.routes';
+import swaggerSpec from './config/swagger';
 
 dotenv.config();
 
@@ -11,6 +13,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use('/barcode', barcodeRouter);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 export const initApp = (): Promise<Express> => {
   return Promise.resolve(app);

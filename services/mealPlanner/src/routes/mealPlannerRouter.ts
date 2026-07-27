@@ -18,6 +18,8 @@ export const mealPlannerRouter = express.Router();
  *   post:
  *     summary: Create a new weekly meal plan for a user from a given start date from the API
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -59,6 +61,8 @@ mealPlannerRouter.post(
  *   get:
  *     summary: Get the weekly meal plan for a user for a specific week from DB
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -92,6 +96,8 @@ mealPlannerRouter.get(
  *   get:
  *     summary: Get the daily meal plan for a user for a specific date from DB
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -126,6 +132,8 @@ mealPlannerRouter.get(
  *   post:
  *     summary: Create a new manual recipe and save it to the recipe collection
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -191,6 +199,8 @@ mealPlannerRouter.post(
  *   put:
  *     summary: Update a manual recipe owned by the logged-in user
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: recipeId
@@ -223,6 +233,8 @@ mealPlannerRouter.put(
  *   delete:
  *     summary: Delete a manual recipe owned by the logged-in user
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: recipeId
@@ -255,6 +267,8 @@ mealPlannerRouter.delete(
  *   get:
  *     summary: Get all manual recipes created by the logged-in user
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: OK - Manual recipes retrieved successfully
@@ -275,6 +289,8 @@ mealPlannerRouter.get(
  *   get:
  *     summary: Get the details of a recipe by its ID from API
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: recipeId
@@ -303,6 +319,8 @@ mealPlannerRouter.get(
  *   patch:
  *     summary: Toggle the like status of a recipe for the logged-in user
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: recipeId
@@ -331,6 +349,8 @@ mealPlannerRouter.patch(
  *   get:
  *     summary: Get personalized recipe suggestions to replace a recipe
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -370,6 +390,8 @@ mealPlannerRouter.get(
  *   patch:
  *     summary: Replace a meal slot in a day with a new recipe
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -413,6 +435,8 @@ mealPlannerRouter.patch(
  *   get:
  *     summary: Get all liked recipes for a user
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -439,6 +463,8 @@ mealPlannerRouter.get(
  *   get:
  *     summary: Get user statistics (weeks active, meals logged)
  *     tags: [MealPlanner]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
