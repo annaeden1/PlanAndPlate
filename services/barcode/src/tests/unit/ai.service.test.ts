@@ -39,7 +39,7 @@ describe('AIService.generateAlternativeProducts', () => {
     ]);
   });
 
-  it('caps the result at 5 alternatives', async () => {
+  it('caps the result at 5 alternatives, keeping the first five', async () => {
     const many = JSON.stringify({
       alternatives: Array.from({ length: 6 }, (_, i) => ({
         productName: `p${i}`,
@@ -52,7 +52,13 @@ describe('AIService.generateAlternativeProducts', () => {
     ]);
 
     const result = await service.generateAlternativeProducts(promptInput);
-    expect(result).toHaveLength(5);
+    expect(result.map((r) => r.productName)).toEqual([
+      'p0',
+      'p1',
+      'p2',
+      'p3',
+      'p4',
+    ]);
   });
 
   it('falls back to the next provider when the first returns an empty response', async () => {
@@ -140,6 +146,20 @@ describe('AIService.generateAlternativeProducts', () => {
         ],
       });
       expect(await run(raw)).toEqual([]);
+    });
+
+    it('keeps the valid alternatives and drops the invalid ones in the same batch', async () => {
+      const raw = JSON.stringify({
+        alternatives: [
+          { productName: 'Valid Bar', brand: 'RealBrand', reason: 'fits' },
+          { productName: 'Rejected', brand: 'Generic', reason: 'bad brand' },
+          { productName: '', brand: 'NoName', reason: 'no product name' },
+          { productName: 'No reason', brand: 'BrandY', reason: '' },
+        ],
+      });
+      expect(await run(raw)).toEqual([
+        { productName: 'Valid Bar', brand: 'RealBrand', reason: 'fits' },
+      ]);
     });
 
     it('handles a JSON object without an alternatives field', async () => {
