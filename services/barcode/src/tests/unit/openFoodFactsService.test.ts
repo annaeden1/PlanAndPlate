@@ -5,8 +5,6 @@ jest.mock('axios');
 const mockGet = jest.fn();
 (axios.create as jest.Mock).mockReturnValue({ get: mockGet });
 
-// Import the service AFTER axios.create is stubbed so the module-level
-// http client picks up our mocked `get`.
 let offService: typeof import('../../services/openFoodFactsService');
 beforeAll(() => {
   offService = require('../../services/openFoodFactsService');
