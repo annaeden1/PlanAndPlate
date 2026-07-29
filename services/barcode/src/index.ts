@@ -12,9 +12,8 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use('/barcode', barcodeRouter);
-
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/barcode', barcodeRouter);
 
 export const initApp = (): Promise<Express> => {
   return Promise.resolve(app);

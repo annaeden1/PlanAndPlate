@@ -176,14 +176,12 @@ describe("recommendationService.getSuggestions", () => {
       6,
     );
 
-    // diet is unknown now, so intolerances is the only guard passed through.
     expect((searchRecipes as jest.Mock).mock.calls[0][0].intolerances).toBe("");
     expect(result.map((r) => r.originRecipeId)).toEqual(["4"]);
   });
 
   it("loads the current recipe from Spoonacular when it is not cached locally", async () => {
     (searchRecipes as jest.Mock).mockResolvedValue([candidate(4, "New A")]);
-    // "77" is absent from the local Recipe collection -> fallback fetch.
     (mealPlannerService.getRecipeDetails as jest.Mock).mockResolvedValue({
       name: "Fetched Pasta",
       cuisines: ["Italian"],
@@ -200,7 +198,6 @@ describe("recommendationService.getSuggestions", () => {
       "dinner",
       6,
     );
-
     expect(mealPlannerService.getRecipeDetails).toHaveBeenCalledWith("77");
     expect(result.map((r) => r.originRecipeId)).toEqual(["4"]);
   });
@@ -208,8 +205,8 @@ describe("recommendationService.getSuggestions", () => {
   it("treats the current recipe as empty when the Spoonacular fallback throws", async () => {
     (searchRecipes as jest.Mock).mockResolvedValue([candidate(4, "New A")]);
     (mealPlannerService.getRecipeDetails as jest.Mock)
-      .mockResolvedValueOnce(undefined) // the pre-fetch call in getSuggestions
-      .mockRejectedValueOnce(new Error("spoonacular down")); // loadTasteRecipe fallback
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("spoonacular down"));
 
     const result = await recommendationService.getSuggestions(
       "user-1",

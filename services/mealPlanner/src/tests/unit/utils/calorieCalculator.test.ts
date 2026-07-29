@@ -7,10 +7,6 @@ import {
   type BodyStats,
 } from '../../../utils/calorieCalculator';
 
-// Reference values cross-checked against calculator.net (Mifflin-St Jeor).
-// These lock the goal-driven engine: given body stats + a goal, the app must
-// compute the right daily calorie target AND protein need.
-
 describe('calcTargets — calories + protein from stats and goal', () => {
   const male: BodyStats = {
     weightKg: 80,

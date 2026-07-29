@@ -2,7 +2,6 @@ import request from 'supertest';
 import mongoose from 'mongoose';
 import { Express } from 'express';
 
-// Bypass JWT auth for integration routing tests — auth is covered by its own unit test.
 jest.mock('../../middlewares/auth.middleware', () => ({
   __esModule: true,
   default: (_req: unknown, _res: unknown, next: () => void) => next(),
@@ -12,7 +11,6 @@ import { initApp } from '../../index';
 import { GroceryList } from '../../models/groceryList.model';
 import { Recipe } from '../../models/recipe.model';
 
-// userId is an ObjectId in the schema, so the test user must be a valid ObjectId.
 const TEST_USER_ID = new mongoose.Types.ObjectId().toString();
 
 describe('GroceryList API - Integration Tests', () => {
@@ -181,8 +179,6 @@ describe('GroceryList API - Integration Tests', () => {
     let recipeId: string;
 
     beforeAll(async () => {
-      // The service imports from the local Recipe collection (importFromRecipeDB),
-      // so seed a recipe rather than mocking Spoonacular.
       const recipe = await Recipe.create({
         name: 'Caprese',
         instructions: {

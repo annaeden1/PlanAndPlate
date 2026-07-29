@@ -71,7 +71,6 @@ describe("SpoonacularService Tests", () => {
     it("omits calorie and protein bounds when they are null", async () => {
       (axios.get as jest.Mock).mockResolvedValue({ data: { results: [] } });
 
-      // The service guards against null at runtime even though the type is number?.
       await searchRecipes({
         minCalories: null,
         maxCalories: null,

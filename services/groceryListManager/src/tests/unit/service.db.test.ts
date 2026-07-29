@@ -111,7 +111,6 @@ describe('importFromRecipeDB', () => {
         recipeCount: 1,
       }),
     );
-    // Missing aisle falls back to a normalized empty aisle.
     expect(result[1].name).toBe('salt');
   });
 });

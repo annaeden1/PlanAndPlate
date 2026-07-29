@@ -8,7 +8,7 @@ export const barcodeRouter = Router();
  * @swagger
  * tags:
  *   name: Barcode
- *   description: Barcode scanning and product lookup endpoints
+ *   description: Barcode scanning, product lookup, and preference validation endpoints
  */
 
 /**
@@ -25,22 +25,27 @@ export const barcodeRouter = Router();
  *         required: true
  *         schema:
  *           type: string
+ *         description: Authenticated user id
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             required: [barcode]
+ *             required:
+ *               - barcode
  *             properties:
  *               barcode:
  *                 type: string
+ *                 description: Product barcode to scan
  *                 example: "3017620422003"
  *     responses:
  *       200:
  *         description: Nutrition data, preference matches, and alternatives (if a mismatch was found)
  *       400:
  *         description: Barcode is required
+ *       401:
+ *         description: Unauthorized
  *       404:
  *         description: Product not found in OpenFoodFacts
  *       500:
