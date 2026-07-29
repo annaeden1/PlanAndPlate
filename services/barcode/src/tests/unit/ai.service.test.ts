@@ -1,165 +1,209 @@
 import { AIService } from '../../services/ai.service';
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { type AlternativeAiProvider } from '../../ai/aiProvider';
-import { type SuggestedAlternative } from '../../utils/types/alternatives';
-import { type AlternativePromptInput } from '../../utils/types/prompts';
+import { GeminiProvider } from '../../ai/geminiProvider';
+import { CohereProvider } from '../../ai/cohereProvider';
+import type { AlternativeAiProvider } from '../../ai/aiProvider';
+import type { AlternativePromptInput } from '../../utils/types/prompts';
 
-const basePromptInput: AlternativePromptInput = {
-  productName: 'Chocolate Bar',
-  brand: 'BrandX',
-  originalProductCountries: ['United States'],
-  userPreferences: ['vegan'],
-  userAllergies: ['dairy'],
-  userHealthGoals: ['lowSugar'],
-  validationIssues: ['dairy free failed'],
-};
+jest.mock('../../ai/geminiProvider');
+jest.mock('../../ai/cohereProvider');
 
-const darkChocolateAlternative: SuggestedAlternative = {
-  productName: 'Dark Chocolate 90%',
-  brand: 'Lindt',
-  reason: 'No dairy ingredients listed',
-};
-
-const oatChocolateAlternative: SuggestedAlternative = {
-  productName: 'Oat Chocolate Bar',
-  brand: 'Nomo',
-  reason: 'Dairy-free alternative',
-};
-
-const validAlternative: SuggestedAlternative = {
-  productName: 'Valid Bar',
-  brand: 'RealBrand',
-  reason: 'Fits user preferences',
-};
-
-const filteredAlternativesInput: Array<Partial<SuggestedAlternative>> = [
-  validAlternative,
-  {
-    productName: 'Rejected Generic',
-    brand: 'Generic',
-    reason: 'Bad brand',
-  },
-  {
-    productName: '',
-    brand: 'NoName',
-    reason: 'Missing product name',
-  },
-  {
-    productName: 'Missing reason',
-    brand: 'BrandY',
-    reason: '',
-  },
-];
-
-const bulkAlternativesInput: SuggestedAlternative[] = [
-  { productName: 'A1', brand: 'B1', reason: 'R1' },
-  { productName: 'A2', brand: 'B2', reason: 'R2' },
-  { productName: 'A3', brand: 'B3', reason: 'R3' },
-  { productName: 'A4', brand: 'B4', reason: 'R4' },
-  { productName: 'A5', brand: 'B5', reason: 'R5' },
-  { productName: 'A6', brand: 'B6', reason: 'R6' },
-];
-
-const createProvider = (
-  name: string,
-  implementation: (
-    promptInput: AlternativePromptInput,
-  ) => Promise<string | null>,
-): AlternativeAiProvider => ({
-  name,
-  generate: jest.fn(implementation),
+const validJson = JSON.stringify({
+  alternatives: [{ productName: 'Oat Drink', brand: 'Oatly', reason: 'dairy-free' }],
 });
 
-const buildAlternativesResponse = (
-  alternatives: Array<Partial<SuggestedAlternative>>,
-): string => JSON.stringify({ alternatives });
+const promptInput = {} as AlternativePromptInput;
 
-describe('AIService - Unit Tests', () => {
-  afterEach(() => {
-    delete process.env.AI_PROVIDER_TIMEOUT_MS;
+const makeProvider = (
+  name: string,
+  generate: AlternativeAiProvider['generate'],
+): AlternativeAiProvider => ({ name, generate });
+
+describe('AIService.generateAlternativeProducts', () => {
+  beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    delete process.env.AI_PROVIDER_TIMEOUT_MS;
   });
 
-  it('uses fallback provider when primary returns empty response', async () => {
-    const primary = createProvider('primary', async () => null);
-    const fallback = createProvider('fallback', async () =>
-      buildAlternativesResponse([darkChocolateAlternative]),
-    );
+  afterEach(() => jest.restoreAllMocks());
 
-    const service = new AIService([primary, fallback]);
-    const result = await service.generateAlternativeProducts(basePromptInput);
-
-    expect(primary.generate).toHaveBeenCalledTimes(1);
-    expect(fallback.generate).toHaveBeenCalledTimes(1);
-    expect(result).toEqual([darkChocolateAlternative]);
-  });
-
-  it('uses fallback provider when primary times out', async () => {
-    process.env.AI_PROVIDER_TIMEOUT_MS = '1';
-
-    const slowPrimary = createProvider(
-      'slow-primary',
-      () =>
-        new Promise((resolve) => {
-          setTimeout(() => resolve('{"alternatives": []}'), 25);
-        }),
-    );
-
-    const fallback = createProvider('fallback', async () =>
-      buildAlternativesResponse([oatChocolateAlternative]),
-    );
-
-    const service = new AIService([slowPrimary, fallback]);
-    const result = await service.generateAlternativeProducts(basePromptInput);
-
-    expect(slowPrimary.generate).toHaveBeenCalledTimes(1);
-    expect(fallback.generate).toHaveBeenCalledTimes(1);
-    expect(result[0].productName).toBe(oatChocolateAlternative.productName);
-  });
-
-  it('filters invalid alternatives and keeps only valid brand/product/reason entries', async () => {
-    const provider = createProvider('provider-1', async () =>
-      buildAlternativesResponse(filteredAlternativesInput),
-    );
-
+  it('returns parsed alternatives from the first successful provider', async () => {
+    const provider = makeProvider('gemini', jest.fn().mockResolvedValue(validJson));
     const service = new AIService([provider]);
-    const result = await service.generateAlternativeProducts(basePromptInput);
 
-    expect(result).toEqual([validAlternative]);
-  });
+    const result = await service.generateAlternativeProducts(promptInput);
 
-  it('returns at most five alternatives', async () => {
-    const provider = createProvider('provider-1', async () =>
-      buildAlternativesResponse(bulkAlternativesInput),
-    );
-
-    const service = new AIService([provider]);
-    const result = await service.generateAlternativeProducts(basePromptInput);
-
-    expect(result).toHaveLength(5);
-    expect(result.map((item) => item.productName)).toEqual([
-      'A1',
-      'A2',
-      'A3',
-      'A4',
-      'A5',
+    expect(result).toEqual([
+      { productName: 'Oat Drink', brand: 'Oatly', reason: 'dairy-free' },
     ]);
   });
 
-  it('returns empty array when all providers fail or return invalid output', async () => {
-    const providerOne = createProvider(
-      'provider-1',
-      async () => 'not json at all',
-    );
-    const providerTwo = createProvider('provider-2', async () =>
-      buildAlternativesResponse([
-        { productName: 'x', brand: 'store brand', reason: 'y' },
-      ]),
-    );
+  it('caps the result at 5 alternatives, keeping the first five', async () => {
+    const many = JSON.stringify({
+      alternatives: Array.from({ length: 6 }, (_, i) => ({
+        productName: `p${i}`,
+        brand: `BrandCo${i}`,
+        reason: 'r',
+      })),
+    });
+    const service = new AIService([
+      makeProvider('gemini', jest.fn().mockResolvedValue(many)),
+    ]);
 
-    const service = new AIService([providerOne, providerTwo]);
-    const result = await service.generateAlternativeProducts(basePromptInput);
+    const result = await service.generateAlternativeProducts(promptInput);
+    expect(result.map((r) => r.productName)).toEqual([
+      'p0',
+      'p1',
+      'p2',
+      'p3',
+      'p4',
+    ]);
+  });
 
+  it('falls back to the next provider when the first returns an empty response', async () => {
+    const service = new AIService([
+      makeProvider('gemini', jest.fn().mockResolvedValue(null)),
+      makeProvider('cohere', jest.fn().mockResolvedValue(validJson)),
+    ]);
+
+    const result = await service.generateAlternativeProducts(promptInput);
+    expect(result).toHaveLength(1);
+  });
+
+  it('falls back to the next provider when the first returns invalid alternatives', async () => {
+    const service = new AIService([
+      makeProvider('gemini', jest.fn().mockResolvedValue('no json here')),
+      makeProvider('cohere', jest.fn().mockResolvedValue(validJson)),
+    ]);
+
+    const result = await service.generateAlternativeProducts(promptInput);
+    expect(result).toHaveLength(1);
+  });
+
+  it('falls back to the next provider on timeout', async () => {
+    process.env.AI_PROVIDER_TIMEOUT_MS = '20';
+    const slow = makeProvider(
+      'gemini',
+      jest.fn().mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve(validJson), 100)),
+      ),
+    );
+    const fast = makeProvider('cohere', jest.fn().mockResolvedValue(validJson));
+    const service = new AIService([slow, fast]);
+
+    const result = await service.generateAlternativeProducts(promptInput);
+    expect(result).toHaveLength(1);
+    expect(fast.generate).toHaveBeenCalled();
+  });
+
+  it('returns [] when every provider fails', async () => {
+    const service = new AIService([
+      makeProvider('gemini', jest.fn().mockResolvedValue(null)),
+      makeProvider('cohere', jest.fn().mockResolvedValue('garbage')),
+    ]);
+
+    const result = await service.generateAlternativeProducts(promptInput);
     expect(result).toEqual([]);
+  });
+
+  it('warns when no real provider is configured (only the null provider)', async () => {
+    const warnSpy = jest.spyOn(console, 'warn');
+    const service = new AIService([
+      makeProvider('none', jest.fn().mockResolvedValue(null)),
+    ]);
+
+    const result = await service.generateAlternativeProducts(promptInput);
+    expect(result).toEqual([]);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('No AI provider configured'),
+    );
+  });
+
+  describe('parseAlternatives edge cases', () => {
+    const run = async (raw: string) => {
+      const service = new AIService([
+        makeProvider('gemini', jest.fn().mockResolvedValue(raw)),
+      ]);
+      return service.generateAlternativeProducts(promptInput);
+    };
+
+    it('returns [] when the response has no JSON object', async () => {
+      expect(await run('just text, no braces')).toEqual([]);
+    });
+
+    it('returns [] when the JSON cannot be parsed', async () => {
+      expect(await run('{ not: valid json }')).toEqual([]);
+    });
+
+    it('returns [] when all alternatives are filtered by validation', async () => {
+      const raw = JSON.stringify({
+        alternatives: [
+          { productName: '', brand: 'X', reason: 'r' },
+          { productName: 'P', brand: 'generic', reason: 'r' },
+          { productName: 'P', brand: '', reason: 'r' },
+          { productName: 'P', brand: 'Real', reason: '' },
+        ],
+      });
+      expect(await run(raw)).toEqual([]);
+    });
+
+    it('keeps the valid alternatives and drops the invalid ones in the same batch', async () => {
+      const raw = JSON.stringify({
+        alternatives: [
+          { productName: 'Valid Bar', brand: 'RealBrand', reason: 'fits' },
+          { productName: 'Rejected', brand: 'Generic', reason: 'bad brand' },
+          { productName: '', brand: 'NoName', reason: 'no product name' },
+          { productName: 'No reason', brand: 'BrandY', reason: '' },
+        ],
+      });
+      expect(await run(raw)).toEqual([
+        { productName: 'Valid Bar', brand: 'RealBrand', reason: 'fits' },
+      ]);
+    });
+
+    it('handles a JSON object without an alternatives field', async () => {
+      expect(await run('{"foo":"bar"}')).toEqual([]);
+    });
+  });
+
+  describe('buildProviders (no injected providers)', () => {
+    const OLD_ENV = process.env;
+    beforeEach(() => {
+      process.env = { ...OLD_ENV };
+      delete process.env.GEMINI_API_KEY;
+      delete process.env.COHERE_API_KEY;
+    });
+    afterEach(() => {
+      process.env = OLD_ENV;
+    });
+
+    it('builds Gemini and Cohere providers when both keys are present', async () => {
+      process.env.GEMINI_API_KEY = 'g-key';
+      process.env.COHERE_API_KEY = 'c-key';
+      (GeminiProvider as jest.Mock).mockImplementation(() => ({
+        name: 'gemini',
+        generate: jest.fn().mockResolvedValue(validJson),
+      }));
+      (CohereProvider as jest.Mock).mockImplementation(() => ({
+        name: 'cohere',
+        generate: jest.fn().mockResolvedValue(null),
+      }));
+
+      const service = new AIService();
+      const result = await service.generateAlternativeProducts(promptInput);
+
+      expect(GeminiProvider).toHaveBeenCalledWith('g-key');
+      expect(CohereProvider).toHaveBeenCalledWith('c-key');
+      expect(result).toHaveLength(1);
+    });
+
+    it('falls back to the null provider when no keys are configured', async () => {
+      const service = new AIService();
+      const result = await service.generateAlternativeProducts(promptInput);
+      expect(result).toEqual([]);
+      expect(GeminiProvider).not.toHaveBeenCalled();
+      expect(CohereProvider).not.toHaveBeenCalled();
+    });
   });
 });

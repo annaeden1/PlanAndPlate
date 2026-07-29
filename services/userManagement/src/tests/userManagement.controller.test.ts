@@ -374,7 +374,7 @@ describe('UserManagement Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: 'Failed to retreive data',
+          error: 'Failed to update preferences',
         }),
       );
     });
@@ -424,7 +424,7 @@ describe('UserManagement Controller', () => {
       expect(mockResponse.status).toHaveBeenCalledWith(500);
       expect(mockResponse.json).toHaveBeenCalledWith(
         expect.objectContaining({
-          error: 'Failed to retreive data',
+          error: 'Failed to update preferences',
         }),
       );
     });

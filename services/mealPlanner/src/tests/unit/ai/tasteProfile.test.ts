@@ -43,6 +43,24 @@ describe("buildTasteProfile", () => {
     expect(profile.cuisines).toEqual(["Mexican"]);
   });
 
+  it("infers cuisines from recipe names when likes are not tagged", async () => {
+    const liked = [
+      recipe({ cuisines: [], name: "Spaghetti Bolognese" }), // Italian
+      recipe({ cuisines: [], name: "Homemade Pizza Margherita" }), // Italian
+      recipe({ cuisines: [], name: "Chicken Tikka Masala" }), // Indian
+      recipe({ cuisines: [], name: "Unlabeled Mystery Plate" }), // no match -> dropped
+    ];
+    const profile = await buildTasteProfile({
+      likedRecipes: liked,
+      currentRecipe: recipe({ cuisines: [], name: "Plain Bowl" }),
+      prefs: {},
+      provider: fakeProvider([1, 0]),
+    });
+    expect(profile.cuisines[0]).toBe("Italian");
+    expect(profile.cuisines).toContain("Indian");
+    expect(profile.cuisines).not.toContain("Unlabeled Mystery Plate");
+  });
+
   it("returns an empty centroid when the provider yields no embeddings", async () => {
     const profile = await buildTasteProfile({
       likedRecipes: [recipe(), recipe(), recipe()],
