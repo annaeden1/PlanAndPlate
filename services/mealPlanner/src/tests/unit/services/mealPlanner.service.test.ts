@@ -222,7 +222,6 @@ describe("MealPlannerService Tests", () => {
       );
 
       expect(estimateNutrition).toHaveBeenCalled();
-      // Preferences failed to load, so no user context is passed.
       expect(estimateNutrition.mock.calls[0][0].userContext).toBeUndefined();
       expect(recipe.calories).not.toBe(500);
     });
@@ -323,8 +322,8 @@ describe("MealPlannerService Tests", () => {
     beforeEach(() => {
       (Recipe.find as jest.Mock).mockResolvedValue([]);
       (Recipe.insertMany as jest.Mock).mockResolvedValue([]);
-      (Recipe.aggregate as jest.Mock).mockResolvedValue([]); // cache miss
-      (MealPlan.find as jest.Mock).mockResolvedValue([]); // no plan history
+      (Recipe.aggregate as jest.Mock).mockResolvedValue([]);
+      (MealPlan.find as jest.Mock).mockResolvedValue([]);
       (axios.get as jest.Mock).mockResolvedValue({
         data: {
           userPreferences: {
@@ -369,8 +368,6 @@ describe("MealPlannerService Tests", () => {
         expect(d.proteinTargetMet).toBe(true);
       });
 
-      // Cached rows must be valid (source is required) and carry the
-      // provenance fields used by cache-first search.
       const inserted = (Recipe.insertMany as jest.Mock).mock.calls[0][0];
       expect(inserted.length).toBeGreaterThan(0);
       for (const row of inserted) {
@@ -488,7 +485,7 @@ describe("MealPlannerService Tests", () => {
         calories: 400,
         image: "gyoza.jpg",
       });
-      expect(plan.nutritionSummary.calories).toBe(700); // 100 + 200 + 400
+      expect(plan.nutritionSummary.calories).toBe(700);
       expect(plan.markModified).toHaveBeenCalledWith("days");
       expect(plan.save).toHaveBeenCalled();
     });
@@ -633,13 +630,13 @@ describe("MealPlannerService Tests", () => {
           days: [
             {
               breakfast: { recipeId: "101", name: "Pancakes" },
-              lunch: { recipeId: "0", name: "" }, // empty
+              lunch: { recipeId: "0", name: "" },
               dinner: { recipeId: "102", name: "Pasta" },
             },
             {
-              breakfast: { recipeId: "", name: "" }, // empty
+              breakfast: { recipeId: "", name: "" },
               lunch: { recipeId: "103", name: "Salad" },
-              dinner: { recipeId: 0, name: "" }, // empty (number)
+              dinner: { recipeId: 0, name: "" },
             },
           ],
         },
@@ -654,18 +651,11 @@ describe("MealPlannerService Tests", () => {
         },
       ];
       (MealPlan.find as jest.Mock).mockResolvedValue(mockMealPlans);
-      (Recipe.countDocuments as jest.Mock).mockResolvedValue(3); // 3 manual recipes
+      (Recipe.countDocuments as jest.Mock).mockResolvedValue(3);
 
       const stats = await mealPlannerService.getUserStats("user-1");
 
       expect(stats.weeksActive).toBe(2);
-      // Valid meals:
-      // Plan 1, Day 1: breakfast (101), dinner (102) -> 2
-      // Plan 1, Day 2: lunch (103) -> 1
-      // Plan 2, Day 1: breakfast (104), lunch (105), dinner (106) -> 3
-      // Total in plans = 2 + 1 + 3 = 6
-      // Manual recipes = 3
-      // Total meals logged = 6 + 3 = 9
       expect(stats.mealsLogged).toBe(9);
 
       expect(MealPlan.countDocuments).toHaveBeenCalledWith({

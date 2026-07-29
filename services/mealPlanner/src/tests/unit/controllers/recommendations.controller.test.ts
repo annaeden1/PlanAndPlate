@@ -76,7 +76,6 @@ describe("RecommendationController", () => {
   });
 
   it("returns 401 when there is no authenticated user", async () => {
-    // Call the controller directly: the router's auth mock always injects a user.
     const req: any = { user: undefined, params: { recipeId: "999" }, query: {}, headers: {} };
     const res: any = {};
     res.status = jest.fn().mockReturnValue(res);
