@@ -1,40 +1,37 @@
-import FavoriteIcon from '@mui/icons-material/Favorite';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import { Box, Typography } from '@mui/material';
 import { IconBox } from '@/components/common/IconBox';
 import { SelectableCard } from '@/components/common/SelectableCard';
-import type { BodyStats } from '@/shared';
 import type { Options } from '../types/options';
-import { goalsOptions } from '../utils/preferencesOptions';
-import { GoalSummary } from './GoalSummary';
+import { activityOptions } from '../utils/preferencesOptions';
 
-interface GoalsStepProps {
-  goal: string;
-  onChange: (goal: string) => void;
-  stats?: Partial<BodyStats>;
+interface ActivityStepProps {
+  activityLevel: string;
+  onChange: (activityLevel: string) => void;
 }
 
-export function GoalsStep({ goal, onChange, stats }: GoalsStepProps) {
-  const options: Options<string> = goalsOptions;
+export function ActivityStep({ activityLevel, onChange }: ActivityStepProps) {
+  const options: Options<string> = activityOptions;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <Box>
         <Typography variant="h2" sx={{ mb: '0.5rem' }}>
-          Health Goals
+          Activity Level
         </Typography>
         <Typography color="text.secondary">
-          What's your primary focus?
+          How active are you on a typical week?
         </Typography>
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        {options.map((goalOption) => {
-          const selected = goal === goalOption.id;
+        {options.map((option) => {
+          const selected = activityLevel === option.id;
           return (
             <SelectableCard
-              key={goalOption.id}
+              key={option.id}
               selected={selected}
-              onClick={() => onChange(goalOption.id)}
+              onClick={() => onChange(option.id)}
               contentSx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -43,19 +40,24 @@ export function GoalsStep({ goal, onChange, stats }: GoalsStepProps) {
               }}
             >
               <IconBox
-                icon={<FavoriteIcon />}
+                icon={<DirectionsRunIcon />}
                 color={selected ? 'primary.contrastText' : 'text.secondary'}
                 bgColor={selected ? 'primary.main' : 'grey.100'}
                 size="3rem"
                 iconSize="1.5rem"
               />
-              <Typography sx={{ flex: 1 }}>{goalOption.label}</Typography>
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ fontWeight: 600 }}>{option.label}</Typography>
+                {option.description && (
+                  <Typography variant="body2" color="text.secondary">
+                    {option.description}
+                  </Typography>
+                )}
+              </Box>
             </SelectableCard>
           );
         })}
       </Box>
-
-      {stats && goal && <GoalSummary stats={stats} goal={goal} />}
     </Box>
   );
 }

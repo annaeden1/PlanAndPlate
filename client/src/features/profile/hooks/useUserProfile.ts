@@ -232,6 +232,8 @@ export const useUserProfile = (): UserProfile => {
           healthGoal: rawGoal,
           preferences: activePrefs,
           goal: goalLabels[rawGoal] || 'Not set',
+          bodyStats: userPreferences.bodyStats,
+          healthGoalId: userPreferences.healthGoal || '',
           loading: false,
           saving: false,
           error: null,
