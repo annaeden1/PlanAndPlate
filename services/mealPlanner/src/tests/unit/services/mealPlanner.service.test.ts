@@ -369,8 +369,6 @@ describe("MealPlannerService Tests", () => {
         expect(d.proteinTargetMet).toBe(true);
       });
 
-      // Cached rows must be valid (source is required) and carry the
-      // provenance fields used by cache-first search.
       const inserted = (Recipe.insertMany as jest.Mock).mock.calls[0][0];
       expect(inserted.length).toBeGreaterThan(0);
       for (const row of inserted) {

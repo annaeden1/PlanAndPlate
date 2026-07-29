@@ -200,7 +200,6 @@ describe("recommendationService.getSuggestions", () => {
       "dinner",
       6,
     );
-
     expect(mealPlannerService.getRecipeDetails).toHaveBeenCalledWith("77");
     expect(result.map((r) => r.originRecipeId)).toEqual(["4"]);
   });
