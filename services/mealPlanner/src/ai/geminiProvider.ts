@@ -6,8 +6,14 @@ import {
   buildNutritionPrompt,
 } from "./nutritionPrompt";
 
-const EMBED_MODEL = "gemini-embedding-001"; // text-only, 3072-dim
+const EMBED_MODEL = "gemini-embedding-001"; // text-only, Matryoshka (768–3072)
+const EMBED_DIM = 768; // < 3072 → returned unnormalized, so we L2-normalize below
 const TEXT_MODEL = "gemini-2.0-flash";
+
+function l2normalize(v: number[]): number[] {
+  const norm = Math.sqrt(v.reduce((s, x) => s + x * x, 0));
+  return norm > 0 ? v.map((x) => x / norm) : v;
+}
 
 export class GeminiProvider implements AiProvider {
   private ai: GoogleGenAI;
@@ -23,9 +29,13 @@ export class GeminiProvider implements AiProvider {
           const res = await this.ai.models.embedContent({
             model: EMBED_MODEL,
             contents: text,
-            config: { taskType: "SEMANTIC_SIMILARITY" },
+            config: {
+              taskType: "SEMANTIC_SIMILARITY",
+              outputDimensionality: EMBED_DIM,
+            },
           });
-          return res.embeddings?.[0]?.values ?? [];
+          const values = res.embeddings?.[0]?.values ?? [];
+          return values.length ? l2normalize(values) : [];
         } catch (err) {
           console.error("Gemini embed failed for text:", err);
           return [];
