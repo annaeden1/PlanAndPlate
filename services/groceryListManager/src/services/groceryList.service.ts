@@ -22,9 +22,6 @@ export const groupByCategory = (items: GroceryItem[]): GroceryItemGroup[] => {
     .sort((a, b) => a.category.localeCompare(b.category));
 };
 
-// Maps spelling/plural variants of a unit to a single canonical form so the
-// same real unit (e.g. "gram" / "grams" / "g") merges into one line item.
-// This canonicalizes spelling only — it never converts magnitudes.
 const UNIT_ALIASES: Record<string, string> = {
   gram: 'g',
   grams: 'g',

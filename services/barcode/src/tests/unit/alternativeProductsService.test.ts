@@ -14,7 +14,6 @@ import type { ProductNutrition } from '../../utils/types/product';
 import type { PreferenceMatch } from '../../utils/types/preferences';
 
 const mockSearch = searchProducts as jest.Mock;
-// The service instantiates AIService once at module load; reach that instance.
 const mockGenerate = (AIService as jest.Mock).mock.results[0].value
   .generateAlternativeProducts as jest.Mock;
 
@@ -77,7 +76,6 @@ describe('generateAlternativeSuggestions', () => {
     mockGenerate.mockResolvedValue([
       { productName: 'Oat Milk', brand: 'Oatly', reason: 'plant based' },
     ]);
-    // Duplicate candidate exercises the de-duplication path.
     mockSearch.mockResolvedValue([
       { product_name: 'Oat Milk', brands: 'Oatly' },
       { product_name: 'Oat Milk', brands: 'Oatly' },
@@ -92,7 +90,6 @@ describe('generateAlternativeSuggestions', () => {
       source: 'openfoodfacts',
       verified: true,
     });
-    // High-confidence match stops after the first query.
     expect(mockSearch).toHaveBeenCalledTimes(1);
   });
 

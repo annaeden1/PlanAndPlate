@@ -69,7 +69,6 @@ describe("makeCachedSearch", () => {
 
     expect(searchApi).not.toHaveBeenCalled();
     expect(results).toHaveLength(3);
-    // Mapped back to ComplexSearchRecipe shape
     expect(results[0].id).toBe(11);
     expect(results[0].title).toBe("cached-11");
     expect(

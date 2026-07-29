@@ -92,7 +92,6 @@ describe('openFoodFactsService', () => {
       mockGet.mockRejectedValue({ code: 'ETIMEDOUT' });
       const result = await offService.searchProducts('failing-query-code');
       expect(result).toEqual([]);
-      // no status -> shouldRetryRequest retries, then final throw is caught.
       expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('ETIMEDOUT'));
     });
 
@@ -134,7 +133,6 @@ describe('openFoodFactsService', () => {
       await expect(offService.fetchProductByBarcode('always-503')).rejects.toEqual({
         response: { status: 503 },
       });
-      // initial attempt + 2 retries
       expect(mockGet).toHaveBeenCalledTimes(3);
     });
   });
