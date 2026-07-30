@@ -133,7 +133,7 @@ export const searchProducts = async (
 // so matching on both is how one specific entry gets addressed, not just "the first tomato".
 const matchesItem = (item: GroceryItem, name: string, unit?: string): boolean => {
   if (item.name !== name) return false;
-  if (unit === null) return true;
+  if (unit === undefined) return true;
   return normalizeUnit(item.unit) === normalizeUnit(unit);
 };
 
