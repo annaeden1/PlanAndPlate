@@ -22,14 +22,14 @@ export const groceryListApi = {
   ) =>
     api.post<GroceryItemGroup[]>(`/users/${userId}/products`, item).then((r) => r.data),
 
-  removeProduct: (userId: string, productName: string) =>
+  removeProduct: (userId: string, productName: string, unit?: string) =>
     api
-      .delete<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}`)
+      .delete<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}`, { params: { unit } })
       .then((r) => r.data),
 
-  removeBoughtItems: (userId: string, names: string[]) =>
+  removeBoughtItems: (userId: string, items: { name: string; unit: string }[]) =>
     api
-      .delete<GroceryItemGroup[]>(`/users/${userId}/products/bought`, { data: { names } })
+      .delete<GroceryItemGroup[]>(`/users/${userId}/products/bought`, { data: { items } })
       .then((r) => r.data),
 
   clearList: (userId: string) =>
@@ -45,13 +45,13 @@ export const groceryListApi = {
       .get<GroceryItem[]>(`/users/${userId}/products/search`, { params: { name } })
       .then((r) => r.data),
 
-  toggleItem: (userId: string, productName: string) =>
+  toggleItem: (userId: string, productName: string, unit?: string) =>
     api
-      .patch<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}/toggle`)
+      .patch<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}/toggle`, undefined, { params: { unit } })
       .then((r) => r.data),
 
-  updateInventoryQuantity: (userId: string, productName: string, inventoryQuantity: number) =>
+  updateInventoryQuantity: (userId: string, productName: string, inventoryQuantity: number, unit?: string) =>
     api
-      .patch<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}/inventory`, { inventoryQuantity })
+      .patch<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}/inventory`, { inventoryQuantity }, { params: { unit } })
       .then((r) => r.data),
 };

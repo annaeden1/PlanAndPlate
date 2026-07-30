@@ -4,7 +4,7 @@ const swaggerSpec = swaggerJsdoc({
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Plan & Plate - Barcode API',
+      title: 'Plan & Plate — Barcode API',
       version: '1.0.0',
       description: 'REST API for the Barcode microservice',
     },

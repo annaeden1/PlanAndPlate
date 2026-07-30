@@ -8,10 +8,10 @@ import { NeedDisplay } from './groceryItemCard/NeedDisplay';
 
 interface GroceryItemCardProps {
   item: GroceryItem;
-  onDelete: (name: string) => void;
-  onUpdateInventory: (name: string, quantity: number) => void;
-  onDone: (name: string) => void;
-  onToggle: (name: string) => void;
+  onDelete: (name: string, unit: string) => void;
+  onUpdateInventory: (name: string, unit: string, quantity: number) => void;
+  onDone: (name: string, unit: string) => void;
+  onToggle: (name: string, unit: string) => void;
 }
 
 export const GroceryItemCard = ({
@@ -41,7 +41,7 @@ export const GroceryItemCard = ({
     >
       <Checkbox
         checked={isDone}
-        onChange={() => onToggle(item.name)}
+        onChange={() => onToggle(item.name, item.unit)}
         sx={{
           color: 'divider',
           '&.Mui-checked': { color: 'primary.main' },
@@ -61,20 +61,20 @@ export const GroceryItemCard = ({
           <HaveStepper
             inventoryQuantity={item.inventoryQuantity}
             unit={item.unit}
-            onUpdate={(next) => onUpdateInventory(item.name, next)}
+            onUpdate={(next) => onUpdateInventory(item.name, item.unit, next)}
           />
           <BuyOrDoneAction
             isDone={isDone}
             buyAmount={buyAmount}
             unit={item.unit}
-            onDone={() => onDone(item.name)}
+            onDone={() => onDone(item.name, item.unit)}
           />
         </Stack>
       </Stack>
 
       <IconButton
         size="small"
-        onClick={() => onDelete(item.name)}
+        onClick={() => onDelete(item.name, item.unit)}
         sx={{
           alignSelf: 'flex-start',
           color: 'text.secondary',

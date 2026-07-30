@@ -8,14 +8,14 @@ export const barcodeRouter = Router();
  * @swagger
  * tags:
  *   name: Barcode
- *   description: Barcode scanning and preference validation endpoints
+ *   description: Barcode scanning, product lookup, and preference validation endpoints
  */
 
 /**
  * @swagger
  * /barcode/scan/{userId}:
  *   post:
- *     summary: Scan a barcode, fetch product data, and evaluate user preference match
+ *     summary: Scan a barcode and get nutrition data, preference matches, and AI-suggested alternatives
  *     tags: [Barcode]
  *     security:
  *       - bearerAuth: []
@@ -38,12 +38,12 @@ export const barcodeRouter = Router();
  *               barcode:
  *                 type: string
  *                 description: Product barcode to scan
- *                 example: "737628064502"
+ *                 example: "3017620422003"
  *     responses:
  *       200:
- *         description: Product details, preference matches, and alternatives
+ *         description: Nutrition data, preference matches, and alternatives (if a mismatch was found)
  *       400:
- *         description: Barcode is missing from request body
+ *         description: Barcode is required
  *       401:
  *         description: Unauthorized
  *       404:

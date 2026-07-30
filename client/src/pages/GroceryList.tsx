@@ -202,7 +202,7 @@ export const GroceryList = () => {
                   <Stack spacing="0.75rem">
                     {group.items.map((item: GroceryItem) => (
                       <GroceryItemCard
-                        key={item.name}
+                        key={`${item.name}::${item.unit}`}
                         item={item}
                         onDelete={removeItem}
                         onUpdateInventory={updateInventoryQuantity}

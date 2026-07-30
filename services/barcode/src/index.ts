@@ -1,8 +1,8 @@
 import express, { Express } from 'express';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
-import { barcodeRouter } from './routes/barcode.routes';
 import swaggerUi from 'swagger-ui-express';
+import { barcodeRouter } from './routes/barcode.routes';
 import swaggerSpec from './config/swagger';
 
 dotenv.config();

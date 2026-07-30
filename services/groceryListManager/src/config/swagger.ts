@@ -9,6 +9,15 @@ const swaggerSpec = swaggerJsdoc({
       description: 'REST API for the Grocery List Manager microservice',
     },
     servers: [{ url: `http://localhost:${process.env.PORT || 8080}` }],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
   },
   apis: ['./src/routes/*.ts'],
 });

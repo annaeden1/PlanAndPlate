@@ -31,11 +31,11 @@ interface GroceryListActions {
     aisle?: string;
   }) => Promise<void>;
   importRecipe: (recipeId: string, mealPlanId?: string) => Promise<void>;
-  removeItem: (productName: string) => Promise<void>;
+  removeItem: (productName: string, unit: string) => Promise<void>;
   removeBoughtItems: () => Promise<void>;
   clearList: () => Promise<void>;
-  updateInventoryQuantity: (productName: string, quantity: number) => void;
-  toggleChecked: (productName: string) => void;
+  updateInventoryQuantity: (productName: string, unit: string, quantity: number) => void;
+  toggleChecked: (productName: string, unit: string) => void;
 }
 
 const GroceryListContext = createContext<
@@ -84,10 +84,10 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const removeItem = useCallback(
-    async (productName: string) => {
+    async (productName: string, unit: string) => {
       setError(null);
       try {
-        const data = await groceryListApi.removeProduct(userId, productName);
+        const data = await groceryListApi.removeProduct(userId, productName, unit);
         setGroups(data);
       } catch (err) {
         setError(getErrorMessage(err));
@@ -126,14 +126,14 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
   const removeBoughtItems = useCallback(async () => {
     setError(null);
     try {
-      const inStockNames = groups
+      const inStockItems = groups
         .flatMap((g) => g.items)
         .filter(
           (item) => item.inventoryQuantity >= item.quantity || item.checked,
         )
-        .map((item) => item.name);
-      if (inStockNames.length === 0) return;
-      const data = await groceryListApi.removeBoughtItems(userId, inStockNames);
+        .map((item) => ({ name: item.name, unit: item.unit }));
+      if (inStockItems.length === 0) return;
+      const data = await groceryListApi.removeBoughtItems(userId, inStockItems);
       setGroups(data);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -141,19 +141,19 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
   }, [groups, userId]);
 
   const toggleChecked = useCallback(
-    (productName: string) => {
+    (productName: string, unit: string) => {
       setGroups((prev) =>
         prev.map((group) => ({
           ...group,
           items: group.items.map((item: GroceryItem) =>
-            item.name === productName
+            item.name === productName && item.unit === unit
               ? { ...item, checked: !item.checked }
               : item,
           ),
         })),
       );
       groceryListApi
-        .toggleItem(userId, productName)
+        .toggleItem(userId, productName, unit)
         .then(setGroups)
         .catch(() => refresh());
     },
@@ -172,13 +172,13 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const updateInventoryQuantity = useCallback(
-    (productName: string, quantity: number) => {
+    (productName: string, unit: string, quantity: number) => {
       const clamped = Math.max(0, quantity);
       setGroups((prev) =>
         prev.map((group) => ({
           ...group,
           items: group.items.map((item: GroceryItem) =>
-            item.name === productName
+            item.name === productName && item.unit === unit
               ? { ...item, inventoryQuantity: clamped }
               : item,
           ),
@@ -188,7 +188,7 @@ export const GroceryListProvider = ({ children }: { children: ReactNode }) => {
         clearTimeout(inventoryDebounceRef.current);
       inventoryDebounceRef.current = setTimeout(() => {
         groceryListApi
-          .updateInventoryQuantity(userId, productName, clamped)
+          .updateInventoryQuantity(userId, productName, clamped, unit)
           .then(setGroups)
           .catch(() => refresh());
       }, 400);
