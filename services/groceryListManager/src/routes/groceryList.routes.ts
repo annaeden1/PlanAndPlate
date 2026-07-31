@@ -84,7 +84,10 @@ router.get('/users/:userId/products/search', GroceryController.searchProducts);
  *       404:
  *         description: Product not found
  */
-router.get('/users/:userId/products/:productName', GroceryController.getProduct);
+router.get(
+  '/users/:userId/products/:productName',
+  GroceryController.getProduct,
+);
 
 /**
  * @swagger
@@ -157,7 +160,10 @@ router.post('/users/:userId/products', GroceryController.addProduct);
  *       201:
  *         description: Updated grocery list with imported ingredients
  */
-router.post('/users/:userId/recipes/:recipeId/ingredients', GroceryController.importRecipeIngredients);
+router.post(
+  '/users/:userId/recipes/:recipeId/ingredients',
+  GroceryController.importRecipeIngredients,
+);
 
 /**
  * @swagger
@@ -182,7 +188,10 @@ router.post('/users/:userId/recipes/:recipeId/ingredients', GroceryController.im
  *       200:
  *         description: Updated grocery list items
  */
-router.patch('/users/:userId/products/:productName/toggle', GroceryController.toggleItem);
+router.patch(
+  '/users/:userId/products/:productName/toggle',
+  GroceryController.toggleItem,
+);
 
 /**
  * @swagger
@@ -223,9 +232,71 @@ router.patch('/users/:userId/products/:productName/toggle', GroceryController.to
  *       404:
  *         description: Product or grocery list not found
  */
-router.patch('/users/:userId/products/:productName/inventory', GroceryController.updateInventoryQuantity);
-router.delete('/users/:userId/products/bought', GroceryController.removeBoughtItems);
-router.delete('/users/:userId/products/:productName', GroceryController.removeProduct);
+router.patch(
+  '/users/:userId/products/:productName/inventory',
+  GroceryController.updateInventoryQuantity,
+);
+
+/**
+ * @swagger
+ * /grocerylist/users/{userId}/products/bought:
+ *   delete:
+ *     summary: Remove all bought items from the grocery list
+ *     tags: [GroceryList]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Bought items removed from the grocery list
+ *       400:
+ *         description: Invalid request
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.delete(
+  '/users/:userId/products/bought',
+  GroceryController.removeBoughtItems,
+);
+
+/**
+ * @swagger
+ * /grocerylist/users/{userId}/products/{productName}:
+ *   delete:
+ *     summary: Remove a product from the grocery list
+ *     tags: [GroceryList]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: productName
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Product removed from the grocery list
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.delete(
+  '/users/:userId/products/:productName',
+  GroceryController.removeProduct,
+);
 
 /**
  * @swagger
