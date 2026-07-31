@@ -1,22 +1,19 @@
-import axios from "axios";
-import mongoose from "mongoose";
-import { MealPlan, IMealPlan, IMealPlanDay } from "../models/mealPlanModel";
-import { Recipe, IRecipe } from "../models/recipeModel";
-import { UserFavorites } from "../models/userFavoritesModel";
-import { getRecipeDetails as getSpoonacularRecipe } from "./spoonacularService.service";
-import {
-  makeCachedSearch,
-  normalizeAllergyList,
-} from "./cachedRecipeSearch";
-import { normalizeUnit } from "../utils/types/units";
+import axios from 'axios';
+import mongoose from 'mongoose';
+import { MealPlan, IMealPlan, IMealPlanDay } from '../models/mealPlanModel';
+import { Recipe, IRecipe } from '../models/recipeModel';
+import { UserFavorites } from '../models/userFavoritesModel';
+import { getRecipeDetails as getSpoonacularRecipe } from './spoonacularService.service';
+import { makeCachedSearch, normalizeAllergyList } from './cachedRecipeSearch';
+import { normalizeUnit } from '../utils/types/units';
 import {
   nutrients,
   ComplexSearchRecipe,
   SlotResult,
-} from "../utils/types/spoonacularTypes";
-import { calcTargets, BodyStats } from "../utils/calorieCalculator";
-import { buildWeek } from "../utils/dayPlanBuilder";
-import { getAiProvider } from "../ai/aiProvider";
+} from '../utils/types/spoonacularTypes';
+import { calcTargets, BodyStats } from '../utils/calorieCalculator';
+import { buildWeek } from '../utils/dayPlanBuilder';
+import { getAiProvider } from '../ai/aiProvider';
 
 const NUTRITION_FALLBACK = { calories: 400, protein: 20, fat: 15, carbs: 45 };
 
@@ -31,9 +28,9 @@ const slotToMeal = (slot?: SlotResult) =>
         recipeId: String(slot.recipe.id),
         name: slot.recipe.title,
         calories: Math.round(slot.calories),
-        image: slot.recipe.image ?? "",
+        image: slot.recipe.image ?? '',
       }
-    : { recipeId: "0", name: "", calories: 0, image: "" };
+    : { recipeId: '0', name: '', calories: 0, image: '' };
 
 interface ParsedUserPreferences {
   /** First diet value — used when an API accepts only one (e.g. Spoonacular). */
@@ -63,7 +60,7 @@ class MealPlannerService {
 
     const targets = calcTargets(
       userPreferences.bodyStats,
-      userPreferences.healthGoal ?? "",
+      userPreferences.healthGoal ?? '',
     );
 
     const recentRecipeIds = await this.getRecentRecipeIds(
@@ -102,13 +99,13 @@ class MealPlannerService {
       await Recipe.insertMany(
         Array.from(toInsert.values()).map((r) => ({
           originRecipeId: String(r.id),
-          source: "spoonacular",
+          source: 'spoonacular',
           name: r.title,
           image: r.image,
-          calories: nutrientAmount(r, "Calories"),
-          protein: nutrientAmount(r, "Protein"),
-          fat: nutrientAmount(r, "Fat"),
-          carbs: nutrientAmount(r, "Carbohydrates"),
+          calories: nutrientAmount(r, 'Calories'),
+          protein: nutrientAmount(r, 'Protein'),
+          fat: nutrientAmount(r, 'Fat'),
+          carbs: nutrientAmount(r, 'Carbohydrates'),
           diets: r.diets ?? [],
           fetchedWithExclusions: exclusions,
         })),
@@ -126,16 +123,15 @@ class MealPlannerService {
     const days = week.map((day, index) => {
       const dateObj = new Date(weekStart);
       dateObj.setDate(weekStart.getDate() + index);
-      const dateStr = dateObj.toISOString().split("T")[0];
+      const dateStr = dateObj.toISOString().split('T')[0];
 
-      const bySlot = (name: string) =>
-        day.slots.find((s) => s.slot === name);
+      const bySlot = (name: string) => day.slots.find((s) => s.slot === name);
 
       return {
         date: dateStr,
-        breakfast: slotToMeal(bySlot("breakfast")),
-        lunch: slotToMeal(bySlot("lunch")),
-        dinner: slotToMeal(bySlot("dinner")),
+        breakfast: slotToMeal(bySlot('breakfast')),
+        lunch: slotToMeal(bySlot('lunch')),
+        dinner: slotToMeal(bySlot('dinner')),
         proteinTargetMet: day.proteinTargetMet,
       };
     });
@@ -145,8 +141,8 @@ class MealPlannerService {
         day.slots.forEach((s) => {
           acc.calories += s.calories;
           acc.protein += s.protein;
-          acc.fat += nutrientAmount(s.recipe, "Fat");
-          acc.carbohydrates += nutrientAmount(s.recipe, "Carbohydrates");
+          acc.fat += nutrientAmount(s.recipe, 'Fat');
+          acc.carbohydrates += nutrientAmount(s.recipe, 'Carbohydrates');
         });
         return acc;
       },
@@ -179,15 +175,15 @@ class MealPlannerService {
 
     const weeklyPlan = await MealPlan.findOne({
       userId,
-      "days.date": { $gte: weekStart, $lt: weekEnd },
+      'days.date': { $gte: weekStart, $lt: weekEnd },
     });
     return weeklyPlan;
   }
 
   async getDailyPlan(userId: string, date: any): Promise<any> {
     const dailyPlan = await MealPlan.findOne(
-      { userId, "days.date": date },
-      { "days.$": 1 },
+      { userId, 'days.date': date },
+      { 'days.$': 1 },
     );
 
     if (!dailyPlan || !dailyPlan.days || dailyPlan.days.length === 0) {
@@ -199,7 +195,7 @@ class MealPlannerService {
   async replaceMeal(
     userId: string,
     date: string,
-    mealType: "breakfast" | "lunch" | "dinner",
+    mealType: 'breakfast' | 'lunch' | 'dinner',
     newRecipeId: string,
   ): Promise<IMealPlanDay | null> {
     const recipe = await this.getRecipeDetails(newRecipeId, userId);
@@ -213,7 +209,7 @@ class MealPlannerService {
 
     const plan = await MealPlan.findOne({
       userId,
-      "days.date": { $gte: dayStart, $lt: dayEnd },
+      'days.date': { $gte: dayStart, $lt: dayEnd },
     });
     if (!plan) return null;
 
@@ -227,10 +223,10 @@ class MealPlannerService {
       recipeId: String(newRecipeId),
       name: recipe.name,
       calories: recipe.calories ?? 0,
-      image: recipe.image ?? "",
+      image: recipe.image ?? '',
     };
 
-    plan.markModified("days");
+    plan.markModified('days');
 
     plan.nutritionSummary.calories = plan.days.reduce(
       (sum, d) =>
@@ -261,24 +257,24 @@ class MealPlannerService {
       const recipeDetails = await getSpoonacularRecipe(recipeId);
 
       const fullFields = {
-        source: "spoonacular",
+        source: 'spoonacular',
         originRecipeId: recipeDetails.id || recipeId,
         name: recipeDetails.title,
         image: recipeDetails.image,
         calories:
           recipeDetails.nutrition.nutrients.find(
-            (n: any) => n.name === "Calories",
+            (n: any) => n.name === 'Calories',
           )?.amount || 0,
         protein:
           recipeDetails.nutrition.nutrients.find(
-            (n: any) => n.name === "Protein",
+            (n: any) => n.name === 'Protein',
           )?.amount || 0,
         fat:
-          recipeDetails.nutrition.nutrients.find((n: any) => n.name === "Fat")
+          recipeDetails.nutrition.nutrients.find((n: any) => n.name === 'Fat')
             ?.amount || 0,
         carbs:
           recipeDetails.nutrition.nutrients.find(
-            (n: any) => n.name === "Carbohydrates",
+            (n: any) => n.name === 'Carbohydrates',
           )?.amount || 0,
         servings: recipeDetails.servings,
         readyInMinutes: recipeDetails.readyInMinutes,
@@ -388,13 +384,13 @@ class MealPlannerService {
       const ids = recent.flatMap((plan) =>
         (plan.days ?? []).flatMap((day) =>
           [day.breakfast, day.lunch, day.dinner]
-            .map((meal) => String(meal?.recipeId ?? ""))
-            .filter((id) => id !== "" && id !== "0"),
+            .map((meal) => String(meal?.recipeId ?? ''))
+            .filter((id) => id !== '' && id !== '0'),
         ),
       );
       return [...new Set(ids)];
     } catch (err) {
-      console.warn("Could not load recent recipeIds for no-repeat:", err);
+      console.warn('Could not load recent recipeIds for no-repeat:', err);
       return [];
     }
   }
@@ -404,7 +400,7 @@ class MealPlannerService {
     authHeader?: string,
   ): Promise<ParsedUserPreferences> {
     const res = await axios.get(
-      `${process.env.USER_MANAGMENT_URL}/userManagement/${userId}/preferences`,
+      `${process.env.USER_MANAGEMENT_URL}/userManagement/${userId}/preferences`,
       authHeader ? { headers: { Authorization: authHeader } } : {},
     );
     const raw = res.data?.userPreferences ?? res.data?.preferences ?? {};
@@ -422,9 +418,9 @@ class MealPlannerService {
         : [];
 
     return {
-      primaryDiet: dietList[0] ?? "",
-      dietString: dietList.join(", "),
-      allergies: allergiesList.join(", "),
+      primaryDiet: dietList[0] ?? '',
+      dietString: dietList.join(', '),
+      allergies: allergiesList.join(', '),
       healthGoal: raw.healthGoal ?? undefined,
       weeklyBudget: raw.weeklyBudget ?? undefined,
       bodyStats: raw.bodyStats ?? undefined,
@@ -439,7 +435,7 @@ class MealPlannerService {
     let nutrition = { ...NUTRITION_FALLBACK };
 
     const isValidNumber = (value: unknown): value is number =>
-      typeof value === "number" && !Number.isNaN(value);
+      typeof value === 'number' && !Number.isNaN(value);
 
     const missingNutrition =
       !isValidNumber(recipePayload.calories) &&
@@ -465,14 +461,14 @@ class MealPlannerService {
           };
         } catch (err) {
           console.warn(
-            "Could not fetch user preferences for nutrition estimation:",
+            'Could not fetch user preferences for nutrition estimation:',
             err,
           );
         }
 
         try {
           const estimate = await provider.estimateNutrition({
-            name: recipePayload.name ?? "Recipe",
+            name: recipePayload.name ?? 'Recipe',
             ingredients: ingredients.map((ing) => ({
               name: ing.name,
               amount: ing.amount,
@@ -495,19 +491,19 @@ class MealPlannerService {
             );
           }
         } catch (err) {
-          console.warn("AI nutrition estimation failed, using fallback:", err);
+          console.warn('AI nutrition estimation failed, using fallback:', err);
         }
       } else if (ingredients.length === 0) {
         console.info(
-          "No ingredients provided; using fallback nutrition values.",
+          'No ingredients provided; using fallback nutrition values.',
         );
       }
     }
 
     const manualRecipe = new Recipe({
-      source: "manual",
+      source: 'manual',
       userId,
-      originRecipeId: userId + "-" + new mongoose.Types.ObjectId().toString(),
+      originRecipeId: userId + '-' + new mongoose.Types.ObjectId().toString(),
       name: recipePayload.name,
       image: recipePayload.image,
       servings: recipePayload.servings,
@@ -526,7 +522,7 @@ class MealPlannerService {
 
   async getManualRecipes(userId: string): Promise<(IRecipe & any)[]> {
     const manualRecipes = await Recipe.find({
-      source: "manual",
+      source: 'manual',
       userId,
     }).lean();
     return manualRecipes;
@@ -547,14 +543,14 @@ class MealPlannerService {
       const validMeals = dailyMeals.filter((meal) => {
         if (!meal || !meal.recipeId) return false;
         const recipeIdStr = String(meal.recipeId).trim();
-        return recipeIdStr !== "0" && recipeIdStr !== "";
+        return recipeIdStr !== '0' && recipeIdStr !== '';
       });
       return total + validMeals.length;
     }, 0);
 
     const manualRecipesCount = await Recipe.countDocuments({
       userId,
-      source: "manual",
+      source: 'manual',
     });
 
     return {
@@ -571,17 +567,17 @@ class MealPlannerService {
     const recipe = await Recipe.findOne({ originRecipeId: recipeId });
 
     if (!recipe) return null;
-    if (recipe.source !== "manual" || recipe.userId !== userId) {
-      throw new Error("FORBIDDEN");
+    if (recipe.source !== 'manual' || recipe.userId !== userId) {
+      throw new Error('FORBIDDEN');
     }
 
     const allowedFields: (keyof IRecipe)[] = [
-      "name",
-      "image",
-      "servings",
-      "readyInMinutes",
-      "diets",
-      "instructions",
+      'name',
+      'image',
+      'servings',
+      'readyInMinutes',
+      'diets',
+      'instructions',
     ];
     for (const field of allowedFields) {
       if (payload[field] !== undefined) {
@@ -597,8 +593,8 @@ class MealPlannerService {
     const recipe = await Recipe.findOne({ originRecipeId: recipeId });
 
     if (!recipe) return false;
-    if (recipe.source !== "manual" || recipe.userId !== userId) {
-      throw new Error("FORBIDDEN");
+    if (recipe.source !== 'manual' || recipe.userId !== userId) {
+      throw new Error('FORBIDDEN');
     }
 
     await Recipe.deleteOne({ originRecipeId: recipeId });
