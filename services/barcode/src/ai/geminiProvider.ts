@@ -3,7 +3,7 @@ import { type AlternativePromptInput } from '../utils/types/prompts';
 import { getAlternativeProductsPrompt } from '../utils/aiPrompt';
 import { type AlternativeAiProvider } from './aiProvider';
 
-const GEMINI_MODEL = 'gemini-2.5-flash-lite';
+const GEMINI_MODEL = 'gemini-3.5-flash-lite';
 
 export class GeminiProvider implements AlternativeAiProvider {
   name = 'gemini';
