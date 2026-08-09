@@ -53,7 +53,7 @@ describe('GeminiProvider', () => {
 
     expect(getAlternativeProductsPrompt).toHaveBeenCalledWith(mockPromptInput);
     expect(mockGetGenerativeModel).toHaveBeenCalledWith({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-flash-lite',
       generationConfig: { responseMimeType: 'application/json' },
     });
     expect(mockGenerateContent).toHaveBeenCalledWith('mock prompt');
