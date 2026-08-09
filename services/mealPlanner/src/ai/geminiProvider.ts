@@ -8,7 +8,7 @@ import {
 
 const EMBED_MODEL = "gemini-embedding-001"; // text-only, Matryoshka (768–3072)
 const EMBED_DIM = 768; // < 3072 → returned unnormalized, so we L2-normalize below
-const TEXT_MODEL = "gemini-2.5-flash";
+const TEXT_MODEL = "gemini-3.5-flash-lite";
 
 function l2normalize(v: number[]): number[] {
   const norm = Math.sqrt(v.reduce((s, x) => s + x * x, 0));
