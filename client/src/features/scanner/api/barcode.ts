@@ -1,8 +1,11 @@
 import axios from 'axios';
 import type { ProductData } from '@/shared';
 
+const BASE_URL =
+  import.meta.env.VITE_SERVER_BASE_URL || 'http://localhost:9000';
+
 const api = axios.create({
-  baseURL: '/barcode',
+  baseURL: `${BASE_URL}/barcode`,
   headers: { 'Content-Type': 'application/json' },
 });
 

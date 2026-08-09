@@ -2,6 +2,7 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import express, { Express } from 'express';
 import mongoose from 'mongoose';
+import cors from 'cors';
 import { authRouter } from './routes/auth.routes';
 import { userManagementRouter } from './routes/userManagement.routes';
 import swaggerUi from 'swagger-ui-express';
@@ -11,6 +12,7 @@ dotenv.config();
 
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use('/auth', authRouter);

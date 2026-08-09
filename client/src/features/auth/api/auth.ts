@@ -2,12 +2,16 @@ import axios from 'axios';
 import type { OnboardingData } from '@/shared';
 import type { AuthResponse } from '../types/auth';
 
+const BASE_URL =
+  import.meta.env.VITE_SERVER_BASE_URL || 'http://localhost:8000';
+
 const managementApi = axios.create({
-  baseURL: '/userManagement',
+  baseURL: `${BASE_URL}/userManagement`,
   headers: { 'Content-Type': 'application/json' },
 });
 
 const authApi = axios.create({
+  baseURL: `${BASE_URL}/auth`,
   headers: { 'Content-Type': 'application/json' },
 });
 

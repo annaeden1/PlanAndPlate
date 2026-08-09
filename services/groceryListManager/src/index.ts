@@ -2,6 +2,7 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import express, { Express } from 'express';
 import mongoose from 'mongoose';
+import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import groceryListRoutes from './routes/groceryList.routes';
 import swaggerSpec from './config/swagger';
@@ -10,6 +11,7 @@ dotenv.config();
 
 const app = express();
 
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
