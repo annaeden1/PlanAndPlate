@@ -1,0 +1,599 @@
+{
+  "e1": {
+    "gridSize": 10080,
+    "byGoal": {
+      "gain_muscle": {
+        "targetCalories": {
+          "n": 2520,
+          "mean": 2666.13,
+          "sd": 595.32,
+          "min": 1210,
+          "max": 4681
+        },
+        "proteinGrams": {
+          "n": 2520,
+          "mean": 143,
+          "sd": 38,
+          "min": 86,
+          "max": 200
+        }
+      },
+      "lose_weight": {
+        "targetCalories": {
+          "n": 2520,
+          "mean": 1977.57,
+          "sd": 429.76,
+          "min": 1200,
+          "max": 3460
+        },
+        "proteinGrams": {
+          "n": 2520,
+          "mean": 120,
+          "sd": 32,
+          "min": 72,
+          "max": 168
+        }
+      },
+      "eat_healthier": {
+        "targetCalories": {
+          "n": 2520,
+          "mean": 2319.12,
+          "sd": 516.38,
+          "min": 1200,
+          "max": 4071
+        },
+        "proteinGrams": {
+          "n": 2520,
+          "mean": 90,
+          "sd": 24,
+          "min": 54,
+          "max": 126
+        }
+      },
+      "maintain_weight": {
+        "targetCalories": {
+          "n": 2520,
+          "mean": 2319.12,
+          "sd": 516.38,
+          "min": 1200,
+          "max": 4071
+        },
+        "proteinGrams": {
+          "n": 2520,
+          "mean": 90,
+          "sd": 24,
+          "min": 54,
+          "max": 126
+        }
+      }
+    },
+    "meanTargetByActivityAndGoal": {
+      "gain_muscle": [
+        2083,
+        2387,
+        2543,
+        2691,
+        2994,
+        3298
+      ],
+      "lose_weight": [
+        1572,
+        1771,
+        1882,
+        1989,
+        2213,
+        2438
+      ],
+      "eat_healthier": [
+        1816,
+        2076,
+        2211,
+        2340,
+        2604,
+        2868
+      ],
+      "maintain_weight": [
+        1816,
+        2076,
+        2211,
+        2340,
+        2604,
+        2868
+      ]
+    },
+    "activities": [
+      "sedentary",
+      "light",
+      "moderate",
+      "active",
+      "very_active",
+      "extra_active"
+    ],
+    "weights": [
+      45,
+      55,
+      65,
+      75,
+      85,
+      95,
+      105
+    ],
+    "proteinByWeightAndGoal": {
+      "gain_muscle": [
+        86,
+        105,
+        124,
+        143,
+        162,
+        181,
+        200
+      ],
+      "lose_weight": [
+        72,
+        88,
+        104,
+        120,
+        136,
+        152,
+        168
+      ],
+      "eat_healthier": [
+        54,
+        66,
+        78,
+        90,
+        102,
+        114,
+        126
+      ],
+      "maintain_weight": [
+        54,
+        66,
+        78,
+        90,
+        102,
+        114,
+        126
+      ]
+    },
+    "floorBindingRate": {
+      "male/gain_muscle": 0.08,
+      "male/lose_weight": 8.1,
+      "male/eat_healthier": 1.35,
+      "male/maintain_weight": 1.35,
+      "female/gain_muscle": 0,
+      "female/lose_weight": 3.57,
+      "female/eat_healthier": 0.48,
+      "female/maintain_weight": 0.48
+    },
+    "incompleteProfilesDeclined": "5/5"
+  },
+  "e2": {
+    "trials": 1000,
+    "rawLineItems": {
+      "n": 1000,
+      "mean": 84,
+      "sd": 0,
+      "min": 84,
+      "max": 84
+    },
+    "mergedLineItems": {
+      "n": 1000,
+      "mean": 59.63,
+      "sd": 3.84,
+      "min": 47,
+      "max": 70
+    },
+    "reductionPercent": {
+      "n": 1000,
+      "mean": 29.02,
+      "sd": 4.57,
+      "min": 16.67,
+      "max": 44.05
+    },
+    "itemsFromMultipleRecipesPercent": {
+      "n": 1000,
+      "mean": 25.84,
+      "sd": 6,
+      "min": 10.45,
+      "max": 47.92
+    },
+    "reductionHistogram": {
+      "26-28": 188,
+      "24-26": 96,
+      "20-22": 39,
+      "36-38": 20,
+      "28-30": 203,
+      "34-36": 92,
+      "22-24": 88,
+      "30-32": 102,
+      "44-46": 1,
+      "32-34": 116,
+      "38-40": 29,
+      "40-42": 8,
+      "16-18": 8,
+      "18-20": 8,
+      "42-44": 2
+    }
+  },
+  "e3": {
+    "corpusRecipes": 50,
+    "corpusIngredients": 200,
+    "distinctAisleStrings": 19,
+    "perCategory": {
+      "Produce": 49,
+      "Dairy": 27,
+      "Meat": 24,
+      "Poultry": 0,
+      "Seafood": 17,
+      "Bakery": 8,
+      "Pasta and Rice": 26,
+      "Canned and Jarred": 13,
+      "Frozen": 1,
+      "Beverages": 0,
+      "Baking": 1,
+      "Spices and Seasonings": 10,
+      "Oil, Vinegar, Salad Dressing": 3,
+      "Condiments": 12,
+      "Snacks": 2,
+      "Cereal": 3,
+      "Health Foods": 1,
+      "Other": 3
+    },
+    "categoriesUsed": 16,
+    "categoriesTotal": 18,
+    "fellThroughToOtherPercent": 1.5,
+    "distinctRawUnits": 14,
+    "distinctCanonicalUnits": 14
+  },
+  "e5": {
+    "measuredOn": "2026-07-30",
+    "services": [
+      {
+        "name": "User Management",
+        "suites": 5,
+        "tests": 53,
+        "statements": 88.11,
+        "branches": 72.81,
+        "functions": 94.44,
+        "lines": 87.15
+      },
+      {
+        "name": "Meal Planner",
+        "suites": 18,
+        "tests": 249,
+        "statements": 88.54,
+        "branches": 79.76,
+        "functions": 85.27,
+        "lines": 88.71
+      },
+      {
+        "name": "Grocery List",
+        "suites": 5,
+        "tests": 109,
+        "statements": 93.78,
+        "branches": 90.83,
+        "functions": 91.8,
+        "lines": 93.25
+      },
+      {
+        "name": "Barcode",
+        "suites": 9,
+        "tests": 83,
+        "statements": 98.31,
+        "branches": 89.04,
+        "functions": 98.01,
+        "lines": 98.25
+      }
+    ]
+  },
+  "e4": {
+    "corpus": "seeded demonstration corpus",
+    "recipes": 50,
+    "rows": [
+      {
+        "profile": "Maintain, no restriction",
+        "targetCalories": 2516,
+        "proteinGramsPerDay": 90,
+        "slots": [
+          {
+            "slot": "breakfast",
+            "minProtein": 27,
+            "calorieBand": [
+              604,
+              906
+            ],
+            "recipesInCalorieBand": 1,
+            "step": "full floor",
+            "found": 1,
+            "bindingConstraint": "none"
+          },
+          {
+            "slot": "lunch",
+            "minProtein": 36,
+            "calorieBand": [
+              805,
+              1208
+            ],
+            "recipesInCalorieBand": 4,
+            "step": "full floor",
+            "found": 4,
+            "bindingConstraint": "none"
+          },
+          {
+            "slot": "dinner",
+            "minProtein": 27,
+            "calorieBand": [
+              604,
+              906
+            ],
+            "recipesInCalorieBand": 17,
+            "step": "full floor",
+            "found": 7,
+            "bindingConstraint": "none"
+          }
+        ],
+        "daysWithProteinTargetMet": 7,
+        "daysGenerated": 7,
+        "mealsPerDay": 3
+      },
+      {
+        "profile": "Lose weight, no restriction",
+        "targetCalories": 1607,
+        "proteinGramsPerDay": 109,
+        "slots": [
+          {
+            "slot": "breakfast",
+            "minProtein": 32.7,
+            "calorieBand": [
+              386,
+              579
+            ],
+            "recipesInCalorieBand": 5,
+            "step": "full floor",
+            "found": 2,
+            "bindingConstraint": "none"
+          },
+          {
+            "slot": "lunch",
+            "minProtein": 43.6,
+            "calorieBand": [
+              514,
+              771
+            ],
+            "recipesInCalorieBand": 26,
+            "step": "full floor",
+            "found": 7,
+            "bindingConstraint": "none"
+          },
+          {
+            "slot": "dinner",
+            "minProtein": 32.7,
+            "calorieBand": [
+              386,
+              579
+            ],
+            "recipesInCalorieBand": 18,
+            "step": "full floor",
+            "found": 7,
+            "bindingConstraint": "none"
+          }
+        ],
+        "daysWithProteinTargetMet": 7,
+        "daysGenerated": 7,
+        "mealsPerDay": 3
+      },
+      {
+        "profile": "Gain muscle, no restriction",
+        "targetCalories": 3231,
+        "proteinGramsPerDay": 152,
+        "slots": [
+          {
+            "slot": "breakfast",
+            "minProtein": 45.6,
+            "calorieBand": [
+              775,
+              1163
+            ],
+            "recipesInCalorieBand": 1,
+            "step": "70% floor",
+            "found": 1,
+            "bindingConstraint": "none"
+          },
+          {
+            "slot": "lunch",
+            "minProtein": 60.8,
+            "calorieBand": [
+              1034,
+              1551
+            ],
+            "recipesInCalorieBand": 0,
+            "step": "no result",
+            "found": 0,
+            "bindingConstraint": "calorie band"
+          },
+          {
+            "slot": "dinner",
+            "minProtein": 45.6,
+            "calorieBand": [
+              775,
+              1163
+            ],
+            "recipesInCalorieBand": 6,
+            "step": "full floor",
+            "found": 3,
+            "bindingConstraint": "none"
+          }
+        ],
+        "daysWithProteinTargetMet": 0,
+        "daysGenerated": 7,
+        "mealsPerDay": 2
+      },
+      {
+        "profile": "Gain muscle, vegetarian",
+        "targetCalories": 3231,
+        "proteinGramsPerDay": 152,
+        "slots": [
+          {
+            "slot": "breakfast",
+            "minProtein": 45.6,
+            "calorieBand": [
+              775,
+              1163
+            ],
+            "recipesInCalorieBand": 1,
+            "step": "no result",
+            "found": 0,
+            "bindingConstraint": "diet or allergen filter"
+          },
+          {
+            "slot": "lunch",
+            "minProtein": 60.8,
+            "calorieBand": [
+              1034,
+              1551
+            ],
+            "recipesInCalorieBand": 0,
+            "step": "no result",
+            "found": 0,
+            "bindingConstraint": "calorie band"
+          },
+          {
+            "slot": "dinner",
+            "minProtein": 45.6,
+            "calorieBand": [
+              775,
+              1163
+            ],
+            "recipesInCalorieBand": 6,
+            "step": "no result",
+            "found": 0,
+            "bindingConstraint": "diet or allergen filter"
+          }
+        ],
+        "daysWithProteinTargetMet": 0,
+        "daysGenerated": 7,
+        "mealsPerDay": 0
+      },
+      {
+        "profile": "Gain muscle, vegetarian + nut-free",
+        "targetCalories": 3231,
+        "proteinGramsPerDay": 152,
+        "slots": [
+          {
+            "slot": "breakfast",
+            "minProtein": 45.6,
+            "calorieBand": [
+              775,
+              1163
+            ],
+            "recipesInCalorieBand": 1,
+            "step": "no result",
+            "found": 0,
+            "bindingConstraint": "diet or allergen filter"
+          },
+          {
+            "slot": "lunch",
+            "minProtein": 60.8,
+            "calorieBand": [
+              1034,
+              1551
+            ],
+            "recipesInCalorieBand": 0,
+            "step": "no result",
+            "found": 0,
+            "bindingConstraint": "calorie band"
+          },
+          {
+            "slot": "dinner",
+            "minProtein": 45.6,
+            "calorieBand": [
+              775,
+              1163
+            ],
+            "recipesInCalorieBand": 6,
+            "step": "no result",
+            "found": 0,
+            "bindingConstraint": "diet or allergen filter"
+          }
+        ],
+        "daysWithProteinTargetMet": 0,
+        "daysGenerated": 7,
+        "mealsPerDay": 0
+      },
+      {
+        "profile": "Eat healthier, pescatarian",
+        "targetCalories": 1881,
+        "proteinGramsPerDay": 74,
+        "slots": [
+          {
+            "slot": "breakfast",
+            "minProtein": 22.2,
+            "calorieBand": [
+              451,
+              677
+            ],
+            "recipesInCalorieBand": 3,
+            "step": "full floor",
+            "found": 2,
+            "bindingConstraint": "none"
+          },
+          {
+            "slot": "lunch",
+            "minProtein": 29.6,
+            "calorieBand": [
+              602,
+              903
+            ],
+            "recipesInCalorieBand": 17,
+            "step": "full floor",
+            "found": 2,
+            "bindingConstraint": "none"
+          },
+          {
+            "slot": "dinner",
+            "minProtein": 22.2,
+            "calorieBand": [
+              451,
+              677
+            ],
+            "recipesInCalorieBand": 26,
+            "step": "full floor",
+            "found": 7,
+            "bindingConstraint": "none"
+          }
+        ],
+        "daysWithProteinTargetMet": 7,
+        "daysGenerated": 7,
+        "mealsPerDay": 3
+      }
+    ]
+  },
+  "e6": {
+    "note": "Local computation only; excludes Spoonacular, OpenFoodFacts and AI round-trips.",
+    "calorieAndProteinTargets": {
+      "reps": 2000,
+      "meanMs": 0.0004,
+      "medianMs": 0.0002,
+      "p95Ms": 0.0012
+    },
+    "weekConstructionOverLocalCorpus": {
+      "reps": 500,
+      "meanMs": 0.0198,
+      "medianMs": 0.0153,
+      "p95Ms": 0.0355
+    },
+    "mergeWeeklyIngredients": {
+      "reps": 2000,
+      "meanMs": 0.0107,
+      "medianMs": 0.0102,
+      "p95Ms": 0.011
+    },
+    "groupMergedListByCategory": {
+      "reps": 2000,
+      "meanMs": 0.0044,
+      "medianMs": 0.0038,
+      "p95Ms": 0.0053
+    }
+  }
+}
