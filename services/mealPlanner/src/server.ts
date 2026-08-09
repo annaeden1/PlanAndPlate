@@ -17,8 +17,8 @@ initApp()
         );
     } else if (process.env.NODE_ENV === 'production') {
       const options = {
-        key: fs.readFileSync('../../../cs/key.pem'),
-        cert: fs.readFileSync('../../../cs/cert.pem'),
+        key: fs.readFileSync('../../../cs/myserver.key'),
+        cert: fs.readFileSync('../../../cs/CSB.crt'),
       };
       https
         .createServer(options, app)
