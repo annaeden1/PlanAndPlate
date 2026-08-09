@@ -1,4 +1,5 @@
 import swaggerJsdoc from 'swagger-jsdoc';
+import { getServerBaseUrl } from '../utils/serverBaseUrl';
 
 const swaggerSpec = swaggerJsdoc({
   definition: {
@@ -8,7 +9,7 @@ const swaggerSpec = swaggerJsdoc({
       version: '1.0.0',
       description: 'REST API for the Meal Planner microservice',
     },
-    servers: [{ url: `http://localhost:${process.env.PORT || 8080}` }],
+    servers: [{ url: getServerBaseUrl() || `http://localhost:${process.env.PORT || 8080}` }],
     components: {
       securitySchemes: {
         bearerAuth: {
