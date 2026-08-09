@@ -6,8 +6,11 @@ import type {
   RecipeSuggestion,
 } from "@/features/mealPlanner/types/mealPlanner";
 
+const BASE_URL =
+  import.meta.env.VITE_SERVER_BASE_URL || 'http://localhost:3000';
+
 const api = axios.create({
-  baseURL: "/mealPlanner",
+  baseURL: `${BASE_URL}/mealPlanner`,
   headers: { "Content-Type": "application/json" },
 });
 

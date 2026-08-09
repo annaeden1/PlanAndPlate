@@ -2,8 +2,11 @@ import { getUserId } from '@/shared/utils/userId';
 import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 
+const BASE_URL =
+  import.meta.env.VITE_SERVER_BASE_URL || 'http://localhost:3000';
+
 const api = axios.create({
-  baseURL: '/file',
+  baseURL: `${BASE_URL}/file`,
 });
 
 const attachAuthToken = (config: InternalAxiosRequestConfig) => {

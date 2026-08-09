@@ -5,9 +5,9 @@ import mongoose from "mongoose";
 import cors from "cors";
 import { mealPlannerRouter } from "./routes/mealPlannerRouter";
 import fileRouter from "./routes/fileRouter";
-import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger";
+import path from 'path';
 
 dotenv.config();
 
@@ -21,8 +21,13 @@ app.use("/mealPlanner", mealPlannerRouter);
 
 app.use("/public/photos", express.static("public/photos"));
 app.use("/file", fileRouter);
-
+app.use('/public/client', express.static('public/client'));
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+app.use(express.static(path.join(__dirname, '../../public/client')));
+app.get('/{*path}', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../public/client', 'index.html'));
+});
 
 export const initApp = (): Promise<Express> => {
   const promise = new Promise<Express>((resolve, reject) => {

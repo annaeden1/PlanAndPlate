@@ -1,8 +1,11 @@
 import axios from 'axios';
 import type { GroceryItem, GroceryItemGroup } from '../types/grocery';
 
+const BASE_URL =
+  import.meta.env.VITE_SERVER_BASE_URL || 'http://localhost:8080';
+
 const api = axios.create({
-  baseURL: '/grocerylist',
+  baseURL: `${BASE_URL}/grocerylist`,
   headers: { 'Content-Type': 'application/json' },
 });
 
