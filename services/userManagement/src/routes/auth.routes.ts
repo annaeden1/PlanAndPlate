@@ -73,8 +73,6 @@ authRouter.post('/signin', authController.signin);
  *   post:
  *     summary: Logout the authenticated user
  *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: OK - Logged out successfully
@@ -85,7 +83,7 @@ authRouter.post('/signin', authController.signin);
  *       500:
  *         description: Internal Server Error - Failed to logout
  */
-authRouter.post('/logout', authMiddleware, authController.logout);
+authRouter.post('/logout', authController.logout);
 
 /**
  * @swagger
