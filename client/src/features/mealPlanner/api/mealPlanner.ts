@@ -9,7 +9,7 @@ import type {
 const BASE_URL =
   `${import.meta.env.VITE_SERVER_BASE_URL}` +
     ':' +
-    `${import.meta.env.MEAL_PLANNER_SERVICE_PORT}` || 'http://localhost:443';
+    `${import.meta.env.VITE_MEAL_PLANNER_SERVICE_PORT}` || 'http://localhost:443';
 
 const api = axios.create({
   baseURL: `${BASE_URL}/mealPlanner`,

@@ -4,7 +4,7 @@ import type { GroceryItem, GroceryItemGroup } from '../types/grocery';
 const BASE_URL =
   `${import.meta.env.VITE_SERVER_BASE_URL}` +
     ':' +
-    `${import.meta.env.GROCERY_LIST_MANAGER_SERVICE_PORT}` ||
+    `${import.meta.env.VITE_GROCERY_LIST_MANAGER_SERVICE_PORT}` ||
   'http://localhost:5000';
 
 const api = axios.create({

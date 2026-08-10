@@ -5,7 +5,7 @@ import type { AuthResponse } from '../types/auth';
 const BASE_URL =
   `${import.meta.env.VITE_SERVER_BASE_URL}` +
     ':' +
-    `${import.meta.env.USER_MANAGEMENT_SERVICE_PORT}` ||
+    `${import.meta.env.VITE_USER_MANAGEMENT_SERVICE_PORT}` ||
   'http://localhost:7000';
 
 const managementApi = axios.create({
