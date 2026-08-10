@@ -2,7 +2,10 @@ import axios from 'axios';
 import type { GroceryItem, GroceryItemGroup } from '../types/grocery';
 
 const BASE_URL =
-  import.meta.env.VITE_SERVER_BASE_URL || 'http://localhost:8080';
+  `${import.meta.env.VITE_SERVER_BASE_URL}` +
+    ':' +
+    `${import.meta.env.GROCERY_LIST_MANAGER_SERVICE_PORT}` ||
+  'http://localhost:5000';
 
 const api = axios.create({
   baseURL: `${BASE_URL}/grocerylist`,
@@ -17,44 +20,67 @@ api.interceptors.request.use((config) => {
 
 export const groceryListApi = {
   getAll: (userId: string) =>
-    api.get<GroceryItemGroup[]>(`/users/${userId}/products`).then((r) => r.data),
+    api
+      .get<GroceryItemGroup[]>(`/users/${userId}/products`)
+      .then((r) => r.data),
 
   addProduct: (
     userId: string,
     item: { name: string; quantity: number; unit: string; aisle?: string },
   ) =>
-    api.post<GroceryItemGroup[]>(`/users/${userId}/products`, item).then((r) => r.data),
+    api
+      .post<GroceryItemGroup[]>(`/users/${userId}/products`, item)
+      .then((r) => r.data),
 
   removeProduct: (userId: string, productName: string, unit?: string) =>
     api
-      .delete<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}`, { params: { unit } })
+      .delete<
+        GroceryItemGroup[]
+      >(`/users/${userId}/products/${encodeURIComponent(productName)}`, { params: { unit } })
       .then((r) => r.data),
 
-  removeBoughtItems: (userId: string, items: { name: string; unit: string }[]) =>
+  removeBoughtItems: (
+    userId: string,
+    items: { name: string; unit: string }[],
+  ) =>
     api
-      .delete<GroceryItemGroup[]>(`/users/${userId}/products/bought`, { data: { items } })
+      .delete<
+        GroceryItemGroup[]
+      >(`/users/${userId}/products/bought`, { data: { items } })
       .then((r) => r.data),
 
-  clearList: (userId: string) =>
-    api.delete(`/users/${userId}/products`),
+  clearList: (userId: string) => api.delete(`/users/${userId}/products`),
 
   importRecipe: (userId: string, recipeId: string, mealPlanId?: string) =>
     api
-      .post<GroceryItemGroup[]>(`/users/${userId}/recipes/${recipeId}/ingredients`, { mealPlanId })
+      .post<
+        GroceryItemGroup[]
+      >(`/users/${userId}/recipes/${recipeId}/ingredients`, { mealPlanId })
       .then((r) => r.data),
 
   searchProducts: (userId: string, name: string) =>
     api
-      .get<GroceryItem[]>(`/users/${userId}/products/search`, { params: { name } })
+      .get<
+        GroceryItem[]
+      >(`/users/${userId}/products/search`, { params: { name } })
       .then((r) => r.data),
 
   toggleItem: (userId: string, productName: string, unit?: string) =>
     api
-      .patch<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}/toggle`, undefined, { params: { unit } })
+      .patch<
+        GroceryItemGroup[]
+      >(`/users/${userId}/products/${encodeURIComponent(productName)}/toggle`, undefined, { params: { unit } })
       .then((r) => r.data),
 
-  updateInventoryQuantity: (userId: string, productName: string, inventoryQuantity: number, unit?: string) =>
+  updateInventoryQuantity: (
+    userId: string,
+    productName: string,
+    inventoryQuantity: number,
+    unit?: string,
+  ) =>
     api
-      .patch<GroceryItemGroup[]>(`/users/${userId}/products/${encodeURIComponent(productName)}/inventory`, { inventoryQuantity }, { params: { unit } })
+      .patch<
+        GroceryItemGroup[]
+      >(`/users/${userId}/products/${encodeURIComponent(productName)}/inventory`, { inventoryQuantity }, { params: { unit } })
       .then((r) => r.data),
 };

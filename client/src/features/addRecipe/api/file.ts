@@ -1,9 +1,11 @@
 import { getUserId } from '@/shared/utils/userId';
-import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
+import axios from 'axios';
 
 const BASE_URL =
-  import.meta.env.VITE_SERVER_BASE_URL || 'http://localhost:3000';
+  `${import.meta.env.VITE_SERVER_BASE_URL}` +
+    ':' +
+    `${import.meta.env.MEAL_PLANNER_SERVICE_PORT}` || 'http://localhost:443';
 
 const api = axios.create({
   baseURL: `${BASE_URL}/file`,
