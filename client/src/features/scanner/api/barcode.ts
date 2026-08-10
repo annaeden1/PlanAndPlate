@@ -4,7 +4,7 @@ import type { ProductData } from '@/shared';
 const BASE_URL =
   `${import.meta.env.VITE_SERVER_BASE_URL}` +
     ':' +
-    `${import.meta.env.BARCODE_SERVICE_PORT}` || 'http://localhost:9000';
+    `${import.meta.env.VITE_BARCODE_SERVICE_PORT}` || 'http://localhost:9000';
 
 const api = axios.create({
   baseURL: `${BASE_URL}/barcode`,
