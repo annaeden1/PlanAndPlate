@@ -1,21 +1,23 @@
-import axios from "axios";
+import axios from 'axios';
 import type {
   ApiMealPlan,
   ApiMealPlanDay,
   ApiRecipe,
   RecipeSuggestion,
-} from "@/features/mealPlanner/types/mealPlanner";
+} from '@/features/mealPlanner/types/mealPlanner';
 
 const BASE_URL =
-  import.meta.env.VITE_SERVER_BASE_URL || 'http://localhost:3000';
+  `${import.meta.env.VITE_SERVER_BASE_URL}` +
+    ':' +
+    `${import.meta.env.MEAL_PLANNER_SERVICE_PORT}` || 'http://localhost:443';
 
 const api = axios.create({
   baseURL: `${BASE_URL}/mealPlanner`,
-  headers: { "Content-Type": "application/json" },
+  headers: { 'Content-Type': 'application/json' },
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access-token");
+  const token = localStorage.getItem('access-token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });

@@ -1,9 +1,12 @@
-import axios from 'axios';
 import type { OnboardingData } from '@/shared';
+import axios from 'axios';
 import type { AuthResponse } from '../types/auth';
 
 const BASE_URL =
-  import.meta.env.VITE_SERVER_BASE_URL || 'http://localhost:8000';
+  `${import.meta.env.VITE_SERVER_BASE_URL}` +
+    ':' +
+    `${import.meta.env.USER_MANAGEMENT_SERVICE_PORT}` ||
+  'http://localhost:7000';
 
 const managementApi = axios.create({
   baseURL: `${BASE_URL}/userManagement`,
