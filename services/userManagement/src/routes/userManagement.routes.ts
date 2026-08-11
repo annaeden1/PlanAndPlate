@@ -23,6 +23,8 @@ export const userManagementRouter = Router();
  *   patch:
  *     summary: Update a user's password
  *     tags: [UserManagement]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -60,6 +62,8 @@ userManagementRouter.patch('/:userId/password', authMiddleware, updatePassword);
  *   get:
  *     summary: Get user account data
  *     tags: [UserManagement]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -84,6 +88,8 @@ userManagementRouter.get('/:userId/account', authMiddleware, getAccountData);
  *   patch:
  *     summary: Update user account data
  *     tags: [UserManagement]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -125,6 +131,8 @@ userManagementRouter.patch(
  *   get:
  *     summary: Get user preferences
  *     tags: [UserManagement]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
@@ -153,6 +161,8 @@ userManagementRouter.get(
  *   patch:
  *     summary: Update user preferences
  *     tags: [UserManagement]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: userId
