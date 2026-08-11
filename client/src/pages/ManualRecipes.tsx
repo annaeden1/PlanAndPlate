@@ -8,12 +8,12 @@ import type { ApiRecipe } from '@/features/mealPlanner/types/mealPlanner';
 import AddManualRecipeModal from '@/features/addRecipe/components/AddManualRecipeModal';
 import { AddToWeeklyMenuModal } from '@/features/mealPlanner/components/AddToWeeklyMenuModal';
 import { getUserId } from '@/shared/utils/userId';
-import { useMealPlanner } from '@/context/MealPlannerContext';
+import { useTodayMealsStore } from '@/features/home/store/todayMealsStore';
 import platePicturePlaceholder from '@/assets/plate pic.jpg';
 
 export function ManualRecipes() {
   const navigate = useNavigate();
-  const { applyDay } = useMealPlanner();
+  const applyDay = useTodayMealsStore((s) => s.applyDay);
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
   const [selectedRecipeForMenu, setSelectedRecipeForMenu] =
     useState<ApiRecipe | null>(null);

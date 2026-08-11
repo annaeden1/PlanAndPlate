@@ -3,10 +3,10 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import { useGroceryList } from '@/context/GroceryListContext';
-import { useMealPlanner } from '@/context/MealPlannerContext';
 import type { ApiRecipe, RecipeSuggestion } from '@/features/mealPlanner/types/mealPlanner';
 import { SuggestionsDrawer } from '@/features/mealPlanner/components/SuggestionsDrawer';
 import { getUserId } from '@/shared/utils/userId';
+import { useTodayMealsStore } from '@/features/home/store/todayMealsStore';
 import AddManualRecipeModal from '@/features/addRecipe/components/AddManualRecipeModal';
 
 import { RecipeHero } from '@/features/mealPlanner/components/RecipeHero';
@@ -20,7 +20,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
   const { recipeId } = useParams<{ recipeId: string }>();
   const navigate = useNavigate();
   const { importRecipe } = useGroceryList();
-  const { applyDay } = useMealPlanner();
+  const applyDay = useTodayMealsStore((s) => s.applyDay);
   const [recipe, setRecipe] = useState<ApiRecipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
