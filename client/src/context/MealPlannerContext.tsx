@@ -8,6 +8,7 @@ import {
 import type { ReactNode } from 'react';
 
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
+import type { ApiMealPlanDay } from '@/features/mealPlanner/types/mealPlanner';
 import type { Meal } from '@/features/home/types/home';
 import { getUserId } from '../shared/utils/userId';
 
@@ -23,6 +24,21 @@ const MEAL_TYPES: Record<'breakfast' | 'lunch' | 'dinner', Meal['mealType']> = {
   dinner: 'Dinner',
 };
 
+const todayKey = () => new Date().toISOString().split('T')[0];
+
+const mapDayToMeals = (day: ApiMealPlanDay): Meal[] =>
+  (['breakfast', 'lunch', 'dinner'] as const).map((type) => ({
+    id: day[type].recipeId,
+    name: day[type].name,
+    image:
+      day[type].image ||
+      `https://spoonacular.com/recipeImages/${day[type].recipeId}-312x231.jpg`,
+    mealType: MEAL_TYPES[type],
+    time: MEAL_TIMES[type],
+    calories: day[type].calories,
+    completed: false,
+  }));
+
 interface MealPlannerState {
   meals: Meal[];
   loading: boolean;
@@ -30,6 +46,7 @@ interface MealPlannerState {
 
 interface MealPlannerActions {
   toggleMeal: (id: string) => void;
+  applyDay: (day: ApiMealPlanDay) => void;
 }
 
 const MealPlannerContext = createContext<
@@ -47,28 +64,23 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const today = new Date().toISOString().split('T')[0];
-
     mealPlannerApi
-      .getDailyPlan(userId, today)
-      .then((day) => {
-        const mapped: Meal[] = (['breakfast', 'lunch', 'dinner'] as const).map(
-          (type) => ({
-            id: day[type].recipeId,
-            name: day[type].name,
-            image:
-              day[type].image ||
-              `https://spoonacular.com/recipeImages/${day[type].recipeId}-312x231.jpg`,
-            mealType: MEAL_TYPES[type],
-            time: MEAL_TIMES[type],
-            calories: day[type].calories,
-            completed: false,
-          }),
-        );
-        setMeals(mapped);
-      })
+      .getDailyPlan(userId, todayKey())
+      .then((day) => setMeals(mapDayToMeals(day)))
       .catch(() => setMeals([]))
       .finally(() => setLoading(false));
+  }, []);
+
+  const applyDay = useCallback((day: ApiMealPlanDay) => {
+    if (!day?.date || String(day.date).split('T')[0] !== todayKey()) return;
+
+    setMeals((prev) =>
+      mapDayToMeals(day).map((meal) => ({
+        ...meal,
+        // keep the completed ticks for meals that did not change
+        completed: prev.find((p) => p.id === meal.id)?.completed ?? false,
+      })),
+    );
   }, []);
 
   const toggleMeal = useCallback((id: string) => {
@@ -81,7 +93,9 @@ export const MealPlannerProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <MealPlannerContext.Provider value={{ meals, loading, toggleMeal }}>
+    <MealPlannerContext.Provider
+      value={{ meals, loading, toggleMeal, applyDay }}
+    >
       {children}
     </MealPlannerContext.Provider>
   );

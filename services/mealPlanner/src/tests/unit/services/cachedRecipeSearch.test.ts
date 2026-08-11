@@ -102,6 +102,19 @@ describe("makeCachedSearch", () => {
     expect(pipeline[1]).toEqual({ $sample: { size: 3 } });
   });
 
+  // The cache cannot filter on meal type: recipes cached by the weekly-plan
+  // path carry no dishTypes, so the filter would exclude all of them.
+  it("does not filter the cache query by meal type", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([]);
+    searchApi.mockResolvedValue([]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    await search({ ...params, type: "breakfast" });
+
+    const match = (Recipe.aggregate as jest.Mock).mock.calls[0][0][0].$match;
+    expect(match.dishTypes).toBeUndefined();
+  });
+
   it("omits allergy filter for users without allergies", async () => {
     (Recipe.aggregate as jest.Mock).mockResolvedValue([]);
     searchApi.mockResolvedValue([]);
@@ -126,7 +139,46 @@ describe("makeCachedSearch", () => {
     expect(apiParams.minProtein).toBe(20);
     expect(apiParams.offset).toBeGreaterThanOrEqual(0);
     expect(apiParams.offset).toBeLessThanOrEqual(30);
-    expect(results.map((r) => r.id)).toEqual([1, 2, 3]);
+    expect(results.map((r) => r.id)).toEqual([11, 1, 2, 3]); // cached first, then top-up
+  });
+
+  it("serves the cache alone when it holds enough for a full week", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue(
+      Array.from({ length: 7 }, (_, i) => cachedDoc(String(100 + i))),
+    );
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    const results = await search({ ...params, number: 24 });
+
+    expect(searchApi).not.toHaveBeenCalled();
+    expect(results).toHaveLength(7);
+  });
+
+  it("tops the cache up from the API instead of discarding it", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([
+      cachedDoc("11"),
+      cachedDoc("12"),
+    ]);
+    searchApi.mockResolvedValue([apiRecipe(1), apiRecipe(2), apiRecipe(3)]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    const results = await search({ ...params, number: 5 });
+
+    expect(results.map((r) => r.id)).toEqual([11, 12, 1, 2, 3]);
+    expect(searchApi.mock.calls[0][0].number).toBe(3); // only the shortfall
+  });
+
+  it("does not repeat a recipe the cache already supplied", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([
+      cachedDoc("11"),
+      cachedDoc("12"),
+    ]);
+    searchApi.mockResolvedValue([apiRecipe(12), apiRecipe(3)]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    const results = await search({ ...params, number: 5 });
+
+    expect(results.map((r) => r.id)).toEqual([11, 12, 3]);
   });
 
   it("filters API results against the no-repeat list", async () => {

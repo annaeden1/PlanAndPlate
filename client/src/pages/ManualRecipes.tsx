@@ -8,10 +8,12 @@ import type { ApiRecipe } from '@/features/mealPlanner/types/mealPlanner';
 import AddManualRecipeModal from '@/features/addRecipe/components/AddManualRecipeModal';
 import { AddToWeeklyMenuModal } from '@/features/mealPlanner/components/AddToWeeklyMenuModal';
 import { getUserId } from '@/shared/utils/userId';
+import { useMealPlanner } from '@/context/MealPlannerContext';
 import platePicturePlaceholder from '@/assets/plate pic.jpg';
 
 export function ManualRecipes() {
   const navigate = useNavigate();
+  const { applyDay } = useMealPlanner();
   const [isAddRecipeModalOpen, setIsAddRecipeModalOpen] = useState(false);
   const [selectedRecipeForMenu, setSelectedRecipeForMenu] =
     useState<ApiRecipe | null>(null);
@@ -55,7 +57,7 @@ export function ManualRecipes() {
       return;
     }
     try {
-      await mealPlannerApi.replaceMeal(userId, {
+      const updatedDay = await mealPlannerApi.replaceMeal(userId, {
         date,
         mealType,
         newRecipeId:
@@ -63,6 +65,7 @@ export function ManualRecipes() {
           selectedRecipeForMenu._id ||
           '',
       });
+      applyDay(updatedDay);
       setSuccessMessage(
         `Recipe "${selectedRecipeForMenu.name}" added to menu for ${date} (${mealType}).`,
       );
@@ -71,7 +74,7 @@ export function ManualRecipes() {
       if (error.response?.status === 404) {
         try {
           await mealPlannerApi.createWeeklyPlan(userId, date);
-          await mealPlannerApi.replaceMeal(userId, {
+          const retriedDay = await mealPlannerApi.replaceMeal(userId, {
             date,
             mealType,
             newRecipeId:
@@ -79,6 +82,7 @@ export function ManualRecipes() {
               selectedRecipeForMenu._id ||
               '',
           });
+          applyDay(retriedDay);
           setSuccessMessage(
             `Recipe "${selectedRecipeForMenu.name}" added to menu for ${date} (${mealType}).`,
           );

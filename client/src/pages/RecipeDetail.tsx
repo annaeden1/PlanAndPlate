@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { mealPlannerApi } from '@/features/mealPlanner/api/mealPlanner';
 import { useGroceryList } from '@/context/GroceryListContext';
+import { useMealPlanner } from '@/context/MealPlannerContext';
 import type { ApiRecipe, RecipeSuggestion } from '@/features/mealPlanner/types/mealPlanner';
 import { SuggestionsDrawer } from '@/features/mealPlanner/components/SuggestionsDrawer';
 import { getUserId } from '@/shared/utils/userId';
@@ -19,6 +20,7 @@ export function RecipeDetail({}: RecipeDetailProps) {
   const { recipeId } = useParams<{ recipeId: string }>();
   const navigate = useNavigate();
   const { importRecipe } = useGroceryList();
+  const { applyDay } = useMealPlanner();
   const [recipe, setRecipe] = useState<ApiRecipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,10 +69,11 @@ export function RecipeDetail({}: RecipeDetailProps) {
     const userId = getUserId() ?? '';
     try {
       if (date) {
-        await mealPlannerApi.replaceMeal(
+        const updatedDay = await mealPlannerApi.replaceMeal(
           userId,
           { date, mealType, newRecipeId: s.originRecipeId },
         );
+        applyDay(updatedDay);
       }
       setDrawerOpen(false);
       navigate(`/recipe/${s.originRecipeId}${date ? `?date=${date}&mealType=${mealType}` : ''}`);
