@@ -120,6 +120,37 @@ const DAYS_PER_WEEK = 7;
 
 const SLOT_QUERY_COUNT = 24;
 
+const searchSlot = async (
+  spec: SlotSpec,
+  search: SearchRecipesFn,
+): Promise<SlotResult[]> => {
+  try {
+    return await findMealsForSlotType(spec, SLOT_QUERY_COUNT, search);
+  } catch (err) {
+    console.error(`Recipe search failed for ${spec.slot}:`, err);
+    return [];
+  }
+};
+
+const backfillFromSameType = (
+  pools: SlotResult[][],
+  specs: SlotSpec[],
+): SlotResult[][] =>
+  pools.map((pool, i) => {
+    if (pool.length > 0) return pool;
+
+    const donor = specs.findIndex(
+      (other, j) =>
+        j !== i && other.type === specs[i].type && pools[j].length > 0,
+    );
+    if (donor === -1) return pool;
+
+    console.warn(
+      `Filling ${specs[i].slot} from ${specs[donor].slot} - its own search returned nothing`,
+    );
+    return pools[donor].map((r) => toSlotResult(r.recipe, specs[i]));
+  });
+
 const PROTEIN_WEIGHT = 1.5;
 const WEEK_REPEAT_PENALTY = 0.05;
 const SAME_DAY_REPEAT_PENALTY = 5;
@@ -186,10 +217,12 @@ export const buildWeek = async (
   );
 
   const poolsBySlot = await Promise.all(
-    specs.map((spec) => findMealsForSlotType(spec, SLOT_QUERY_COUNT, search)),
+    specs.map((spec) => searchSlot(spec, search)),
   );
 
-  const pools = poolsBySlot.filter((pool) => pool.length > 0);
+  const pools = backfillFromSameType(poolsBySlot, specs).filter(
+    (pool) => pool.length > 0,
+  );
 
   const usedThisWeek = new Set<number>();
   const days: DayResult[] = [];

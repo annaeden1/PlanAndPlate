@@ -3,6 +3,7 @@ import {
   findMealsForSlotType,
   buildWeek,
   SLOT_FRACTIONS,
+  BREAKFAST_CALORIE_CAP,
 } from "../../../utils/dayPlanBuilder";
 import {
   ComplexSearchParams,
@@ -79,10 +80,24 @@ describe("splitDailyTargets — high daily calorie targets", () => {
 
   const slotCalories = (s: SlotSpec) => (s.minCalories + s.maxCalories) / 2;
 
-  it("keeps the slot shares proportional rather than capping any slot", () => {
-    const slots = splitDailyTargets(HIGH_PROTEIN, HIGH_CALORIES);
-    SLOT_FRACTIONS.forEach((fraction, i) =>
-      expect(slotCalories(slots[i])).toBeCloseTo(HIGH_CALORIES * fraction, 0),
+  it("caps breakfast and moves the surplus onto lunch and dinner", () => {
+    const [breakfast, lunch, dinner] = splitDailyTargets(
+      HIGH_PROTEIN,
+      HIGH_CALORIES,
+    );
+    const [, lunchFraction, dinnerFraction] = SLOT_FRACTIONS;
+    const remainder = HIGH_CALORIES - BREAKFAST_CALORIE_CAP;
+    const mainShare = lunchFraction + dinnerFraction;
+
+    // A flat 30% share would demand a 876 kcal breakfast, which no catalogue holds.
+    expect(slotCalories(breakfast)).toBe(BREAKFAST_CALORIE_CAP);
+    expect(slotCalories(lunch)).toBeCloseTo(
+      remainder * (lunchFraction / mainShare),
+      0,
+    );
+    expect(slotCalories(dinner)).toBeCloseTo(
+      remainder * (dinnerFraction / mainShare),
+      0,
     );
   });
 
@@ -477,5 +492,99 @@ describe("buildWeek — high-calorie profile against a realistic catalogue", () 
       (d) => d.slots.find((s) => s.slot === "breakfast")!.recipe.id,
     );
     expect(new Set(breakfastIds).size).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe("buildWeek — lunch and dinner always get a meal", () => {
+  // At 2000 kcal the calorie bands are breakfast 480-720, lunch 640-960 and
+  // dinner 480-720, so a main course capped at 720 is the dinner query.
+  const DINNER_MAX = 720;
+  const LUNCH_MAX = 960;
+
+  const failingSlot = (maxCalories: number, pool: ComplexSearchRecipe[]) =>
+    async (p: ComplexSearchParams) => {
+      if (p.type === "main course" && p.maxCalories === maxCalories) {
+        throw new Error("Spoonacular quota exceeded");
+      }
+      return pool;
+    };
+
+  const mains = Array.from({ length: 7 }, (_, i) => recipe(200 + i, 50, 700));
+
+  it("fills dinner from the lunch pool when the dinner query fails", async () => {
+    const week = await buildWeek(
+      { proteinGramsPerDay: 150, targetCalories: 2000 },
+      failingSlot(DINNER_MAX, mains),
+    );
+
+    week.forEach((day) => {
+      const dinner = day.slots.find((s) => s.slot === "dinner");
+      expect(dinner).toBeDefined();
+      expect(dinner!.recipe.id).toBeGreaterThanOrEqual(200);
+    });
+  });
+
+  it("fills lunch from the dinner pool when the lunch query fails", async () => {
+    const week = await buildWeek(
+      { proteinGramsPerDay: 150, targetCalories: 2000 },
+      failingSlot(LUNCH_MAX, mains),
+    );
+
+    week.forEach((day) => {
+      expect(day.slots.find((s) => s.slot === "lunch")).toBeDefined();
+    });
+  });
+
+  it("re-scores a borrowed pool against the receiving slot's protein floor", async () => {
+    // 50 g clears dinner's 45 g floor but not lunch's 60 g floor.
+    const week = await buildWeek(
+      { proteinGramsPerDay: 150, targetCalories: 2000 },
+      failingSlot(LUNCH_MAX, mains),
+    );
+
+    const lunch = week[0].slots.find((s) => s.slot === "lunch")!;
+    const dinner = week[0].slots.find((s) => s.slot === "dinner")!;
+    expect(lunch.proteinFloorMet).toBe(false);
+    expect(dinner.proteinFloorMet).toBe(true);
+  });
+
+  it("still avoids serving the same recipe for lunch and dinner", async () => {
+    const week = await buildWeek(
+      { proteinGramsPerDay: 150, targetCalories: 2000 },
+      failingSlot(DINNER_MAX, mains),
+    );
+
+    week.forEach((day) => {
+      const lunch = day.slots.find((s) => s.slot === "lunch")!;
+      const dinner = day.slots.find((s) => s.slot === "dinner")!;
+      expect(lunch.recipe.id).not.toBe(dinner.recipe.id);
+    });
+  });
+
+  it("builds the week instead of rejecting when a query throws", async () => {
+    const week = await buildWeek(
+      { proteinGramsPerDay: 150, targetCalories: 2000 },
+      async (p: ComplexSearchParams) => {
+        if (p.type === "breakfast") throw new Error("network down");
+        return mains;
+      },
+    );
+
+    expect(week).toHaveLength(7);
+    week.forEach((day) => {
+      expect(day.slots.map((s) => s.slot)).toEqual(["lunch", "dinner"]);
+    });
+  });
+
+  it("leaves every slot empty only when no query returns anything", async () => {
+    const week = await buildWeek(
+      { proteinGramsPerDay: 150, targetCalories: 2000 },
+      async () => [],
+    );
+
+    week.forEach((day) => {
+      expect(day.slots).toEqual([]);
+      expect(day.proteinTargetMet).toBe(false);
+    });
   });
 });

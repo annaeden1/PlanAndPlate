@@ -267,3 +267,75 @@ describe("makeCachedSearch", () => {
     expect(results.map((r) => r.id)).toEqual([9]);
   });
 });
+
+describe("makeCachedSearch — never returns empty when recipes exist", () => {
+  const searchApi = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([]);
+  });
+
+  it("retries from offset 0 when the random offset overshoots the result set", async () => {
+    searchApi
+      .mockResolvedValueOnce([]) // offset landed past the last page
+      .mockResolvedValueOnce([apiRecipe(1), apiRecipe(2)]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    const results = await search(params);
+
+    expect(searchApi).toHaveBeenCalledTimes(2);
+    expect(searchApi.mock.calls[1][0].offset).toBe(0);
+    expect(results.map((r) => r.id)).toEqual([1, 2]);
+  });
+
+  it("keeps the same filters on the offset-0 retry", async () => {
+    searchApi.mockResolvedValueOnce([]).mockResolvedValueOnce([apiRecipe(1)]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    await search({ ...params, diet: "vegan", excludeIngredients: "peanuts" });
+
+    const retry = searchApi.mock.calls[1][0];
+    expect(retry.diet).toBe("vegan");
+    expect(retry.excludeIngredients).toBe("peanuts");
+    expect(retry.minProtein).toBe(20);
+  });
+
+  it("serves recently used recipes rather than an empty slot", async () => {
+    searchApi.mockResolvedValue([apiRecipe(1), apiRecipe(2)]);
+    const search = makeCachedSearch({
+      recentRecipeIds: ["1", "2"],
+      searchApi,
+    });
+
+    const results = await search(params);
+
+    expect(results.map((r) => r.id)).toEqual([1, 2]);
+  });
+
+  it("still prefers unused recipes when the API returns a mix", async () => {
+    searchApi.mockResolvedValue([apiRecipe(1), apiRecipe(2), apiRecipe(3)]);
+    const search = makeCachedSearch({ recentRecipeIds: ["2"], searchApi });
+
+    const results = await search(params);
+
+    expect(results.map((r) => r.id)).toEqual([1, 3]);
+  });
+
+  it("does not reuse a recent recipe the cache already supplied", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([cachedDoc("11")]);
+    searchApi.mockResolvedValue([apiRecipe(11)]);
+    const search = makeCachedSearch({ recentRecipeIds: ["11"], searchApi });
+
+    const results = await search(params);
+
+    expect(results.map((r) => r.id)).toEqual([11]);
+  });
+
+  it("returns empty only when the API itself has nothing", async () => {
+    searchApi.mockResolvedValue([]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    expect(await search(params)).toEqual([]);
+  });
+});

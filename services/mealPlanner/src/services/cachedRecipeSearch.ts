@@ -85,17 +85,20 @@ export const makeCachedSearch = ({
 
     if (cached.length >= Math.min(size, MIN_VIABLE_POOL)) return cached;
 
+    const wanted = size - cached.length;
     const offset = Math.floor(Math.random() * (MAX_RANDOM_OFFSET + 1));
-    const apiResults = await searchApi({
-      ...params,
-      number: size - cached.length,
-      offset,
-    });
+    let apiResults = await searchApi({ ...params, number: wanted, offset });
+
+    if (apiResults.length === 0 && offset > 0) {
+      apiResults = await searchApi({ ...params, number: wanted, offset: 0 });
+    }
 
     const seen = new Set(cached.map((r) => r.id));
-    const topUp = apiResults.filter(
-      (r) => !recentSet.has(String(r.id)) && !seen.has(r.id),
-    );
+    const fresh = apiResults.filter((r) => !seen.has(r.id));
+    const topUp = fresh.filter((r) => !recentSet.has(String(r.id)));
+
+    if (cached.length === 0 && topUp.length === 0) return fresh;
+
     return [...cached, ...topUp];
   };
 };
