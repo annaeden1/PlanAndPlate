@@ -133,13 +133,13 @@ const composeDay = (
   let best: SlotResult[] = [];
   let bestCost = Infinity;
 
-  const walk = (
+  const chooseCombination = (
     slotIdx: number,
     chosen: SlotResult[],
     calories: number,
     protein: number,
     repeats: number,
-  ): void => {
+  ) => {
     if (slotIdx === pools.length) {
       const calorieCost =
         Math.abs(calories - targetCalories) / (targetCalories || 1);
@@ -161,7 +161,7 @@ const composeDay = (
           ? WEEK_REPEAT_PENALTY
           : 0;
       chosen.push(candidate);
-      walk(
+      chooseCombination(
         slotIdx + 1,
         chosen,
         calories + candidate.calories,
@@ -172,7 +172,7 @@ const composeDay = (
     }
   };
 
-  walk(0, [], 0, 0, 0);
+  chooseCombination(0, [], 0, 0, 0);
   return best;
 };
 

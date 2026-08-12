@@ -35,7 +35,6 @@ function AppRoutes() {
 export function MainAppContainer() {
   const loadToday = useTodayMealsStore((s) => s.loadToday);
 
-  // Today's meals are needed app-wide (home cards, global search), not just on Home
   useEffect(() => {
     loadToday();
   }, [loadToday]);

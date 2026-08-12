@@ -77,12 +77,12 @@ export const useTodayMealsStore = create<TodayMealsState>()(
         try {
           const day = await mealPlannerApi.getDailyPlan(userId, date);
 
-          // The day or the user may have changed while the request was in flight
           if (get().date !== date || get().userId !== userId) return;
 
           set({ meals: mapDayToMeals(day, completedMap(get().meals)) });
-        } catch {
+        } catch (error) {
           // Keep whatever was persisted so a failed refresh doesn't wipe the day
+          console.error('Failed to load today\'s meals', error);
         } finally {
           set({ loading: false });
         }
@@ -106,7 +106,6 @@ export const useTodayMealsStore = create<TodayMealsState>()(
             meal.id === id ? { ...meal, completed: !meal.completed } : meal,
           ),
         })),
-      // TODO: persist to backend once a toggle endpoint is added to mealPlanner service
     }),
     {
       name: 'today-meals',
