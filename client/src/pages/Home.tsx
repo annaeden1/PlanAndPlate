@@ -1,5 +1,5 @@
 import { useGroceryList } from "@/context/GroceryListContext";
-import { useMealPlanner } from "@/context/MealPlannerContext";
+import { useTodayMealsStore } from "@/features/home/store/todayMealsStore";
 import {
   GroceryListCard,
   TodaysMeals,
@@ -24,7 +24,8 @@ const getGreeting = (): string => {
 
 export const HomePage = () => {
   const { groups } = useGroceryList();
-  const { meals, toggleMeal } = useMealPlanner();
+  const meals = useTodayMealsStore((s) => s.meals);
+  const toggleMeal = useTodayMealsStore((s) => s.toggleMeal);
 
   const groceryStatus: GroceryListStatus = useMemo(() => {
     let total = 0;

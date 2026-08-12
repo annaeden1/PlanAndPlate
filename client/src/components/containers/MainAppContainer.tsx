@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { GroceryListProvider } from "../../context/GroceryListContext";
-import { MealPlannerProvider } from "../../context/MealPlannerContext";
 import { Profile } from "@/pages/Profile";
 import { GroceryList } from "../../pages/GroceryList";
 import { MealPlanner } from "@/pages/MealPlanner";
@@ -10,6 +9,7 @@ import { RecipeDetail } from "@/pages/RecipeDetail";
 import { Scanner } from '@/pages/Scanner';
 import { MainLayout } from "../layout/MainLayout";
 import { HomePage } from "@/pages/Home";
+import { useTodayMealsStore } from "@/features/home/store/todayMealsStore";
 
 function AppRoutes() {
   const navigate = useNavigate();
@@ -33,14 +33,18 @@ function AppRoutes() {
 }
 
 export function MainAppContainer() {
+  const loadToday = useTodayMealsStore((s) => s.loadToday);
+
+  useEffect(() => {
+    loadToday();
+  }, [loadToday]);
+
   return (
     <BrowserRouter>
       <GroceryListProvider>
-      <MealPlannerProvider>
         <MainLayout>
           <AppRoutes />
         </MainLayout>
-      </MealPlannerProvider>
       </GroceryListProvider>
     </BrowserRouter>
   );

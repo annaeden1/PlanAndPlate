@@ -102,6 +102,19 @@ describe("makeCachedSearch", () => {
     expect(pipeline[1]).toEqual({ $sample: { size: 3 } });
   });
 
+  // The cache cannot filter on meal type: recipes cached by the weekly-plan
+  // path carry no dishTypes, so the filter would exclude all of them.
+  it("does not filter the cache query by meal type", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([]);
+    searchApi.mockResolvedValue([]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    await search({ ...params, type: "breakfast" });
+
+    const match = (Recipe.aggregate as jest.Mock).mock.calls[0][0][0].$match;
+    expect(match.dishTypes).toBeUndefined();
+  });
+
   it("omits allergy filter for users without allergies", async () => {
     (Recipe.aggregate as jest.Mock).mockResolvedValue([]);
     searchApi.mockResolvedValue([]);
@@ -126,7 +139,46 @@ describe("makeCachedSearch", () => {
     expect(apiParams.minProtein).toBe(20);
     expect(apiParams.offset).toBeGreaterThanOrEqual(0);
     expect(apiParams.offset).toBeLessThanOrEqual(30);
-    expect(results.map((r) => r.id)).toEqual([1, 2, 3]);
+    expect(results.map((r) => r.id)).toEqual([11, 1, 2, 3]); // cached first, then top-up
+  });
+
+  it("serves the cache alone when it holds enough for a full week", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue(
+      Array.from({ length: 7 }, (_, i) => cachedDoc(String(100 + i))),
+    );
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    const results = await search({ ...params, number: 24 });
+
+    expect(searchApi).not.toHaveBeenCalled();
+    expect(results).toHaveLength(7);
+  });
+
+  it("tops the cache up from the API instead of discarding it", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([
+      cachedDoc("11"),
+      cachedDoc("12"),
+    ]);
+    searchApi.mockResolvedValue([apiRecipe(1), apiRecipe(2), apiRecipe(3)]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    const results = await search({ ...params, number: 5 });
+
+    expect(results.map((r) => r.id)).toEqual([11, 12, 1, 2, 3]);
+    expect(searchApi.mock.calls[0][0].number).toBe(3); // only the shortfall
+  });
+
+  it("does not repeat a recipe the cache already supplied", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([
+      cachedDoc("11"),
+      cachedDoc("12"),
+    ]);
+    searchApi.mockResolvedValue([apiRecipe(12), apiRecipe(3)]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    const results = await search({ ...params, number: 5 });
+
+    expect(results.map((r) => r.id)).toEqual([11, 12, 3]);
   });
 
   it("filters API results against the no-repeat list", async () => {
@@ -213,5 +265,77 @@ describe("makeCachedSearch", () => {
 
     expect(searchApi).toHaveBeenCalledTimes(1);
     expect(results.map((r) => r.id)).toEqual([9]);
+  });
+});
+
+describe("makeCachedSearch — never returns empty when recipes exist", () => {
+  const searchApi = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([]);
+  });
+
+  it("retries from offset 0 when the random offset overshoots the result set", async () => {
+    searchApi
+      .mockResolvedValueOnce([]) // offset landed past the last page
+      .mockResolvedValueOnce([apiRecipe(1), apiRecipe(2)]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    const results = await search(params);
+
+    expect(searchApi).toHaveBeenCalledTimes(2);
+    expect(searchApi.mock.calls[1][0].offset).toBe(0);
+    expect(results.map((r) => r.id)).toEqual([1, 2]);
+  });
+
+  it("keeps the same filters on the offset-0 retry", async () => {
+    searchApi.mockResolvedValueOnce([]).mockResolvedValueOnce([apiRecipe(1)]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    await search({ ...params, diet: "vegan", excludeIngredients: "peanuts" });
+
+    const retry = searchApi.mock.calls[1][0];
+    expect(retry.diet).toBe("vegan");
+    expect(retry.excludeIngredients).toBe("peanuts");
+    expect(retry.minProtein).toBe(20);
+  });
+
+  it("serves recently used recipes rather than an empty slot", async () => {
+    searchApi.mockResolvedValue([apiRecipe(1), apiRecipe(2)]);
+    const search = makeCachedSearch({
+      recentRecipeIds: ["1", "2"],
+      searchApi,
+    });
+
+    const results = await search(params);
+
+    expect(results.map((r) => r.id)).toEqual([1, 2]);
+  });
+
+  it("still prefers unused recipes when the API returns a mix", async () => {
+    searchApi.mockResolvedValue([apiRecipe(1), apiRecipe(2), apiRecipe(3)]);
+    const search = makeCachedSearch({ recentRecipeIds: ["2"], searchApi });
+
+    const results = await search(params);
+
+    expect(results.map((r) => r.id)).toEqual([1, 3]);
+  });
+
+  it("does not reuse a recent recipe the cache already supplied", async () => {
+    (Recipe.aggregate as jest.Mock).mockResolvedValue([cachedDoc("11")]);
+    searchApi.mockResolvedValue([apiRecipe(11)]);
+    const search = makeCachedSearch({ recentRecipeIds: ["11"], searchApi });
+
+    const results = await search(params);
+
+    expect(results.map((r) => r.id)).toEqual([11]);
+  });
+
+  it("returns empty only when the API itself has nothing", async () => {
+    searchApi.mockResolvedValue([]);
+    const search = makeCachedSearch({ recentRecipeIds: [], searchApi });
+
+    expect(await search(params)).toEqual([]);
   });
 });

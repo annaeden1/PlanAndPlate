@@ -10,6 +10,8 @@ const MAX_RANDOM_OFFSET = 30;
 
 const DEFAULT_POOL_SIZE = 7;
 
+const MIN_VIABLE_POOL = 7;
+
 export const normalizeAllergyList = (allergies?: string): string[] =>
   (allergies ?? "")
     .split(",")
@@ -79,12 +81,24 @@ export const makeCachedSearch = ({
       local = [];
     }
 
-    if (local.length >= size) {
-      return local.map(toComplexSearchRecipe);
+    const cached = local.map(toComplexSearchRecipe);
+
+    if (cached.length >= Math.min(size, MIN_VIABLE_POOL)) return cached;
+
+    const wanted = size - cached.length;
+    const offset = Math.floor(Math.random() * (MAX_RANDOM_OFFSET + 1));
+    let apiResults = await searchApi({ ...params, number: wanted, offset });
+
+    if (apiResults.length < MIN_VIABLE_POOL && offset > 0) {
+      apiResults = await searchApi({ ...params, number: wanted, offset: 0 });
     }
 
-    const offset = Math.floor(Math.random() * (MAX_RANDOM_OFFSET + 1));
-    const apiResults = await searchApi({ ...params, offset });
-    return apiResults.filter((r) => !recentSet.has(String(r.id)));
+    const seen = new Set(cached.map((r) => r.id));
+    const fresh = apiResults.filter((r) => !seen.has(r.id));
+    const topUp = fresh.filter((r) => !recentSet.has(String(r.id)));
+
+    if (cached.length === 0 && topUp.length === 0) return fresh;
+
+    return [...cached, ...topUp];
   };
 };
