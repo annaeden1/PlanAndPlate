@@ -89,7 +89,7 @@ export const makeCachedSearch = ({
     const offset = Math.floor(Math.random() * (MAX_RANDOM_OFFSET + 1));
     let apiResults = await searchApi({ ...params, number: wanted, offset });
 
-    if (apiResults.length === 0 && offset > 0) {
+    if (apiResults.length < MIN_VIABLE_POOL && offset > 0) {
       apiResults = await searchApi({ ...params, number: wanted, offset: 0 });
     }
 
